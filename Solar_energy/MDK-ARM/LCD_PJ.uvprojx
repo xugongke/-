@@ -340,7 +340,7 @@
               <MiscControls>--diag_suppress=870 --diag_suppress=188 --diag_suppress=546 --diag_suppress=111</MiscControls>
               <Define>USE_HAL_DRIVER,STM32F429xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../Middlewares/LVGL_v8.3.11/lvgl;../Middlewares/LVGL_v8.3.11/lvgl/src;../Middlewares/LVGL_v8.3.11/lvgl/examples;../Middlewares/LVGL_v8.3.11/lvgl/examples/porting;../Middlewares/LVGL_v8.3.11/lvgl/demos;../Middlewares/LVGL_v8.3.11/lvgl/demos/benchmark;../Middlewares/LVGL_v8.3.11/lvgl/demos/keypad_encoder;../Middlewares/LVGL_v8.3.11/lvgl/demos/music;../Middlewares/LVGL_v8.3.11/lvgl/demos/stress;../Middlewares/LVGL_v8.3.11/lvgl/demos/widgets;../Middlewares/LVGL_v8.3.11/lvgl/src/hal;../Middlewares/LVGL_v8.3.11/lvgl/src/misc;../Middlewares/LVGL_v8.3.11/lvgl/src/core;../Middlewares/LVGL_v8.3.11/lvgl/src/draw/stm32_dma2d;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2;../Middlewares/LVGL_v8.3.11/lvgl/myGUI/custom;../Middlewares/LVGL_v8.3.11/lvgl/myGUI/generated;../Middlewares/LVGL_v8.3.11/lvgl/myGUI/generated/guider_customer_fonts;../FATFS/Target;../FATFS/App;../Middlewares/Third_Party/FatFs/src</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../Middlewares/LVGL_v8.3.11/lvgl;../Middlewares/LVGL_v8.3.11/lvgl/src;../Middlewares/LVGL_v8.3.11/lvgl/examples;../Middlewares/LVGL_v8.3.11/lvgl/examples/porting;../Middlewares/LVGL_v8.3.11/lvgl/demos;../Middlewares/LVGL_v8.3.11/lvgl/demos/benchmark;../Middlewares/LVGL_v8.3.11/lvgl/demos/keypad_encoder;../Middlewares/LVGL_v8.3.11/lvgl/demos/music;../Middlewares/LVGL_v8.3.11/lvgl/demos/stress;../Middlewares/LVGL_v8.3.11/lvgl/demos/widgets;../Middlewares/LVGL_v8.3.11/lvgl/src/hal;../Middlewares/LVGL_v8.3.11/lvgl/src/misc;../Middlewares/LVGL_v8.3.11/lvgl/src/core;../Middlewares/LVGL_v8.3.11/lvgl/src/draw/stm32_dma2d;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2;../Middlewares/LVGL_v8.3.11/lvgl/myGUI/custom;../Middlewares/LVGL_v8.3.11/lvgl/myGUI/generated;../Middlewares/LVGL_v8.3.11/lvgl/myGUI/generated/guider_customer_fonts;../FATFS/Target;../FATFS/App;../Middlewares/Third_Party/FatFs/src;../Middlewares/W5500;../Middlewares/W5500/ioLibrary_Driver/Ethernet;../Middlewares/W5500/ioLibrary_Driver/Ethernet/W5500;../Middlewares/W5500/ioLibrary_Driver/Internet/DHCP;../Middlewares/W5500/wiz_interface;../Middlewares/W5500/wiz_platform;../Middlewares/W5500/user_main</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -438,62 +438,6 @@
               <FileName>dma.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Core/Src/dma.c</FilePath>
-              <FileOption>
-                <CommonProperty>
-                  <UseCPPCompiler>2</UseCPPCompiler>
-                  <RVCTCodeConst>0</RVCTCodeConst>
-                  <RVCTZI>0</RVCTZI>
-                  <RVCTOtherData>0</RVCTOtherData>
-                  <ModuleSelection>0</ModuleSelection>
-                  <IncludeInBuild>1</IncludeInBuild>
-                  <AlwaysBuild>2</AlwaysBuild>
-                  <GenerateAssemblyFile>2</GenerateAssemblyFile>
-                  <AssembleAssemblyFile>2</AssembleAssemblyFile>
-                  <PublicsOnly>2</PublicsOnly>
-                  <StopOnExitCode>11</StopOnExitCode>
-                  <CustomArgument></CustomArgument>
-                  <IncludeLibraryModules></IncludeLibraryModules>
-                  <ComprImg>1</ComprImg>
-                </CommonProperty>
-                <FileArmAds>
-                  <Cads>
-                    <interw>2</interw>
-                    <Optim>0</Optim>
-                    <oTime>2</oTime>
-                    <SplitLS>2</SplitLS>
-                    <OneElfS>2</OneElfS>
-                    <Strict>2</Strict>
-                    <EnumInt>2</EnumInt>
-                    <PlainCh>2</PlainCh>
-                    <Ropi>2</Ropi>
-                    <Rwpi>2</Rwpi>
-                    <wLevel>0</wLevel>
-                    <uThumb>2</uThumb>
-                    <uSurpInc>2</uSurpInc>
-                    <uC99>2</uC99>
-                    <uGnu>2</uGnu>
-                    <useXO>2</useXO>
-                    <v6Lang>0</v6Lang>
-                    <v6LangP>0</v6LangP>
-                    <vShortEn>2</vShortEn>
-                    <vShortWch>2</vShortWch>
-                    <v6Lto>2</v6Lto>
-                    <v6WtE>2</v6WtE>
-                    <v6Rtti>2</v6Rtti>
-                    <VariousControls>
-                      <MiscControls></MiscControls>
-                      <Define></Define>
-                      <Undefine></Undefine>
-                      <IncludePath></IncludePath>
-                    </VariousControls>
-                  </Cads>
-                </FileArmAds>
-              </FileOption>
-            </File>
-            <File>
-              <FileName>dma2d.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Core/Src/dma2d.c</FilePath>
               <FileOption>
                 <CommonProperty>
                   <UseCPPCompiler>2</UseCPPCompiler>
@@ -659,44 +603,9 @@
               </FileOption>
             </File>
             <File>
-              <FileName>usart.c</FileName>
+              <FileName>spi.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../Core/Src/usart.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f4xx_it.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Core/Src/stm32f4xx_it.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f4xx_hal_msp.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Core/Src/stm32f4xx_hal_msp.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f4xx_hal_timebase_tim.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Core/Src/stm32f4xx_hal_timebase_tim.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>Drivers/STM32F4xx_HAL_Driver</GroupName>
-          <Files>
-            <File>
-              <FileName>stm32f4xx_hal_tim.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f4xx_hal_tim_ex.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f4xx_hal_dma2d.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma2d.c</FilePath>
+              <FilePath>../Core/Src/spi.c</FilePath>
               <FileOption>
                 <CommonProperty>
                   <UseCPPCompiler>2</UseCPPCompiler>
@@ -748,6 +657,97 @@
                   </Cads>
                 </FileArmAds>
               </FileOption>
+            </File>
+            <File>
+              <FileName>tim.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Core/Src/tim.c</FilePath>
+              <FileOption>
+                <CommonProperty>
+                  <UseCPPCompiler>2</UseCPPCompiler>
+                  <RVCTCodeConst>0</RVCTCodeConst>
+                  <RVCTZI>0</RVCTZI>
+                  <RVCTOtherData>0</RVCTOtherData>
+                  <ModuleSelection>0</ModuleSelection>
+                  <IncludeInBuild>1</IncludeInBuild>
+                  <AlwaysBuild>2</AlwaysBuild>
+                  <GenerateAssemblyFile>2</GenerateAssemblyFile>
+                  <AssembleAssemblyFile>2</AssembleAssemblyFile>
+                  <PublicsOnly>2</PublicsOnly>
+                  <StopOnExitCode>11</StopOnExitCode>
+                  <CustomArgument></CustomArgument>
+                  <IncludeLibraryModules></IncludeLibraryModules>
+                  <ComprImg>1</ComprImg>
+                </CommonProperty>
+                <FileArmAds>
+                  <Cads>
+                    <interw>2</interw>
+                    <Optim>0</Optim>
+                    <oTime>2</oTime>
+                    <SplitLS>2</SplitLS>
+                    <OneElfS>2</OneElfS>
+                    <Strict>2</Strict>
+                    <EnumInt>2</EnumInt>
+                    <PlainCh>2</PlainCh>
+                    <Ropi>2</Ropi>
+                    <Rwpi>2</Rwpi>
+                    <wLevel>0</wLevel>
+                    <uThumb>2</uThumb>
+                    <uSurpInc>2</uSurpInc>
+                    <uC99>2</uC99>
+                    <uGnu>2</uGnu>
+                    <useXO>2</useXO>
+                    <v6Lang>0</v6Lang>
+                    <v6LangP>0</v6LangP>
+                    <vShortEn>2</vShortEn>
+                    <vShortWch>2</vShortWch>
+                    <v6Lto>2</v6Lto>
+                    <v6WtE>2</v6WtE>
+                    <v6Rtti>2</v6Rtti>
+                    <VariousControls>
+                      <MiscControls></MiscControls>
+                      <Define></Define>
+                      <Undefine></Undefine>
+                      <IncludePath></IncludePath>
+                    </VariousControls>
+                  </Cads>
+                </FileArmAds>
+              </FileOption>
+            </File>
+            <File>
+              <FileName>usart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Core/Src/usart.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f4xx_it.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Core/Src/stm32f4xx_it.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f4xx_hal_msp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Core/Src/stm32f4xx_hal_msp.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f4xx_hal_timebase_tim.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Core/Src/stm32f4xx_hal_timebase_tim.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Drivers/STM32F4xx_HAL_Driver</GroupName>
+          <Files>
+            <File>
+              <FileName>stm32f4xx_hal_tim.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f4xx_hal_tim_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c</FilePath>
             </File>
             <File>
               <FileName>stm32f4xx_hal_rcc.c</FileName>
@@ -1266,6 +1266,62 @@
               <FileName>stm32f4xx_hal_mmc.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_mmc.c</FilePath>
+              <FileOption>
+                <CommonProperty>
+                  <UseCPPCompiler>2</UseCPPCompiler>
+                  <RVCTCodeConst>0</RVCTCodeConst>
+                  <RVCTZI>0</RVCTZI>
+                  <RVCTOtherData>0</RVCTOtherData>
+                  <ModuleSelection>0</ModuleSelection>
+                  <IncludeInBuild>1</IncludeInBuild>
+                  <AlwaysBuild>2</AlwaysBuild>
+                  <GenerateAssemblyFile>2</GenerateAssemblyFile>
+                  <AssembleAssemblyFile>2</AssembleAssemblyFile>
+                  <PublicsOnly>2</PublicsOnly>
+                  <StopOnExitCode>11</StopOnExitCode>
+                  <CustomArgument></CustomArgument>
+                  <IncludeLibraryModules></IncludeLibraryModules>
+                  <ComprImg>1</ComprImg>
+                </CommonProperty>
+                <FileArmAds>
+                  <Cads>
+                    <interw>2</interw>
+                    <Optim>0</Optim>
+                    <oTime>2</oTime>
+                    <SplitLS>2</SplitLS>
+                    <OneElfS>2</OneElfS>
+                    <Strict>2</Strict>
+                    <EnumInt>2</EnumInt>
+                    <PlainCh>2</PlainCh>
+                    <Ropi>2</Ropi>
+                    <Rwpi>2</Rwpi>
+                    <wLevel>0</wLevel>
+                    <uThumb>2</uThumb>
+                    <uSurpInc>2</uSurpInc>
+                    <uC99>2</uC99>
+                    <uGnu>2</uGnu>
+                    <useXO>2</useXO>
+                    <v6Lang>0</v6Lang>
+                    <v6LangP>0</v6LangP>
+                    <vShortEn>2</vShortEn>
+                    <vShortWch>2</vShortWch>
+                    <v6Lto>2</v6Lto>
+                    <v6WtE>2</v6WtE>
+                    <v6Rtti>2</v6Rtti>
+                    <VariousControls>
+                      <MiscControls></MiscControls>
+                      <Define></Define>
+                      <Undefine></Undefine>
+                      <IncludePath></IncludePath>
+                    </VariousControls>
+                  </Cads>
+                </FileArmAds>
+              </FileOption>
+            </File>
+            <File>
+              <FileName>stm32f4xx_hal_spi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c</FilePath>
               <FileOption>
                 <CommonProperty>
                   <UseCPPCompiler>2</UseCPPCompiler>
@@ -2780,11 +2836,6 @@
               <FilePath>..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\guider_customer_fonts\guider_customer_fonts.h</FilePath>
             </File>
             <File>
-              <FileName>lv_font_montserratMedium_16.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\guider_fonts\lv_font_montserratMedium_16.c</FilePath>
-            </File>
-            <File>
               <FileName>lv_font_SourceHanSerifSC_Regular_16.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\guider_fonts\lv_font_SourceHanSerifSC_Regular_16.c</FilePath>
@@ -3503,6 +3554,81 @@
                   </Cads>
                 </FileArmAds>
               </FileOption>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>W5500_Ethernet</GroupName>
+          <Files>
+            <File>
+              <FileName>socket.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\W5500\ioLibrary_Driver\Ethernet\socket.c</FilePath>
+            </File>
+            <File>
+              <FileName>wizchip_conf.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\W5500\ioLibrary_Driver\Ethernet\wizchip_conf.c</FilePath>
+            </File>
+            <File>
+              <FileName>w5500.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\W5500\ioLibrary_Driver\Ethernet\W5500\w5500.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>W5500_Internet</GroupName>
+          <Files>
+            <File>
+              <FileName>dhcp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\W5500\ioLibrary_Driver\Internet\DHCP\dhcp.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>W5500_User</GroupName>
+          <Files>
+            <File>
+              <FileName>user_main.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\W5500\user_main\user_main.c</FilePath>
+            </File>
+            <File>
+              <FileName>wiz_interface.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\W5500\wiz_interface\wiz_interface.c</FilePath>
+            </File>
+            <File>
+              <FileName>wiz_platform.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\W5500\wiz_platform\wiz_platform.c</FilePath>
+            </File>
+            <File>
+              <FileName>loopback.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\W5500\ioLibrary_Driver\Application\loopback\loopback.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>A7680C</GroupName>
+          <Files>
+            <File>
+              <FileName>a7680c.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\a7680c.c</FilePath>
+            </File>
+            <File>
+              <FileName>a7680c_at.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\a7680c_at.c</FilePath>
+            </File>
+            <File>
+              <FileName>a7680c_mqtt.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\a7680c_mqtt.c</FilePath>
             </File>
           </Files>
         </Group>

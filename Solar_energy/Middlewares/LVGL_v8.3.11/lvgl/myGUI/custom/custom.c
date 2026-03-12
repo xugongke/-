@@ -14,7 +14,6 @@
 #include <stdio.h>
 #include "lvgl.h"
 #include "custom.h"
-#include <string.h>
 
 /*********************
  *      DEFINES
@@ -32,16 +31,12 @@
  *  STATIC VARIABLES
  **********************/
 
-
 /**
  * Create a demo application
  */
 
-
 void custom_init(lv_ui *ui)
 {
-
+    /* Add your codes here */
 }
-
-
 

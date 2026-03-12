@@ -21,7 +21,7 @@ extern "C" {
 #else
 #include "lvgl.h"
 #endif
-
+#include "ili9488.h"
 /*********************
  *      DEFINES
  *********************/
@@ -43,6 +43,10 @@ void disp_enable_update(void);
 /* Disable updating the screen (the flushing process) when disp_flush() is called by LVGL
  */
 void disp_disable_update(void);
+
+/* 搬运完成图像数据回调函数
+ */
+void LVGL_LCD_FSMC_DMA_pCallback(DMA_HandleTypeDef *_hdma);
 
 /**********************
  *      MACROS

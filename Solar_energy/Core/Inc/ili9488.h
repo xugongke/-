@@ -22,6 +22,7 @@ void ILI9488_DrawLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16
 void ILI9488_DrawRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color);
 void ILI9488_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color);
 void LCD_DispFlush(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2,lv_color_t * color_p);
+void LCD_DMA_DispFlush(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, lv_color_t * color_p);
 #endif
 
 

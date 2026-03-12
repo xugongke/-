@@ -20,14 +20,14 @@ typedef struct
   
 	lv_obj_t *screen_user_list;
 	bool screen_user_list_del;
-	lv_obj_t *screen_user_list_list_1;
 	lv_obj_t *screen_user_list_label_1;
+	lv_obj_t *screen_user_list_list_1;
 	lv_obj_t *screen_user_detail;
 	bool screen_user_detail_del;
 	lv_obj_t *screen_user_detail_label_user;
-	lv_obj_t *screen_user_detail_label_day;
-	lv_obj_t *screen_user_detail_label_month;
 	lv_obj_t *screen_user_detail_label_year;
+	lv_obj_t *screen_user_detail_label_month;
+	lv_obj_t *screen_user_detail_label_day;
 }lv_ui;
 
 typedef void (*ui_setup_scr_t)(lv_ui * ui);
@@ -54,8 +54,8 @@ extern lv_ui guider_ui;
 void setup_scr_screen_user_list(lv_ui *ui);
 void setup_scr_screen_user_detail(lv_ui *ui);
 
-LV_FONT_DECLARE(lv_font_montserratMedium_12)
 LV_FONT_DECLARE(lv_font_SourceHanSerifSC_Regular_16)
+LV_FONT_DECLARE(lv_font_montserratMedium_12)
 
 
 #ifdef __cplusplus

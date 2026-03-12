@@ -20,7 +20,7 @@ static inline uint8_t KEY_HW_IsPressed(key_id_t id)
             return (HAL_GPIO_ReadPin(Key_UP_GPIO_Port, Key_UP_Pin) == GPIO_PIN_RESET);
 
         case Key_Down:
-						return (HAL_GPIO_ReadPin(Key_Down_GPIO_Port, Key_Down_Pin) == GPIO_PIN_SET);
+						return (HAL_GPIO_ReadPin(Key_Down_GPIO_Port, Key_Down_Pin) == GPIO_PIN_RESET);
             
         case Key_Left:
             return (HAL_GPIO_ReadPin(Key_Left_GPIO_Port, Key_Left_Pin) == GPIO_PIN_RESET);
@@ -32,7 +32,7 @@ static inline uint8_t KEY_HW_IsPressed(key_id_t id)
 						return (HAL_GPIO_ReadPin(Key_Enter_GPIO_Port,	Key_Enter_Pin) == GPIO_PIN_RESET);
 
         case Key_Return:
-						return (HAL_GPIO_ReadPin(Key_Return_GPIO_Port, Key_Return_Pin) == GPIO_PIN_SET);			
+						return (HAL_GPIO_ReadPin(Key_Return_GPIO_Port, Key_Return_Pin) == GPIO_PIN_RESET);			
 
         default:
             return 0;

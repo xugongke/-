@@ -19,7 +19,7 @@
 #define LV_HOR_RES_MAX (480)
 
 /*Maximal vertical resolution*/
-#define LV_VER_RES_MAX (272)
+#define LV_VER_RES_MAX (320)
 
 /*Color depth: 1 (1 byte per pixel), 8 (RGB332), 16 (RGB565), 32 (ARGB8888)*/
 #define LV_COLOR_DEPTH 16

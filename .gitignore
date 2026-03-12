@@ -1,0 +1,30 @@
+# Ignore build artifacts and temporary files
+*.axf
+*.asm
+*.o
+*.d
+*.lst
+*.map
+*.hex
+*.bin
+*.elf
+*.obj
+
+# Keil project user settings
+*.uvoptx
+*.uvguix.AUSU
+
+# Generated debug files
+DebugConfig/
+
+# ignore emulator or log files
+JLinkLog.txt
+EventRecorderStub.scvd
+
+# Other temporary files
+*.tmp
+*.bak
+*.swp
+
+# Visual Studio Code settings
+.vscode/

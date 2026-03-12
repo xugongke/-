@@ -2,11 +2,12 @@
 #include "main.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include "dma.h"
 /* ========== FMC 映射地址 ========== */
 /* Bank1 NE1 = 0x60000000 */
 #define LCD_BASE    0x60000000U
 #define LCD_CMD     (*(__IO uint16_t *)(LCD_BASE))
-#define LCD_DATA    (*(__IO uint16_t *)(LCD_BASE | (1U << 19)))   // A18 -> +1
+#define LCD_DATA    (*(__IO uint16_t *)(LCD_BASE | (1U << 7)))   // A6 -> +1
 
 /* ========== ILI9488 命令 ========== */
 #define ILI9488_SWRESET   0x01
@@ -108,7 +109,7 @@ void ILI9488_Init(void)
     ILI9488_Delay(10);
 
     /* MADCTL：默认竖屏 + BGR */
-    ILI9488_SetRotation(1);
+    ILI9488_SetRotation(3);
 
     /* 显示开 */
     ILI9488_WriteCommand(ILI9488_DISPON);
@@ -191,16 +192,26 @@ void ILI9488_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t c
         }
     }
 }
+//矩形填充加速
 void LCD_DispFlush(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, lv_color_t * color_p)
 {
     uint32_t total = (uint32_t)(x2 - x1 + 1) * (uint32_t)(y2 - y1 + 1);
-
+		//设置显示区域
     ILI9488_SetAddressWindow(x1, y1, x2, y2);
 
     uint16_t *p = (uint16_t *)color_p;
     while(total--) {
         LCD_DATA = *p++;
     }
+}
+//DMA搬运加速
+void LCD_DMA_DispFlush(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, lv_color_t * color_p)
+{
+    uint32_t total = (uint32_t)(x2 - x1 + 1) * (uint32_t)(y2 - y1 + 1);
+		//设置显示区域
+    ILI9488_SetAddressWindow(x1, y1, x2, y2);
+	//启动DMA搬运,这里要给LCD_DATA宏定义取地址，因为LCD_DATA是把地址解引用
+		HAL_DMA_Start_IT(&hdma_memtomem_dma2_stream0, (uint32_t) color_p, (uint32_t) &LCD_DATA,total);
 }
 
 

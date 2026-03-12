@@ -41,10 +41,12 @@
 #include "events_init.h"          // Gui Guider 生成的初始化事件、回调函数
 #include "sdio.h"
 #include "fatfs.h"
-#include "dma2d.h"
 #include "custom.h"
 #include "sdcard.h"
 #include "user_status.h"
+#include "a7680c.h"
+#include "a7680c_at.h"
+#include "a7680c_mqtt.h"
 lv_ui  guider_ui;                     // 声明 界面对象
 extern lv_group_t * g_keypad_group;		//声明全局group
 /* USER CODE END Includes */
@@ -269,21 +271,28 @@ osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
   .name = "defaultTask",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityHigh,
+  .priority = (osPriority_t) osPriorityLow1,
 };
 /* Definitions for LVGLTask */
 osThreadId_t LVGLTaskHandle;
 const osThreadAttr_t LVGLTask_attributes = {
   .name = "LVGLTask",
   .stack_size = 2048 * 4,
-  .priority = (osPriority_t) osPriorityLow,
+  .priority = (osPriority_t) osPriorityLow2,
 };
-/* Definitions for UserStatusTask */
-osThreadId_t UserStatusTaskHandle;
-const osThreadAttr_t UserStatusTask_attributes = {
-  .name = "UserStatusTask",
+/* Definitions for A7680CTask */
+osThreadId_t A7680CTaskHandle;
+const osThreadAttr_t A7680CTask_attributes = {
+  .name = "A7680CTask",
   .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for W5500Task */
+osThreadId_t W5500TaskHandle;
+const osThreadAttr_t W5500Task_attributes = {
+  .name = "W5500Task",
+  .stack_size = 512 * 4,
+  .priority = (osPriority_t) osPriorityLow3,
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -293,7 +302,8 @@ const osThreadAttr_t UserStatusTask_attributes = {
 
 void StartDefaultTask(void *argument);
 void lvgl_task(void *argument);
-void USER_STATUS_Task(void *argument);
+void A7680C_Task(void *argument);
+extern void W5500_Task(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -344,8 +354,11 @@ void MX_FREERTOS_Init(void) {
   /* creation of LVGLTask */
   LVGLTaskHandle = osThreadNew(lvgl_task, NULL, &LVGLTask_attributes);
 
-  /* creation of UserStatusTask */
-  UserStatusTaskHandle = osThreadNew(USER_STATUS_Task, NULL, &UserStatusTask_attributes);
+  /* creation of A7680CTask */
+  A7680CTaskHandle = osThreadNew(A7680C_Task, NULL, &A7680CTask_attributes);
+
+  /* creation of W5500Task */
+  W5500TaskHandle = osThreadNew(W5500_Task, NULL, &W5500Task_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -425,9 +438,9 @@ void lvgl_task(void *argument)
 
 	/* USER CODE END 2 */
 	//自己设计的图形窗口
-//	setup_ui(&guider_ui);           // 初始化 UI
-//	events_init(&guider_ui);       // 初始化 事件
-//	custom_init(&guider_ui);			// 你自己的逻辑
+	setup_ui(&guider_ui);           // 初始化 UI
+	events_init(&guider_ui);       // 初始化 事件
+	custom_init(&guider_ui);			// 你自己的逻辑
   /* Infinite loop */
   for(;;)
   {
@@ -437,27 +450,32 @@ void lvgl_task(void *argument)
   /* USER CODE END lvgl_task */
 }
 
-/* USER CODE BEGIN Header_USER_STATUS_Task */
+/* USER CODE BEGIN Header_A7680C_Task */
 /**
-* @brief Function implementing the UserStatusTask thread.
+* @brief Function implementing the A7680CTask thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_USER_STATUS_Task */
-void USER_STATUS_Task(void *argument)
+/* USER CODE END Header_A7680C_Task */
+void A7680C_Task(void *argument)
 {
-  /* USER CODE BEGIN USER_STATUS_Task */
-//	USER_STATUS_Init();
+  /* USER CODE BEGIN A7680C_Task */
+	A7680C_Init();
+	if(A7680C_Test())
+	{
+			printf("A7680C通信正常\r\n");
+	}
+	else
+	{
+		printf("A7680C通信失败\r\n");
+	}
+	A7680C_SendCmdWaitAck();
   /* Infinite loop */
   for(;;)
   {
-//    if(dirty_flag)
-//    {
-//        USER_STATUS_Save();//更新用户在线状态
-//    }
-    osDelay(1000);
+		osDelay(5);
   }
-  /* USER CODE END USER_STATUS_Task */
+  /* USER CODE END A7680C_Task */
 }
 
 /* Private application code --------------------------------------------------*/

@@ -11,9 +11,7 @@
  *********************/
 #include "lv_port_disp.h"
 #include <stdbool.h>
-#include "dma2d.h"
 #include "stdio.h"
-#include "ili9488.h"
 /*********************
  *      DEFINES
  *********************/
@@ -24,13 +22,13 @@
 
 #ifndef MY_DISP_VER_RES
     #warning Please define or replace the macro MY_DISP_HOR_RES with the actual screen height, default value 240 is used for now.
-    #define MY_DISP_VER_RES    272
+    #define MY_DISP_VER_RES    320
 #endif
 
 /**********************
  *      TYPEDEFS
  **********************/
-
+static lv_disp_drv_t disp_drv;                         /*Descriptor of a display driver*/
 /**********************
  *  STATIC PROTOTYPES
  **********************/
@@ -39,7 +37,17 @@ static void disp_init(void);
 static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p);
 //static void gpu_fill(lv_disp_drv_t * disp_drv, lv_color_t * dest_buf, lv_coord_t dest_width,
 //        const lv_area_t * fill_area, lv_color_t color);
-
+		
+/**********************
+ *  搬运图像数据完成回调函数
+ **********************/
+void LVGL_LCD_FSMC_DMA_pCallback(DMA_HandleTypeDef *_hdma)
+{
+//  lv_disp_flush_ready(&disp_drv);
+   //为了减少栈帧的使用,把lv_disp_flush_ready里面的操作直接拿出来了
+   disp_drv.draw_buf->flushing = 0;
+   disp_drv.draw_buf->flushing_last = 0;
+}
 /**********************
  *  STATIC VARIABLES
  **********************/
@@ -106,7 +114,6 @@ void lv_port_disp_init(void)
      * Register the display in LVGL
      *----------------------------------*/
 
-    static lv_disp_drv_t disp_drv;                         /*Descriptor of a display driver*/
     lv_disp_drv_init(&disp_drv);                    /*Basic initialization*/
 
     /*Set up the functions to access to your display*/
@@ -169,21 +176,23 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
     if(disp_flush_enabled) {
         /*The most simple case (but also the slowest) to put all pixels to the screen one-by-one*/
 
-        int32_t x;
-        int32_t y;
-        for(y = area->y1; y <= area->y2; y++) {
-            for(x = area->x1; x <= area->x2; x++) {
-                /*Put a pixel to the display. For example:*/
-                /*put_px(x, y, *color_p)*/
-								ILI9488_DrawPixel(x,y,color_p->full);
-                color_p++;
-            }
-        }
+//        int32_t x;
+//        int32_t y;
+//        for(y = area->y1; y <= area->y2; y++) {
+//            for(x = area->x1; x <= area->x2; x++) {
+//                /*Put a pixel to the display. For example:*/
+//                /*put_px(x, y, *color_p)*/
+//								ILI9488_DrawPixel(x,y,color_p->full);
+//                color_p++;
+//            }
+//        }
+//			LCD_DispFlush(area->x1,area->y1,area->x2,area->y2,color_p);//使用矩形加速
+			LCD_DMA_DispFlush(area->x1,area->y1,area->x2,area->y2,color_p);//使用DMA搬运加速
     }
 
     /*IMPORTANT!!!
      *Inform the graphics library that you are ready with the flushing*/
-    lv_disp_flush_ready(disp_drv);
+//    lv_disp_flush_ready(disp_drv);
 }
 
 

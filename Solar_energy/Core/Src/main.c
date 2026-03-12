@@ -20,9 +20,10 @@
 #include "main.h"
 #include "cmsis_os.h"
 #include "dma.h"
-#include "dma2d.h"
 #include "fatfs.h"
 #include "sdio.h"
+#include "spi.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 #include "fmc.h"
@@ -31,7 +32,8 @@
 /* USER CODE BEGIN Includes */
 #include "lv_hal_tick.h"
 #include "stdio.h"
-#include "lv_demo_widgets.h"
+#include "wiz_interface.h"
+#include "lv_port_disp.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -101,9 +103,12 @@ int main(void)
   MX_FMC_Init();
   MX_SDIO_SD_Init();
   MX_FATFS_Init();
-  MX_DMA2D_Init();
+  MX_SPI1_Init();
+  MX_TIM2_Init();
+  MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
-	
+	//注册搬运图像数据完成回调函数
+	HAL_DMA_RegisterCallback(&hdma_memtomem_dma2_stream0, HAL_DMA_XFER_CPLT_CB_ID, LVGL_LCD_FSMC_DMA_pCallback);
 
   /* USER CODE END 2 */
 
@@ -206,6 +211,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
+	if (htim->Instance == TIM2)
+	{
+		wiz_timer_handler();
+	}
   /* USER CODE END Callback 1 */
 }
 
