@@ -18,6 +18,17 @@ extern "C" {
 typedef struct
 {
   
+	lv_obj_t *screen_user_home;
+	bool screen_user_home_del;
+	lv_obj_t *screen_user_home_user_list_btn;
+	lv_obj_t *screen_user_home_user_list_btn_label;
+	lv_obj_t *screen_user_home_cont_1;
+	lv_obj_t *screen_user_home_label_Date;
+	lv_obj_t *screen_user_home_label_Time;
+	lv_obj_t *screen_user_home_img_1;
+	lv_obj_t *screen_user_home_cont_2;
+	lv_obj_t *screen_user_home_label_2;
+	lv_obj_t *screen_user_home_label_1;
 	lv_obj_t *screen_user_list;
 	bool screen_user_list_del;
 	lv_obj_t *screen_user_list_label_1;
@@ -25,9 +36,7 @@ typedef struct
 	lv_obj_t *screen_user_detail;
 	bool screen_user_detail_del;
 	lv_obj_t *screen_user_detail_label_user;
-	lv_obj_t *screen_user_detail_label_year;
-	lv_obj_t *screen_user_detail_label_month;
-	lv_obj_t *screen_user_detail_label_day;
+	lv_obj_t *screen_user_detail_table_1;
 }lv_ui;
 
 typedef void (*ui_setup_scr_t)(lv_ui * ui);
@@ -51,10 +60,13 @@ void init_keyboard(lv_ui *ui);
 extern lv_ui guider_ui;
 
 
+void setup_scr_screen_user_home(lv_ui *ui);
 void setup_scr_screen_user_list(lv_ui *ui);
 void setup_scr_screen_user_detail(lv_ui *ui);
+LV_IMG_DECLARE(_logo_shunpu_alpha_338x72);
 
 LV_FONT_DECLARE(lv_font_SourceHanSerifSC_Regular_16)
+LV_FONT_DECLARE(lv_font_montserratMedium_16)
 LV_FONT_DECLARE(lv_font_montserratMedium_12)
 
 

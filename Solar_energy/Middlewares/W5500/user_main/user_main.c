@@ -49,17 +49,17 @@ void user_run(void)
 void W5500_Task(void *argument)
 {
   /* USER CODE BEGIN W5500Taskfun */
-	wiz_NetInfo net_info;
-  printf("wizchip DHCP 示例\r\n");
+//	wiz_NetInfo net_info;
+//  printf("wizchip DHCP 示例\r\n");
 
-  /* wizchip 初始化 */
-  wizchip_initialize();
+//  /* wizchip 初始化 */
+//  wizchip_initialize();
 
-  /* 首先使用 DHCP 获取互联网协议地址，如果超过最大重连次数，则使用静态地址 */
-  network_init(ethernet_buf, &default_net_info);
-	
-	wizchip_getnetinfo(&net_info);
-  printf("请尝试 ping %d.%d.%d.%d\r\n", net_info.ip[0], net_info.ip[1], net_info.ip[2], net_info.ip[3]);
+//  /* 首先使用 DHCP 获取互联网协议地址，如果超过最大重连次数，则使用静态地址 */
+//  network_init(ethernet_buf, &default_net_info);
+//	
+//	wizchip_getnetinfo(&net_info);
+//  printf("请尝试 ping %d.%d.%d.%d\r\n", net_info.ip[0], net_info.ip[1], net_info.ip[2], net_info.ip[3]);
   /* Infinite loop */
   for(;;)
   {

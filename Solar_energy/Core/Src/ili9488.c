@@ -115,9 +115,6 @@ void ILI9488_Init(void)
     ILI9488_WriteCommand(ILI9488_DISPON);
 		HAL_GPIO_WritePin(LCD_BL_GPIO_Port, LCD_BL_Pin, GPIO_PIN_SET);
     ILI9488_Delay(120);
-
-    /* 清屏为黑色 */
-    ILI9488_Clear(BLACK);
 }
 
 /* ========== 清屏函数（高速写） ========== */

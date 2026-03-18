@@ -84,9 +84,9 @@ void ui_load_user_detail(lv_ui *ui, uint32_t user_no)
 
 		/* 刷新 UI 文本 */
 		lv_label_set_text(ui->screen_user_detail_label_user, user);
-    lv_label_set_text(ui->screen_user_detail_label_day, dat);
-    lv_label_set_text(ui->screen_user_detail_label_month, moon);
-    lv_label_set_text(ui->screen_user_detail_label_year, year);
+    lv_table_set_cell_value(ui->screen_user_detail_table_1,1,1,dat);
+    lv_table_set_cell_value(ui->screen_user_detail_table_1,2,1,moon);
+    lv_table_set_cell_value(ui->screen_user_detail_table_1,3,1,year);
 }
 /* 全局或静态变量，保存上次的编号 */
 uint8_t s_last_user_no = 1; /* 默认选中第 1 个 */
@@ -111,28 +111,49 @@ void sdcard_write(uint32_t i)
     char aWriteBuf[64];      // 要写入的数据
 		char path[64];
 	
-//		lv_snprintf(path, sizeof(path), "0:/USER/%lu/year.txt", (unsigned long)i);
-//		lv_snprintf(aWriteBuf, sizeof(aWriteBuf), "V_mV：%d	I_mA：%d", (unsigned long)i*30,(unsigned long)i*30);
+		lv_snprintf(path, sizeof(path), "0:/USER/%lu/data.txt", (unsigned long)i);
+		lv_snprintf(aWriteBuf, sizeof(aWriteBuf), "%d℃ ", (unsigned long)i*10);
 	
-//    f_res = f_open(&myFile, path, FA_CREATE_ALWAYS | FA_WRITE);   // 打开文件; 参数：要操作的文件对象、路径和文件名称、打开模式;
-//    if (f_res == FR_OK)
-//    {
-//        f_res = f_write(&myFile, aWriteBuf, sizeof(aWriteBuf), &num);     // 向文件内写入数据; 参数：文件对象、数据缓存、申请写入的字节数、实际写入的字节数
-//        if (f_res == FR_OK)
-//        {
-//            printf("已写入的数据：%s \r\n", aWriteBuf);                   // printf 写入的数据; 注意，这里以字符串方式显示，如果数据是非ASCII可显示范围，则无法显示
-//        }
-//        else
-//        {
-//            printf("写入失败 \r\n");                                      // 写入失败
-//            printf("错误编号： %d\r\n", f_res);                           // printf 错误编号
-//        }
-//        f_close(&myFile);                                                 // 不再读写，关闭文件
-//    }
-//    else
-//    {
-//        printf("打开文件 失败: %d\r\n", f_res);
-//    }
+    f_res = f_open(&myFile, path, FA_OPEN_ALWAYS | FA_WRITE);   // 打开文件; 参数：要操作的文件对象、路径和文件名称、打开模式;
+    if (f_res == FR_OK)
+    {
+        f_res = f_write(&myFile, aWriteBuf, sizeof(aWriteBuf), &num);     // 向文件内写入数据; 参数：文件对象、数据缓存、申请写入的字节数、实际写入的字节数
+        if (f_res == FR_OK)
+        {
+            printf("已写入的数据：%s \r\n", aWriteBuf);                   // printf 写入的数据; 注意，这里以字符串方式显示，如果数据是非ASCII可显示范围，则无法显示
+        }
+        else
+        {
+            printf("写入失败 \r\n");                                      // 写入失败
+            printf("错误编号： %d\r\n", f_res);                           // printf 错误编号
+        }
+        f_close(&myFile);                                                 // 不再读写，关闭文件
+    }
+    else
+    {
+        printf("打开文件 失败: %d\r\n", f_res);
+    }
+
+
+//		lv_snprintf(path, sizeof(path), "0:/USER/%lu", (unsigned long)i);
+//		f_res = f_mkdir(path);
+//		if(f_res == FR_OK)
+//		{
+//			printf("%d创建成功\r\n",i);
+//		}
+//		else
+//		{
+//			printf("%d创建失败,path:%s\r\n",i,path);
+//		}
+}
+void Create_der(uint32_t i)
+{
+    static FIL myFile;                                                    // 文件对象; 这个结构体占用570字节，有点大，需用static修饰(存放在全局数据区), 避免stack溢出
+    static FRESULT f_res;                                                 // 文件操作结果
+    static uint32_t num;                                                  // 文件实际成功读写的字节数
+    char aWriteBuf[64];      // 要写入的数据
+		char path[64];
+	
 		lv_snprintf(path, sizeof(path), "0:/USER/%lu", (unsigned long)i);
 		f_res = f_mkdir(path);
 		if(f_res == FR_OK)
@@ -143,6 +164,99 @@ void sdcard_write(uint32_t i)
 		{
 			printf("%d创建失败,path:%s\r\n",i,path);
 		}
+}
+void Write_temperature(uint32_t i)
+{
+    static FIL myFile;                                                    // 文件对象; 这个结构体占用570字节，有点大，需用static修饰(存放在全局数据区), 避免stack溢出
+    static FRESULT f_res;                                                 // 文件操作结果
+    static uint32_t num;                                                  // 文件实际成功读写的字节数
+    char aWriteBuf[64];      // 要写入的数据
+		char path[64];
+	
+		lv_snprintf(path, sizeof(path), "0:/USER/%lu/data.txt", (unsigned long)i);
+		lv_snprintf(aWriteBuf, sizeof(aWriteBuf), "%d℃ ", (unsigned long)i*10);
+	
+    f_res = f_open(&myFile, path, FA_OPEN_ALWAYS | FA_WRITE);   // 打开文件; 参数：要操作的文件对象、路径和文件名称、打开模式;
+    if (f_res == FR_OK)
+    {
+        f_res = f_write(&myFile, aWriteBuf, sizeof(aWriteBuf), &num);     // 向文件内写入数据; 参数：文件对象、数据缓存、申请写入的字节数、实际写入的字节数
+        if (f_res == FR_OK)
+        {
+            printf("已写入的数据：%s \r\n", aWriteBuf);                   // printf 写入的数据; 注意，这里以字符串方式显示，如果数据是非ASCII可显示范围，则无法显示
+        }
+        else
+        {
+            printf("写入失败 \r\n");                                      // 写入失败
+            printf("错误编号： %d\r\n", f_res);                           // printf 错误编号
+        }
+        f_close(&myFile);                                                 // 不再读写，关闭文件
+    }
+    else
+    {
+        printf("打开文件 失败: %d\r\n", f_res);
+    }
+}
+void Write_power(uint32_t i)
+{
+    static FIL myFile;                                                    // 文件对象; 这个结构体占用570字节，有点大，需用static修饰(存放在全局数据区), 避免stack溢出
+    static FRESULT f_res;                                                 // 文件操作结果
+    static uint32_t num;                                                  // 文件实际成功读写的字节数
+    char aWriteBuf[64];      // 要写入的数据
+		char path[64];
+	
+		lv_snprintf(path, sizeof(path), "0:/USER/%lu/moon.txt", (unsigned long)i);
+		lv_snprintf(aWriteBuf, sizeof(aWriteBuf), "%dkW ", (unsigned long)i*20);
+	
+    f_res = f_open(&myFile, path, FA_OPEN_ALWAYS | FA_WRITE);   // 打开文件; 参数：要操作的文件对象、路径和文件名称、打开模式;
+    if (f_res == FR_OK)
+    {
+        f_res = f_write(&myFile, aWriteBuf, sizeof(aWriteBuf), &num);     // 向文件内写入数据; 参数：文件对象、数据缓存、申请写入的字节数、实际写入的字节数
+        if (f_res == FR_OK)
+        {
+            printf("已写入的数据：%s \r\n", aWriteBuf);                   // printf 写入的数据; 注意，这里以字符串方式显示，如果数据是非ASCII可显示范围，则无法显示
+        }
+        else
+        {
+            printf("写入失败 \r\n");                                      // 写入失败
+            printf("错误编号： %d\r\n", f_res);                           // printf 错误编号
+        }
+        f_close(&myFile);                                                 // 不再读写，关闭文件
+    }
+    else
+    {
+        printf("打开文件 失败: %d\r\n", f_res);
+    }
+}
+void Write_yongpower(uint32_t i)
+{
+    static FIL myFile;                                                    // 文件对象; 这个结构体占用570字节，有点大，需用static修饰(存放在全局数据区), 避免stack溢出
+    static FRESULT f_res;                                                 // 文件操作结果
+    static uint32_t num;                                                  // 文件实际成功读写的字节数
+    char aWriteBuf[64];      // 要写入的数据
+		char path[64];
+	
+		lv_snprintf(path, sizeof(path), "0:/USER/%lu/year.txt", (unsigned long)i);
+		lv_snprintf(aWriteBuf, sizeof(aWriteBuf), "%dkWh ", (unsigned long)i*30);
+	
+    f_res = f_open(&myFile, path, FA_OPEN_ALWAYS | FA_WRITE);   // 打开文件; 参数：要操作的文件对象、路径和文件名称、打开模式;
+    if (f_res == FR_OK)
+    {
+        f_res = f_write(&myFile, aWriteBuf, sizeof(aWriteBuf), &num);     // 向文件内写入数据; 参数：文件对象、数据缓存、申请写入的字节数、实际写入的字节数
+        if (f_res == FR_OK)
+        {
+            printf("已写入的数据：%s \r\n", aWriteBuf);                   // printf 写入的数据; 注意，这里以字符串方式显示，如果数据是非ASCII可显示范围，则无法显示
+        }
+        else
+        {
+            printf("写入失败 \r\n");                                      // 写入失败
+            printf("错误编号： %d\r\n", f_res);                           // printf 错误编号
+        }
+        f_close(&myFile);                                                 // 不再读写，关闭文件
+    }
+    else
+    {
+        printf("打开文件 失败: %d\r\n", f_res);
+    }
 }
 
 

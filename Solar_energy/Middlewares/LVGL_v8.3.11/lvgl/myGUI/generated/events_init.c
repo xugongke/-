@@ -20,6 +20,46 @@
 extern lv_indev_t * indev_keypad;
 lv_group_t * g_keypad_group;//创建全局group(可被焦点选中的对象集合)指针，在lv_init后分配空间
 
+static void screen_user_home_event_handler (lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    switch (code) {
+    case LV_EVENT_SCREEN_LOADED:
+    {
+        lv_group_remove_all_objs(g_keypad_group);//清空group中的所有组件
+        //给group添加新组件
+        lv_group_add_obj(g_keypad_group, guider_ui.screen_user_home_user_list_btn);
+        //将按键添加进焦点组
+        lv_indev_set_group(indev_keypad, g_keypad_group);
+        //设置初始焦点
+        lv_group_focus_obj(guider_ui.screen_user_home_user_list_btn);
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+static void screen_user_home_user_list_btn_event_handler (lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    switch (code) {
+    case LV_EVENT_CLICKED:
+    {
+        ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_list, guider_ui.screen_user_list_del, &guider_ui.screen_user_home_del, setup_scr_screen_user_list, LV_SCR_LOAD_ANIM_NONE, 10, 10, true, true);
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+void events_init_screen_user_home (lv_ui *ui)
+{
+    lv_obj_add_event_cb(ui->screen_user_home, screen_user_home_event_handler, LV_EVENT_ALL, ui);
+    lv_obj_add_event_cb(ui->screen_user_home_user_list_btn, screen_user_home_user_list_btn_event_handler, LV_EVENT_ALL, ui);
+}
+
 static void screen_user_list_event_handler (lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
@@ -101,9 +141,9 @@ static void screen_user_detail_event_handler (lv_event_t *e)
         lv_group_remove_all_objs(g_keypad_group);//清空group中的所有组件
         //给group添加新组件
         lv_group_add_obj(g_keypad_group, guider_ui.screen_user_detail);
-
+        //将按键添加进焦点组
         lv_indev_set_group(indev_keypad, g_keypad_group);
-
+        //设置初始焦点
         lv_group_focus_obj(guider_ui.screen_user_detail);
         break;
     }

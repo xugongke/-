@@ -462,7 +462,7 @@
 #define LV_TEXTAREA_DEF_PWD_SHOW_TIME 1500
 #endif    /* LV_USE_TEXTAREA */
 
-#define LV_USE_TABLE 0
+#define LV_USE_TABLE 1
 
 /*==================
  * EXTRA COMPONENTS

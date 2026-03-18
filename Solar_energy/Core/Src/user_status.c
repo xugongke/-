@@ -1,7 +1,10 @@
 #include "user_status.h"
 #include "string.h"
 #include "stdio.h"
-
+#include "lvgl.h"
+#include "gui_guider.h"
+#include "sdcard.h"
+#include "es1642_usage_guide.h"
 static USER_STATUS_FILE user_file;
 
 uint8_t dirty_flag = 0;
@@ -175,6 +178,7 @@ void USER_STATUS_Init(void)
     }
 }
 
+
 void screen_user_list_item_event_handler(lv_event_t *e)
 {
     /* user_data 里放 user_no（1~50）获取用户编号 */
@@ -188,13 +192,21 @@ void screen_user_list_item_event_handler(lv_event_t *e)
         if(key == LV_KEY_LEFT)//左键，用户离线
         {
 					printf("用户%d离线\r\n",user_no);
-					USER_SetOffline(user_no);//用户离线
+					ES1642_ReadVersion();
+//					USER_SetOffline(user_no);//用户离线
         }
 				
         if(key == LV_KEY_RIGHT)//右键，用户上线
         {
 					printf("用户%d上线\r\n",user_no);
-					USER_SetOnline(user_no);//用户上线
+					ES1642_ReadMac();
+//					USER_SetOnline(user_no);//用户上线
+        }
+				
+        if(key == LV_KEY_ESC)//ESC键，返回首页
+        {
+					 s_last_user_no = 1;//回到首页，重置用户列表焦点
+					 ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_home, guider_ui.screen_user_home_del, &guider_ui.screen_user_list_del, setup_scr_screen_user_home, LV_SCR_LOAD_ANIM_NONE, 10, 10, true, true);
         }
 
         break;

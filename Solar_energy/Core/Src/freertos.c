@@ -26,15 +26,11 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stdio.h"
+#include "message_buffer.h"
 #include "lvgl.h"
 #include "lv_port_disp.h"
 #include "lv_port_indev.h"
 #include "lv_port_fs.h"
-#include "lv_demo_widgets.h"
-#include "lv_demo_music.h"
-#include "lv_demo_benchmark.h"
-#include "lv_demo_keypad_encoder.h"
-#include "lv_demos.h"
 #include "key.h"
 #include "tpad.h"
 #include "gui_guider.h"           // Gui Guider 生成的界面和控件的声明
@@ -47,13 +43,15 @@
 #include "a7680c.h"
 #include "a7680c_at.h"
 #include "a7680c_mqtt.h"
-lv_ui  guider_ui;                     // 声明 界面对象
+#include "rx8025t_example.h"
+#include "es1642_usage_guide.h"
+lv_ui  guider_ui;                     // 定义 界面对象
 extern lv_group_t * g_keypad_group;		//声明全局group
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+MessageBufferHandle_t uart2Message;//消息缓冲区句柄
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -271,28 +269,35 @@ osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
   .name = "defaultTask",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow1,
+  .priority = (osPriority_t) osPriorityLow2,
 };
 /* Definitions for LVGLTask */
 osThreadId_t LVGLTaskHandle;
 const osThreadAttr_t LVGLTask_attributes = {
   .name = "LVGLTask",
-  .stack_size = 2048 * 4,
-  .priority = (osPriority_t) osPriorityLow2,
+  .stack_size = 1024 * 4,
+  .priority = (osPriority_t) osPriorityLow3,
 };
 /* Definitions for A7680CTask */
 osThreadId_t A7680CTaskHandle;
 const osThreadAttr_t A7680CTask_attributes = {
   .name = "A7680CTask",
   .stack_size = 512 * 4,
-  .priority = (osPriority_t) osPriorityLow,
+  .priority = (osPriority_t) osPriorityLow1,
 };
 /* Definitions for W5500Task */
 osThreadId_t W5500TaskHandle;
 const osThreadAttr_t W5500Task_attributes = {
   .name = "W5500Task",
   .stack_size = 512 * 4,
-  .priority = (osPriority_t) osPriorityLow3,
+  .priority = (osPriority_t) osPriorityLow4,
+};
+/* Definitions for ES1642Task */
+osThreadId_t ES1642TaskHandle;
+const osThreadAttr_t ES1642Task_attributes = {
+  .name = "ES1642Task",
+  .stack_size = 512 * 4,
+  .priority = (osPriority_t) osPriorityLow,
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -304,6 +309,7 @@ void StartDefaultTask(void *argument);
 void lvgl_task(void *argument);
 void A7680C_Task(void *argument);
 extern void W5500_Task(void *argument);
+void ES1642_Task(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -345,6 +351,12 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
+	uart2Message = xMessageBufferCreate(512);
+	if(uart2Message == NULL)
+	{
+			// 创建失败（内存不足）
+			Error_Handler();
+	}
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
@@ -359,6 +371,9 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of W5500Task */
   W5500TaskHandle = osThreadNew(W5500_Task, NULL, &W5500Task_attributes);
+
+  /* creation of ES1642Task */
+  ES1642TaskHandle = osThreadNew(ES1642_Task, NULL, &ES1642Task_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -380,8 +395,7 @@ void MX_FREERTOS_Init(void) {
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
-//	FatFsTest();		//SD卡的FatFS文件系统挂载、格式化、读写测试
-//	SDCardInfo();		//获取SD卡信息;注意:本函数要在f_mount()执行后再调用,只有在挂载时，才会调用 SD_initialize，进而调用 BSP_SD_Init()。
+
   /* Infinite loop */
   for(;;)
   {
@@ -421,21 +435,14 @@ void lvgl_task(void *argument)
 //	{
 //		printf("USER创建成功\r\n");
 //	}
-//	for(int i = 1;i <=50;i++)
+//	for(uint32_t i = 1;i <=50;i++)
 //	{
-//		sdcard_write(i);
+//		Create_der(i);
+//		Write_temperature(i);
+//		Write_power(i);
+//		Write_yongpower(i);
 //	}
 	
-//	lv_demo_widgets();
-//	lv_demo_music();
-//	lv_demo_benchmark();//刷新率测试
-//	lv_demo_stress();
-//	lv_demo_keypad_encoder();
-	
-	
-
-	
-
 	/* USER CODE END 2 */
 	//自己设计的图形窗口
 	setup_ui(&guider_ui);           // 初始化 UI
@@ -469,13 +476,52 @@ void A7680C_Task(void *argument)
 	{
 		printf("A7680C通信失败\r\n");
 	}
-	A7680C_SendCmdWaitAck();
+	if (RX8025T_InitAndDisplay() == HAL_OK) 
+	{
+		printf("外部RTC时钟通信成功\r\n");
+	}
+	else
+	{
+		printf("外部RTC时钟通信失败\r\n");
+	}
+	
   /* Infinite loop */
   for(;;)
   {
-		osDelay(5);
+		RX8025T_Task();
+		osDelay(1);
   }
   /* USER CODE END A7680C_Task */
+}
+
+/* USER CODE BEGIN Header_ES1642_Task */
+/**
+* @brief Function implementing the ES1642Task thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_ES1642_Task */
+void ES1642_Task(void *argument)
+{
+  /* USER CODE BEGIN ES1642_Task */
+	static uint8_t buf[100];
+	 // 初始化ES1642模块
+	 if (ES1642_InitModule() != 0)
+	 {
+			 Error_Handler();
+	 }
+  /* Infinite loop */
+  for(;;)
+  {
+		//等待消息缓冲区有消息
+		size_t n = xMessageBufferReceive(uart2Message, buf, sizeof(buf), portMAX_DELAY);
+    if(n)
+		{
+			//把接收到的数据包交给解析器解析
+			ES1642_InputBuffer(&g_es1642_handle, buf, n);
+		}
+  }
+  /* USER CODE END ES1642_Task */
 }
 
 /* Private application code --------------------------------------------------*/

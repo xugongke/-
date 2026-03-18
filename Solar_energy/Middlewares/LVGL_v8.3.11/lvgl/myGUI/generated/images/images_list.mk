@@ -1,1 +1,1 @@
-GEN_CSRCS += 
+GEN_CSRCS += _logo_shunpu_alpha_338x72.c

@@ -31,7 +31,13 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "stm32f4xx.h"
+#include "stdio.h"
+#include "cmsis_os.h"
+#include "FreeRTOS.h"  
+#include "semphr.h"    
+#include <stdbool.h>
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -69,6 +75,12 @@ void Error_Handler(void);
 #define Key_Enter_GPIO_Port GPIOC
 #define Key_Return_Pin GPIO_PIN_3
 #define Key_Return_GPIO_Port GPIOC
+#define ES1642_RST_Pin GPIO_PIN_2
+#define ES1642_RST_GPIO_Port GPIOH
+#define CHRG_Pin GPIO_PIN_3
+#define CHRG_GPIO_Port GPIOH
+#define STDBY_Pin GPIO_PIN_4
+#define STDBY_GPIO_Port GPIOH
 #define W5500_CS_Pin GPIO_PIN_4
 #define W5500_CS_GPIO_Port GPIOA
 #define W5500_RST_Pin GPIO_PIN_4

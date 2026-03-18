@@ -74,3 +74,4 @@ void A7680C_IDLE_IRQHandler(void)
         HAL_UART_Receive_DMA(&huart3, dma_rx_buf, A7680C_RX_BUF_SIZE);
     }
 }
+
