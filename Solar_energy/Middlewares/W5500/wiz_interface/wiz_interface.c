@@ -10,21 +10,21 @@
 
 struct wiz_timer
 {
-    void (*func)(void);     // 计时器触发时要执行的函数的回调函数指针
-    uint32_t trigger_time;  // 触发时间（毫秒）
-    uint32_t count_time;    // 当前计数值（毫秒）
-    struct wiz_timer *next; // 下一个计时器节点
+    void (*func)(void);     // Callback function pointer for a function to execute when the timer fires
+    uint32_t trigger_time;  // Trigger time(ms)
+    uint32_t count_time;    // Current count value(ms)
+    struct wiz_timer *next; // next timer node
 };
 
 struct wiz_timer *wiz_timer_head = NULL;
 volatile uint32_t wiz_delay_ms_count = 0;
 
 /**
- * @brief 创建 wiz_timer 节点
- * @param func :计时器触发时要执行的函数的回调函数指针
- * @param time :触发时间，通常以毫秒为单位
+ * @brief Create wiz_timer Node
+ * @param func :Callback function pointer for a function to execute when the timer fires
+ * @param time :Trigger time, usually in milliseconds
  *
- * @return 成功创建时返回指向 wiz_timer 节点的指针，否则返回 NULL
+ * @return Returns pointer to wiz_timer node when successfully created, otherwise returns NULL
  */
 static struct wiz_timer *create_wiz_timer_node(void (*func)(void), uint32_t time)
 {
@@ -42,9 +42,9 @@ static struct wiz_timer *create_wiz_timer_node(void (*func)(void), uint32_t time
 }
 
 /**
- * @brief 在定时器链表中添加一个新的定时器节点
- * @param func 回调函数指针，当定时器时间达到时被调用
- * @param 时间 触发时间（毫秒）
+ * @brief Add a new timer node to the timer chain table
+ * @param func Callback function pointer, called when the timer time is reached
+ * @param time Trigger time (ms)
  */
 void wiz_add_timer(void (*func)(void), uint32_t time)
 {
@@ -63,8 +63,8 @@ void wiz_add_timer(void (*func)(void), uint32_t time)
 }
 
 /**
- * @brief 删除指定回调函数的定时器
- * @param 函数回调指针
+ * @brief Delete the timer for the specified callback function
+ * @param func callback function pointer
  * @return none
  */
 void wiz_delete_timer(void (*func)(void))
@@ -93,9 +93,9 @@ void wiz_delete_timer(void (*func)(void))
 }
 
 /**
- * @brief 向导定时器事件处理程序
+ * @brief wiz timer event handler
  *
- * 你必须将此功能添加到你的1毫秒定时器中断
+ * You must add this function to your 1ms timer interrupt
  *
  */
 void wiz_timer_handler(void)
@@ -116,7 +116,7 @@ void wiz_timer_handler(void)
 }
 
 /**
- * @brief 以毫秒为单位的延迟函数
+ * @brief Delay function in milliseconds
  * @param nms :Delay Time
  */
 void wiz_user_delay_ms(uint32_t nms)
@@ -128,7 +128,7 @@ void wiz_user_delay_ms(uint32_t nms)
 }
 
 /**
- * @brief 检查 WIZCHIP 版本
+ * @brief Check the WIZCHIP version
  */
 void wizchip_version_check(void)
 {
@@ -141,7 +141,7 @@ void wizchip_version_check(void)
             error_count++;
             if (error_count > 5)
             {
-                printf("错误，W5500 版本是 0x%02x, 但是读取 W5500 版本值 = 0x%02x\r\n", W5500_VERSION, getVERSIONR());
+                printf("error, W5500 version is 0x%02x, but read W5500 version value = 0x%02x\r\n", W5500_VERSION, getVERSIONR());
                 while (1)
                     ;
             }
@@ -154,18 +154,18 @@ void wizchip_version_check(void)
 }
 
 /**
- * @brief 打印物理层信息
+ * @brief Print PHY information
  */
 void wiz_print_phy_info(void)
 {
     uint8_t get_phy_conf;
     get_phy_conf = getPHYCFGR();
-    printf("当前的Mbtis速度: %dMbps\r\n", get_phy_conf & 0x02 ? 100 : 10);
-    printf("当前双工模式 : %s\r\n", get_phy_conf & 0x04 ? "Full-Duplex" : "Half-Duplex");
+    printf("The current Mbtis speed : %dMbps\r\n", get_phy_conf & 0x02 ? 100 : 10);
+    printf("The current Duplex Mode : %s\r\n", get_phy_conf & 0x04 ? "Full-Duplex" : "Half-Duplex");
 }
 
 /**
- * @brief 以太网链路检测
+ * @brief Ethernet Link Detection
  */
 void wiz_phy_link_check(void)
 {
@@ -176,87 +176,87 @@ void wiz_phy_link_check(void)
         ctlwizchip(CW_GET_PHYLINK, (void *)&phy_link_status);
         if (phy_link_status == PHY_LINK_ON)
         {
-            printf("PHY 已连接\r\n");
+            printf("PHY link\r\n");
             wiz_print_phy_info();
         }
         else
         {
-            printf("PHY未连接\r\n");
+            printf("PHY no link\r\n");
         }
     } while (phy_link_status == PHY_LINK_OFF);
 }
 
 /**
- * @brief   wizchip 初始化函数
+ * @brief   wizchip init function
  * @param   none
  * @return  none
  */
 void wizchip_initialize(void)
 {
-    /* 启用定时器中断 */
+    /* Enable timer interrupt */
     wiz_tim_irq_enable();
 
-    /* 寄存器 wizchip SPI */
+    /* reg wizchip spi */
     wizchip_spi_cb_reg();
 
-    /* 重置wizchip */
+    /* Reset the wizchip */
     wizchip_reset();
 
-    /* 读取版本寄存器 */
+    /* Read version register */
     wizchip_version_check();
 
-    /* 检查PHY链路状态，导致PHY正常启动 */
+    /* Check PHY link status, causes PHY to start normally */
     wiz_phy_link_check();
 }
 
 /**
- * @brief   打印网络信息
+ * @brief   print network information
  * @param   none
  * @return  none
  */
 void print_network_information(void)
 {
     wiz_NetInfo net_info;
-    wizchip_getnetinfo(&net_info); // 获取芯片配置信息
+    wizchip_getnetinfo(&net_info); // Get chip configuration information
 
     if (net_info.dhcp == NETINFO_DHCP)
     {
         printf("====================================================================================================\r\n");
-        printf(" %s 网络配置 : DHCP\r\n\r\n", _WIZCHIP_ID_);
+        printf(" %s network configuration : DHCP\r\n\r\n", _WIZCHIP_ID_);
     }
     else
     {
         printf("====================================================================================================\r\n");
-        printf(" %s 网络配置 : static\r\n\r\n", _WIZCHIP_ID_);
+        printf(" %s network configuration : static\r\n\r\n", _WIZCHIP_ID_);
     }
 
     printf(" MAC         : %02X:%02X:%02X:%02X:%02X:%02X\r\n", net_info.mac[0], net_info.mac[1], net_info.mac[2], net_info.mac[3], net_info.mac[4], net_info.mac[5]);
     printf(" IP          : %d.%d.%d.%d\r\n", net_info.ip[0], net_info.ip[1], net_info.ip[2], net_info.ip[3]);
-    printf(" 子网掩码 	 : %d.%d.%d.%d\r\n", net_info.sn[0], net_info.sn[1], net_info.sn[2], net_info.sn[3]);
-    printf(" 网关        : %d.%d.%d.%d\r\n", net_info.gw[0], net_info.gw[1], net_info.gw[2], net_info.gw[3]);
+    printf(" Subnet Mask : %d.%d.%d.%d\r\n", net_info.sn[0], net_info.sn[1], net_info.sn[2], net_info.sn[3]);
+    printf(" Gateway     : %d.%d.%d.%d\r\n", net_info.gw[0], net_info.gw[1], net_info.gw[2], net_info.gw[3]);
     printf(" DNS         : %d.%d.%d.%d\r\n", net_info.dns[0], net_info.dns[1], net_info.dns[2], net_info.dns[3]);
     printf("====================================================================================================\r\n\r\n");
 }
 
 /**
- * @brief DHCP 过程
- * @param sn :套接字号
- * @param buffer :套接字缓冲区
+ * @brief DHCP process
+ * @param sn :socket number
+ * @param buffer :socket buffer
  */
 static uint8_t wiz_dhcp_process(uint8_t sn, uint8_t *buffer)
 {
     wiz_NetInfo conf_info;
     uint8_t dhcp_run_flag = 1;
     uint8_t dhcp_ok_flag = 0;
-    /* 注册 DHCP_time_handler 到 1 秒定时器 */
+    /* Registration DHCP_time_handler to 1 second timer */
     wiz_add_timer(DHCP_time_handler, 1000);
     DHCP_init(sn, buffer);
     printf("DHCP running\r\n");
     while (1)
     {
-        switch (DHCP_run()) // 执行 DHCP 客户端
+        switch (DHCP_run()) // Do the DHCP client
         {
-        case DHCP_IP_LEASED: // DHCP 成功获取网络信息
+        case DHCP_IP_LEASED: // DHCP Acquiring network information successfully
         {
             if (dhcp_ok_flag == 0)
             {
@@ -273,10 +273,10 @@ static uint8_t wiz_dhcp_process(uint8_t sn, uint8_t *buffer)
         }
         if (dhcp_run_flag == 0)
         {
-            printf("DHCP %s!\r\n", dhcp_ok_flag ? "成功" : "失败");
+            printf("DHCP %s!\r\n", dhcp_ok_flag ? "success" : "fail");
             DHCP_stop();
 
-            /*DHCP 获取成功，取消注册 DHCP_time_handler*/
+            /*DHCP obtained successfully, cancel the registration DHCP_time_handler*/
             wiz_delete_timer(DHCP_time_handler);
 
             if (dhcp_ok_flag)
@@ -287,7 +287,7 @@ static uint8_t wiz_dhcp_process(uint8_t sn, uint8_t *buffer)
                 getDNSfromDHCP(conf_info.dns);
                 conf_info.dhcp = NETINFO_DHCP;
                 getSHAR(conf_info.mac);
-                wizchip_setnetinfo(&conf_info); // 将网络信息更新为通过 DHCP 获取的网络信息
+                wizchip_setnetinfo(&conf_info); // Update network information to network information obtained by DHCP
                 return 1;
             }
             return 0;
@@ -296,21 +296,21 @@ static uint8_t wiz_dhcp_process(uint8_t sn, uint8_t *buffer)
 }
 
 /**
- * @brief   设置网络信息
+ * @brief   set network information
  *
- * 首先确定是否使用 DHCP。如果使用 DHCP，首先通过 DHCP 获取互联网协议地址。
- * 当 DHCP 失败时，使用静态 IP 配置网络信息。如果使用静态 IP，则直接配置网络信息
+ * First determine whether to use DHCP. If DHCP is used, first obtain the Internet Protocol Address through DHCP.
+ * When DHCP fails, use static IP to configure network information. If static IP is used, configure network information directly
  *
  * @param   sn: socketid
  * @param   ethernet_buff:
- * @param   net_info: 网络信息结构
+ * @param   net_info: network information struct
  * @return  none
  */
 void network_init(uint8_t *ethernet_buff, wiz_NetInfo *conf_info)
 {
     int ret;
-    wizchip_setnetinfo(conf_info); // 配置网络信息
-    if (conf_info->dhcp == NETINFO_DHCP)//判断是否使用DHCP
+    wizchip_setnetinfo(conf_info); // Configuring Network Information
+    if (conf_info->dhcp == NETINFO_DHCP)
     {
         ret = wiz_dhcp_process(0, ethernet_buff);
         if (ret == 0)

@@ -92,7 +92,7 @@
 #define DHCP_HOPS                0        ///< Used in hops of @ref RIP_MSG
 #define DHCP_SECS                0        ///< Used in secs of @ref RIP_MSG
 
-#define INFINITE_LEASETIME       0x01	///< Infinite lease time
+#define INFINITE_LEASETIME       0xffffffff	///< Infinite lease time
 
 #define OPT_SIZE                 312               /// Max OPT size of @ref RIP_MSG
 #define RIP_MSG_SIZE             (236+OPT_SIZE)    /// Max size of @ref RIP_MSG

@@ -1617,8 +1617,8 @@ void     WIZCHIP_WRITE_BUF(uint32_t AddrSel, uint8_t* pBuf, uint16_t len);
 		WIZCHIP_WRITE(PHYCFGR, phycfgr)
 
 /**
- * @ingroup 通用寄存器访问函数
- * @brief 获取 @ref PHYCFGR 寄存器
+ * @ingroup Common_register_access_function
+ * @brief Get @ref PHYCFGR register
  * @return uint8_t. Value of @ref PHYCFGR register.
  * @sa setPHYCFGR()
  */

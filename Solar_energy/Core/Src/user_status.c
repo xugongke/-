@@ -5,6 +5,9 @@
 #include "gui_guider.h"
 #include "sdcard.h"
 #include "es1642_usage_guide.h"
+#include "key.h" // Added for key handling
+#include "main.h" // For HAL_GetTick
+
 static USER_STATUS_FILE user_file;
 
 uint8_t dirty_flag = 0;
@@ -178,7 +181,6 @@ void USER_STATUS_Init(void)
     }
 }
 
-
 void screen_user_list_item_event_handler(lv_event_t *e)
 {
     /* user_data 里放 user_no（1~50）获取用户编号 */
@@ -191,16 +193,29 @@ void screen_user_list_item_event_handler(lv_event_t *e)
         uint32_t key = lv_event_get_key(e);
         if(key == LV_KEY_LEFT)//左键，用户离线
         {
-					printf("用户%d离线\r\n",user_no);
-					ES1642_ReadVersion();
+					printf("停止搜索设备\r\n");
+					ES1642_StopSearch();
 //					USER_SetOffline(user_no);//用户离线
         }
 				
         if(key == LV_KEY_RIGHT)//右键，用户上线
         {
-					printf("用户%d上线\r\n",user_no);
-					ES1642_ReadMac();
+					printf("开始搜索设备\r\n");
+					ES1642_StartSearch(0,ES1642_SEARCH_RULE_ALL);
 //					USER_SetOnline(user_no);//用户上线
+        }
+				
+        if(key == LV_KEY_UP)
+        {
+					printf("up\r\n");
+					const uint8_t buf[] = {0x12,0x34,0x56,0x78,0x9A,0xBC};
+					ES1642_SetModuleAddr(buf);
+        }
+				
+        if(key == LV_KEY_DOWN)
+        {
+					printf("down\r\n");
+					ES1642_ReadAddr();
         }
 				
         if(key == LV_KEY_ESC)//ESC键，返回首页
@@ -215,4 +230,3 @@ void screen_user_list_item_event_handler(lv_event_t *e)
         break;
     }
 }
-

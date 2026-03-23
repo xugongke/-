@@ -224,26 +224,26 @@ extern "C" {
 
 
 /********************************************************
-* WIZCHIP 基本 IF 函数用于 SPI、SDIO、I2C 等。
+* WIZCHIP BASIC IF functions for SPI, SDIO, I2C , ETC.
 *********************************************************/
 /**
  * @ingroup DATA_TYPE
- * @brief W5500 的回调函数集合：@ref WIZCHIP_IO_Functions W5200：@ref WIZCHIP_IO_Functions_W5200
+ * @brief The set of callback functions for W5500:@ref WIZCHIP_IO_Functions W5200:@ref WIZCHIP_IO_Functions_W5200
  */
 typedef struct __WIZCHIP
 {
-   uint16_t  if_mode;               ///< 主机接口模式
-   uint8_t   id[8];                 ///< @b WIZCHIP ID，例如 @b 5100、@b 5100S、@b 5200、@b 5500 等等。
+   uint16_t  if_mode;               ///< host interface mode
+   uint8_t   id[8];                 ///< @b WIZCHIP ID such as @b 5100, @b 5100S, @b 5200, @b 5500, and so on.
    /**
-    * 关键区回调函数集合
+    * The set of critical section callback func.
     */
    struct _CRIS
    {
-      void (*_enter)  (void);       ///< 临界区进入
-      void (*_exit) (void);         ///< 临界区退出
+      void (*_enter)  (void);       ///< crtical section enter 
+      void (*_exit) (void);         ///< critial section exit  
    }CRIS;  
    /**
-    *  @ref _WIZCHIP_ 选择控制回调函数的集合。
+    *  The set of @ref \_WIZCHIP_ select control callback func.
     */
    struct _CS
    {
@@ -410,8 +410,8 @@ typedef struct wiz_PhyConf_t
  */
 typedef enum
 {
-   NETINFO_STATIC = 1,    ///< 通过手动进行静态 IP 配置。
-   NETINFO_DHCP           ///< 从 DHCP 服务器动态获取 IP 配置
+   NETINFO_STATIC = 1,    ///< Static IP configuration by manually.
+   NETINFO_DHCP           ///< Dynamic IP configruation from a DHCP sever
 }dhcp_mode;
 
 /**

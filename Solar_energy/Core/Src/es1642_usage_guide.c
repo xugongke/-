@@ -70,7 +70,7 @@
 es1642_handle_t g_es1642_handle;
 
 /* 串口接收缓冲区（DMA使用） */
-uint8_t g_es1642_rx_buf[ES1642_RX_BUF_SIZE];
+uint8_t g_es1642_rx_buf[ES1642_MAX_FRAME_LEN];
 
 /* 串口句柄（假设使用huart2） */
 extern UART_HandleTypeDef huart2;
@@ -119,7 +119,7 @@ static int32_t es1642_uart_write(const uint8_t *data, uint16_t len, void *user_a
  * @retval None
  * @note   当接收到完整帧时，驱动会调用此函数
  */
-static void es1642_on_frame_received(es1642_handle_t *handle, 
+void es1642_on_frame_received(es1642_handle_t *handle, 
                                      const es1642_frame_t *frame, 
                                      void *user_arg)
 {
@@ -128,6 +128,17 @@ static void es1642_on_frame_received(es1642_handle_t *handle,
     /* 根据指令字处理不同类型的响应 */
     switch (frame->cmd)
     {
+        case ES1642_CMD_REBOOT:
+        {
+            uint8_t state, rsv;
+            status = ES1642_DecodeRebootResponse(frame, &state, &rsv);
+            if (status == ES1642_STATUS_OK)
+            {
+                printf("重启响应: state=0x%02X, rsv=0x%02X\r\n", state, rsv);
+            }
+            break;
+        }
+        
         case ES1642_CMD_READ_VERSION:
         {
             es1642_version_t version;
@@ -152,8 +163,213 @@ static void es1642_on_frame_received(es1642_handle_t *handle,
             break;
         }
         
+        case ES1642_CMD_READ_ADDR:
+        {
+            uint8_t addr[ES1642_ADDR_LEN];
+            status = ES1642_DecodeAddr(frame, addr);
+            if (status == ES1642_STATUS_OK)
+            {
+                printf("模块地址: %02X:%02X:%02X:%02X:%02X:%02X\r\n",
+                       addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
+            }
+            break;
+        }
+
+        case ES1642_CMD_READ_NET_PARAM:
+        {
+            es1642_net_param_t net_param;
+            status = ES1642_DecodeNetParam(frame, &net_param);
+            if (status == ES1642_STATUS_OK)
+            {
+                printf("网络参数: 中继深度=%d, 口令=%02X%02X%02X%02X\r\n",
+                       net_param.relay_depth,
+                       net_param.network_key[0], net_param.network_key[1],
+                       net_param.network_key[2], net_param.network_key[3]);
+            }
+            break;
+        }
+
+        case ES1642_CMD_SET_ADDR:
+        {
+            status = ES1642_DecodeEmptyResponse(frame, ES1642_CMD_SET_ADDR);
+            if (status == ES1642_STATUS_OK)
+            {
+                printf("设置地址: OK\r\n");
+            }
+            break;
+        }
+
+        case ES1642_CMD_SET_NET_PARAM:
+        {
+            status = ES1642_DecodeEmptyResponse(frame, ES1642_CMD_SET_NET_PARAM);
+            if (status == ES1642_STATUS_OK)
+            {
+                printf("设置网络参数: OK\r\n");
+            }
+            break;
+        }
+
+        case ES1642_CMD_SEND_DATA:
+        {
+            /* 发送命令的应答通常为空响应，按需处理 */
+            status = ES1642_DecodeEmptyResponse(frame, ES1642_CMD_SEND_DATA);
+            if (status == ES1642_STATUS_OK)
+            {
+                printf("发送数据命令已被模块接收\r\n");
+            }
+            break;
+        }
+
+        case ES1642_CMD_START_SEARCH:
+        {
+            status = ES1642_DecodeEmptyResponse(frame, ES1642_CMD_START_SEARCH);
+            if (status == ES1642_STATUS_OK)
+            {
+                printf("启动搜索: OK\r\n");
+            }
+            break;
+        }
+
+        case ES1642_CMD_STOP_SEARCH:
+        {
+            status = ES1642_DecodeEmptyResponse(frame, ES1642_CMD_STOP_SEARCH);
+            if (status == ES1642_STATUS_OK)
+            {
+                printf("停止搜索: OK\r\n");
+            }
+            break;
+        }
+
+        case ES1642_CMD_REPORT_SEARCH_RESULT:
+        {
+						printf("有设备响应搜索\r\n");
+            es1642_search_result_t result;
+            status = ES1642_DecodeSearchResult(frame, &result);
+            if (status == ES1642_STATUS_OK)
+            {
+							printf("设备数目:%d\r\n搜索到设备: 地址=%02X:%02X:%02X:%02X:%02X:%02X, "
+                       "网络状态=%d\r\n",result.count,
+                       result.dev_addr[0], result.dev_addr[1],
+                       result.dev_addr[2], result.dev_addr[3],
+                       result.dev_addr[4], result.dev_addr[5],
+                       result.net_state);
+            }
+            break;
+        }
+
+        case ES1642_CMD_NOTIFY_SEARCH:
+        {
+            es1642_search_notify_t notify;
+            status = ES1642_DecodeSearchNotify(frame, &notify);
+            if (status == ES1642_STATUS_OK)
+            {
+                printf("搜索通知: 源地址=%02X:%02X:%02X:%02X:%02X:%02X, 任务ID=%d, 属性长度=%d\r\n",
+                       notify.src_addr[0], notify.src_addr[1], notify.src_addr[2],
+                       notify.src_addr[3], notify.src_addr[4], notify.src_addr[5],
+                       notify.task_id, notify.attribute_len);
+											 ES1642_SendSearch(notify.src_addr,notify.task_id,1,NULL,0);//响应搜索
+            }
+            break;
+        }
+
+        case ES1642_CMD_REPLY_SEARCH:
+        {
+            es1642_search_reply_t reply;
+            status = ES1642_DecodeSearchReply(frame, &reply);
+            if (status == ES1642_STATUS_OK)
+            {
+                printf("搜索回复: 源地址=%02X:%02X:%02X:%02X:%02X:%02X, 参与=%d, 任务ID=%d, 属性长度=%d\r\n",
+                       reply.src_addr[0], reply.src_addr[1], reply.src_addr[2],
+                       reply.src_addr[3], reply.src_addr[4], reply.src_addr[5],
+                       reply.participate, reply.task_id, reply.attribute_len);
+            }
+            break;
+        }
+
+        case ES1642_CMD_SET_PSK:
+        {
+            /* 设备设置口令的应答通常为空响应 */
+            status = ES1642_DecodeEmptyResponse(frame, ES1642_CMD_SET_PSK);
+            if (status == ES1642_STATUS_OK)
+            {
+                printf("设置PSK: OK\r\n");
+            }
+            break;
+        }
+
+        case ES1642_CMD_NOTIFY_PSK:
+        {
+            es1642_psk_notify_t psk;
+            status = ES1642_DecodePskNotify(frame, &psk);
+            if (status == ES1642_STATUS_OK)
+            {
+                printf("PSK通知: 源地址=%02X:%02X:%02X:%02X:%02X:%02X, 操作=%02X\r\n",
+                       psk.src_addr[0], psk.src_addr[1], psk.src_addr[2],
+                       psk.src_addr[3], psk.src_addr[4], psk.src_addr[5],
+                       psk.op);
+            }
+            break;
+        }
+
+        case ES1642_CMD_REPORT_PSK_RESULT:
+        {
+            es1642_psk_result_t result;
+            status = ES1642_DecodePskResult(frame, &result);
+            if (status == ES1642_STATUS_OK)
+            {
+                printf("PSK结果: 源地址=%02X:%02X:%02X:%02X:%02X:%02X, 状态=%d\r\n",
+                       result.src_addr[0], result.src_addr[1], result.src_addr[2],
+                       result.src_addr[3], result.src_addr[4], result.src_addr[5],
+                       result.state);
+            }
+            break;
+        }
+
+        case ES1642_CMD_REMOTE_READ_VERSION:
+        {
+            es1642_remote_version_t rver;
+            status = ES1642_DecodeRemoteVersion(frame, &rver);
+            if (status == ES1642_STATUS_OK)
+            {
+                printf("远程版本: 源地址=%02X:%02X:%02X:%02X:%02X:%02X, 厂商=0x%04X, 芯片=0x%04X, 版本=0x%04X\r\n",
+                       rver.src_addr[0], rver.src_addr[1], rver.src_addr[2],
+                       rver.src_addr[3], rver.src_addr[4], rver.src_addr[5],
+                       rver.version.vendor_id, rver.version.chip_type, rver.version.version_bcd);
+            }
+            break;
+        }
+
+        case ES1642_CMD_REMOTE_READ_MAC:
+        {
+            es1642_remote_mac_t rmac;
+            status = ES1642_DecodeRemoteMac(frame, &rmac);
+            if (status == ES1642_STATUS_OK)
+            {
+                printf("远程MAC: 源地址=%02X:%02X:%02X:%02X:%02X:%02X, MAC=%02X:%02X:%02X:%02X:%02X:%02X\r\n",
+                       rmac.src_addr[0], rmac.src_addr[1], rmac.src_addr[2],
+                       rmac.src_addr[3], rmac.src_addr[4], rmac.src_addr[5],
+                       rmac.mac[0], rmac.mac[1], rmac.mac[2], rmac.mac[3], rmac.mac[4], rmac.mac[5]);
+            }
+            break;
+        }
+
+        case ES1642_CMD_REMOTE_READ_NET_PARAM:
+        {
+            es1642_remote_net_param_t rnet;
+            status = ES1642_DecodeRemoteNetParam(frame, &rnet);
+            if (status == ES1642_STATUS_OK)
+            {
+                printf("远程网络参数: 源地址=%02X:%02X:%02X:%02X:%02X:%02X, 中继=%d\r\n",
+                       rnet.src_addr[0], rnet.src_addr[1], rnet.src_addr[2],
+                       rnet.src_addr[3], rnet.src_addr[4], rnet.src_addr[5],
+                       rnet.net_param.relay_depth);
+            }
+            break;
+        }
+        
         case ES1642_CMD_RECV_DATA:
         {
+					char bufff[] = {0x01,0x02,0x03,0x04,0x05,0x06};
             es1642_recv_data_t recv_data;
             status = ES1642_DecodeRecvData(frame, &recv_data);
             if (status == ES1642_STATUS_OK)
@@ -168,25 +384,11 @@ static void es1642_on_frame_received(es1642_handle_t *handle,
                 /* 处理用户数据 */
                 if (recv_data.user_data_len > 0 && recv_data.user_data != NULL)
                 {
+										//给从机回复123456
+										ES1642_SendUserData(recv_data.src_addr,(const uint8_t *)bufff,sizeof(bufff),0);
                     /* 这里可以根据业务逻辑处理用户数据 */
                     /* 注意：recv_data.user_data指向驱动内部缓冲区，如需长期保存请自行拷贝 */
                 }
-            }
-            break;
-        }
-        
-        case ES1642_CMD_REPORT_SEARCH_RESULT:
-        {
-            es1642_search_result_t result;
-            status = ES1642_DecodeSearchResult(frame, &result);
-            if (status == ES1642_STATUS_OK)
-            {
-                printf("搜索到设备: 地址=%02X:%02X:%02X:%02X:%02X:%02X, "
-                       "网络状态=%d\r\n",
-                       result.dev_addr[0], result.dev_addr[1],
-                       result.dev_addr[2], result.dev_addr[3],
-                       result.dev_addr[4], result.dev_addr[5],
-                       result.net_state);
             }
             break;
         }
@@ -220,7 +422,7 @@ static void es1642_on_frame_received(es1642_handle_t *handle,
  * @retval None
  * @note   当发生错误时，驱动会调用此函数
  */
-static void es1642_on_error(es1642_handle_t *handle, 
+void es1642_on_error(es1642_handle_t *handle, 
                            es1642_status_t status, 
                            void *user_arg)
 {
@@ -245,42 +447,6 @@ static void es1642_on_error(es1642_handle_t *handle,
             break;
     }
 }
-
-/* ======== 步骤5：实现串口空闲中断处理函数 ======== */
-
-///**
-// * @brief  串口空闲中断处理函数
-// * @note   在UART中断服务程序中调用
-// * @retval None
-// * @note   此函数应在usart.c中实现，这里仅作为示例展示
-// */
-//void ES1642_UART_IRQHandler(void)
-//{
-//    uint32_t recv_len;
-//    
-//    // 检查是否为空闲中断
-//    if (__HAL_UART_GET_FLAG(&huart2, UART_FLAG_IDLE))
-//    {
-//        // 清除空闲中断标志位（读SR寄存器，再读DR寄存器）
-//        __HAL_UART_CLEAR_IDLEFLAG(&huart2);
-//        
-//        // 停止DMA接收
-//        HAL_UART_DMAStop(&huart2);
-//        
-//        // 计算接收到的数据长度
-//        // DMA剩余传输量 = 初始大小 - 已接收大小
-//        recv_len = ES1642_RX_BUF_SIZE - __HAL_DMA_GET_COUNTER(huart2.hdmarx);
-//        
-//        // 将接收到的数据传给ES1642驱动解析
-//        if (recv_len > 0)
-//        {
-//            ES1642_InputBuffer(&g_es1642_handle, g_es1642_rx_buf, recv_len);
-//        }
-//        
-//        // 重新启动DMA接收
-//        HAL_UART_Receive_DMA(&huart2, g_es1642_rx_buf, ES1642_RX_BUF_SIZE);
-//    }
-//}
 
 
 /* ======== 步骤6：实现模块初始化函数 ======== */
@@ -527,6 +693,250 @@ int ES1642_ReadNetParam(void)
     return 0;
 }
 
+/**
+ * @brief  设置网络参数
+ * @param  relay_depth: 中继深度
+ * @retval 0: 成功, -1: 失败
+ */
+int ES1642_SetNetParam(uint8_t relay_depth)
+{
+    es1642_status_t status;
+    
+    printf("正在设置网络参数...\r\n");
+    
+    status = ES1642_SendSetNetParam(&g_es1642_handle, relay_depth);
+    
+    if (status != ES1642_STATUS_OK)
+    {
+        printf("设置网络参数失败: %s\r\n", ES1642_StatusString(status));
+        return -1;
+    }
+    
+    return 0;
+}
+
+/**
+ * @brief  重启模块
+ * @retval 0: 成功, -1: 失败
+ */
+int ES1642_RebootModule(void)
+{
+    es1642_status_t status;
+    
+    printf("正在重启ES1642模块...\r\n");
+    
+    status = ES1642_SendReboot(&g_es1642_handle);
+    
+    if (status != ES1642_STATUS_OK)
+    {
+        printf("发送重启命令失败: %s\r\n", ES1642_StatusString(status));
+        return -1;
+    }
+    
+    printf("重启命令已发送\r\n");
+    return 0;
+}
+
+/**
+ * @brief  发送搜索回复
+ * @param  src_addr: 源地址（6字节）
+ * @param  task_id: 任务ID
+ * @param  participate: 是否参与搜索
+ * @param  attribute: 属性数据指针（可为NULL）
+ * @param  attribute_len: 属性数据长度
+ * @retval 0: 成功, -1: 失败
+ */
+int ES1642_SendSearch(const uint8_t src_addr[ES1642_ADDR_LEN],
+                          uint8_t task_id,
+                          bool participate,
+                          const uint8_t *attribute,
+                          uint8_t attribute_len)
+{
+    es1642_status_t status;
+    
+    if (src_addr == NULL)
+    {
+        printf("参数错误\r\n");
+        return -1;
+    }
+    
+    printf("正在发送搜索回复...\r\n");
+    
+    status = ES1642_SendSearchReply(&g_es1642_handle, src_addr, task_id, 
+                                   participate, attribute, attribute_len);
+    
+    if (status != ES1642_STATUS_OK)
+    {
+        printf("发送搜索回复失败: %s\r\n", ES1642_StatusString(status));
+        return -1;
+    }
+    
+    printf("搜索回复发送成功\r\n");
+    return 0;
+}
+
+/**
+ * @brief  设置PSK
+ * @param  dst_addr: 目标地址（6字节）
+ * @param  new_psk: 新的PSK指针（8字节）
+ * @retval 0: 成功, -1: 失败
+ */
+int ES1642_SetPsk(const uint8_t dst_addr[ES1642_ADDR_LEN],
+                 const uint8_t new_psk[ES1642_SET_PSK_LEN])
+{
+    es1642_status_t status;
+    
+    if (dst_addr == NULL || new_psk == NULL)
+    {
+        printf("参数错误\r\n");
+        return -1;
+    }
+    
+    printf("正在设置PSK...\r\n");
+    
+    status = ES1642_SendSetPsk(&g_es1642_handle, dst_addr, new_psk, ES1642_SET_PSK_LEN);
+    
+    if (status != ES1642_STATUS_OK)
+    {
+        printf("设置PSK失败: %s\r\n", ES1642_StatusString(status));
+        return -1;
+    }
+    
+    printf("PSK设置成功\r\n");
+    return 0;
+}
+
+/**
+ * @brief  远程读取版本信息
+ * @param  dst_addr: 目标地址（6字节）
+ * @retval 0: 成功, -1: 失败
+ */
+int ES1642_RemoteReadVersion(const uint8_t dst_addr[ES1642_ADDR_LEN])
+{
+    es1642_status_t status;
+    
+    if (dst_addr == NULL)
+    {
+        printf("参数错误\r\n");
+        return -1;
+    }
+    
+    printf("正在远程读取版本信息...\r\n");
+    
+    status = ES1642_SendRemoteReadVersion(&g_es1642_handle, dst_addr);
+    
+    if (status != ES1642_STATUS_OK)
+    {
+        printf("发送远程读取版本命令失败: %s\r\n", ES1642_StatusString(status));
+        return -1;
+    }
+    
+    return 0;
+}
+
+/**
+ * @brief  远程读取MAC地址
+ * @param  dst_addr: 目标地址（6字节）
+ * @retval 0: 成功, -1: 失败
+ */
+int ES1642_RemoteReadMac(const uint8_t dst_addr[ES1642_ADDR_LEN])
+{
+    es1642_status_t status;
+    
+    if (dst_addr == NULL)
+    {
+        printf("参数错误\r\n");
+        return -1;
+    }
+    
+    printf("正在远程读取MAC地址...\r\n");
+    
+    status = ES1642_SendRemoteReadMac(&g_es1642_handle, dst_addr);
+    
+    if (status != ES1642_STATUS_OK)
+    {
+        printf("发送远程读取MAC命令失败: %s\r\n", ES1642_StatusString(status));
+        return -1;
+    }
+    
+    return 0;
+}
+
+/**
+ * @brief  远程读取网络参数
+ * @param  dst_addr: 目标地址（6字节）
+ * @retval 0: 成功, -1: 失败
+ */
+int ES1642_RemoteReadNetParam(const uint8_t dst_addr[ES1642_ADDR_LEN])
+{
+    es1642_status_t status;
+    
+    if (dst_addr == NULL)
+    {
+        printf("参数错误\r\n");
+        return -1;
+    }
+    
+    printf("正在远程读取网络参数...\r\n");
+    
+    status = ES1642_SendRemoteReadNetParam(&g_es1642_handle, dst_addr);
+    
+    if (status != ES1642_STATUS_OK)
+    {
+        printf("发送远程读取网络参数命令失败: %s\r\n", ES1642_StatusString(status));
+        return -1;
+    }
+    
+    return 0;
+}
+
+/**
+ * @brief  发送空应答
+ * @param  cmd: 要应答的指令字
+ * @retval 0: 成功, -1: 失败
+ */
+int ES1642_SendAck(uint8_t cmd)
+{
+    es1642_status_t status;
+    
+    printf("正在发送应答...\r\n");
+    
+    status = ES1642_SendAckEmpty(&g_es1642_handle, cmd);
+    
+    if (status != ES1642_STATUS_OK)
+    {
+        printf("发送应答失败: %s\r\n", ES1642_StatusString(status));
+        return -1;
+    }
+    
+    printf("应答发送成功\r\n");
+    return 0;
+}
+
+/**
+ * @brief  发送异常应答
+ * @param  cmd: 要应答的指令字
+ * @param  exception_code: 异常码
+ * @retval 0: 成功, -1: 失败
+ */
+int ES1642_SendExceptionResponse(uint8_t cmd, uint8_t exception_code)
+{
+    es1642_status_t status;
+    
+    printf("正在发送异常应答...\r\n");
+    
+    status = ES1642_SendException(&g_es1642_handle, cmd, exception_code);
+    
+    if (status != ES1642_STATUS_OK)
+    {
+        printf("发送异常应答失败: %s\r\n", ES1642_StatusString(status));
+        return -1;
+    }
+    
+    printf("异常应答发送成功\r\n");
+    return 0;
+}
+
 /* ======== 步骤8：main函数中使用示例 ======== */
 
 /*
@@ -552,6 +962,12 @@ int ES1642_ReadNetParam(void)
  *     
  *     // 读取模块地址
  *     ES1642_ReadAddr();
+ *     
+ *     // 设置网络参数
+ *     ES1642_SetNetParam(3);
+ *     
+ *     // 启动搜索
+ *     ES1642_StartSearch(5, ES1642_SEARCH_RULE_SAME_NETWORK);
  *     
  *     while (1)
  *     {
@@ -636,4 +1052,3 @@ int ES1642_ReadNetParam(void)
  *    - 收到错误后，驱动会自动重置接收状态
  *    - 应用层可以根据需要实现重发机制
  */
-

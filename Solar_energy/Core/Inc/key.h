@@ -12,6 +12,8 @@ typedef enum
     Key_Right,	//右
 		Key_Enter,	//确认
 		Key_Return,	//退出
+		Key1,
+		Key2,
 		KEY_ID_COUNT
 } key_id_t;
 

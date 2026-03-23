@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include "wizchip_conf.h"
 #include "wiz_interface.h"
+#include "loopback.h"
+
 #include "cmsis_os.h"
 #include "main.h"
 
@@ -14,58 +16,62 @@
 //	wizchip_RESET	 --->     STM32_GPIOD8
 //	wizchip_INT    --->     STM32_GPIOD9
 
-/* 网络信息 */
+/* Define network information */
 wiz_NetInfo default_net_info = {
     .mac = {0x00, 0x08, 0xdc, 0x12, 0x22, 0x12},
-    .ip = {192, 168, 1, 110},
+    .ip = {192, 168, 1, 212},
     .gw = {192, 168, 1, 1},
     .sn = {255, 255, 255, 0},
     .dns = {8, 8, 8, 8},
-    .dhcp = NETINFO_DHCP}; // DHCP 获取 IP 地址
-uint8_t ethernet_buf[ETHERNET_BUF_MAX_SIZE] = {0};
+    .dhcp = NETINFO_DHCP // dhcp get ip
+    //.dhcp = NETINFO_STATIC  //static ip
+};
+
+uint16_t local_port = 8080;
+static uint8_t ethernet_buf[ETHERNET_BUF_MAX_SIZE] = {0};
+
 /**
  * @brief   User Run Program
  * @param   none
  * @return  none
  */
-void user_run(void)
+//void user_run(void)
+//{
+//  printf("wizchip TCP Server example\r\n");
+
+//  /* wizchip init */
+//  wizchip_initialize();
+
+//  /* set network information */
+//  network_init(ethernet_buf, &default_net_info);
+
+//  /* Enable keepalive,Parameter 2 is the keep alive time, with a unit of 5 seconds */
+//  setSn_KPALVTR(SOCKET_ID, 6); // 30s keepalive
+//	
+//  while (1)
+//	{
+//			loopback_tcps(SOCKET_ID, ethernet_buf, local_port);
+//	}
+//}
+void W5500_Task(void *argument)
 {
-	wiz_NetInfo net_info;
-  printf("wizchip dhcp example\r\n");
+  /* USER CODE BEGIN W5500Taskfun */
+  printf("wizchip TCP Server example\r\n");
 
   /* wizchip init */
   wizchip_initialize();
 
-  /* First use DHCP to obtain the Internet Protocol Address, and use a static address if the maximum number of reconnections is exceeded */
+  /* set network information */
   network_init(ethernet_buf, &default_net_info);
-	
-	wizchip_getnetinfo(&net_info);
-  printf("please try ping %d.%d.%d.%d\r\n", net_info.ip[0], net_info.ip[1], net_info.ip[2], net_info.ip[3]);
 
-  while (1)
-  {
-	}
-}
-void W5500_Task(void *argument)
-{
-  /* USER CODE BEGIN W5500Taskfun */
-//	wiz_NetInfo net_info;
-//  printf("wizchip DHCP 示例\r\n");
-
-//  /* wizchip 初始化 */
-//  wizchip_initialize();
-
-//  /* 首先使用 DHCP 获取互联网协议地址，如果超过最大重连次数，则使用静态地址 */
-//  network_init(ethernet_buf, &default_net_info);
-//	
-//	wizchip_getnetinfo(&net_info);
-//  printf("请尝试 ping %d.%d.%d.%d\r\n", net_info.ip[0], net_info.ip[1], net_info.ip[2], net_info.ip[3]);
+  /* Enable keepalive,Parameter 2 is the keep alive time, with a unit of 5 seconds */
+  setSn_KPALVTR(SOCKET_ID, 6); // 30s keepalive
   /* Infinite loop */
   for(;;)
   {
+		loopback_tcps(SOCKET_ID, ethernet_buf, local_port);
 		osDelay(1);
   }
   /* USER CODE END W5500Taskfun */
 }
-
 

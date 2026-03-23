@@ -28,7 +28,7 @@ extern es1642_handle_t g_es1642_handle;
 
 /* 串口接收缓冲区（DMA使用） */
 #define ES1642_RX_BUF_SIZE  (ES1642_MAX_FRAME_LEN * 2)  /* 建议留有余量 */
-extern uint8_t g_es1642_rx_buf[ES1642_RX_BUF_SIZE];
+extern uint8_t g_es1642_rx_buf[ES1642_MAX_FRAME_LEN];
 
 /* 串口句柄（假设使用huart1） */
 extern UART_HandleTypeDef huart1;
@@ -55,7 +55,7 @@ static int32_t es1642_uart_write(const uint8_t *data, uint16_t len, void *user_a
  * @retval None
  * @note   当接收到完整帧时，驱动会调用此函数
  */
-static void es1642_on_frame_received(es1642_handle_t *handle, 
+void es1642_on_frame_received(es1642_handle_t *handle, 
                                      const es1642_frame_t *frame, 
                                      void *user_arg);
 
@@ -69,7 +69,7 @@ static void es1642_on_frame_received(es1642_handle_t *handle,
  * @retval None
  * @note   当发生错误时，驱动会调用此函数
  */
-static void es1642_on_error(es1642_handle_t *handle, 
+void es1642_on_error(es1642_handle_t *handle, 
                            es1642_status_t status, 
                            void *user_arg);
 
@@ -150,13 +150,12 @@ int ES1642_SetModuleAddr(const uint8_t addr[ES1642_ADDR_LEN]);
  */
 int ES1642_ReadNetParam(void);
 
-///**
-// * @brief  串口空闲中断处理函数
-// * @note   在UART中断服务程序中调用
-// * @retval None
-// * @note   此函数应在usart.c中实现，这里仅作为示例展示
-// */
-//void ES1642_UART_IRQHandler(void);
+int ES1642_SendSearch(const uint8_t src_addr[ES1642_ADDR_LEN],
+                          uint8_t task_id,
+                          bool participate,
+                          const uint8_t *attribute,
+                          uint8_t attribute_len);
+													
 
 #ifdef __cplusplus
 }

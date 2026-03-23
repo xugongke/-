@@ -56,7 +56,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+/* W5500 interrupt semaphore for FreeRTOS task synchronization */
+SemaphoreHandle_t w5500_int_semaphore = NULL;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -111,6 +112,7 @@ int main(void)
   MX_I2C2_Init();
   MX_ADC1_Init();
   MX_USART2_UART_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
 	//注册搬运图像数据完成回调函数
 	HAL_DMA_RegisterCallback(&hdma_memtomem_dma2_stream0, HAL_DMA_XFER_CPLT_CB_ID, LVGL_LCD_FSMC_DMA_pCallback);
@@ -196,6 +198,26 @@ void vApplicationTickHook(void)
     lv_tick_inc(1);  // 告诉 LVGL 过了 1 毫秒
 }
 
+/**
+  * @brief  EXTI line detection callbacks
+  * @param  GPIO_Pin: Specifies the pins connected EXTI line
+  * @retval None
+  */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  if (GPIO_Pin == W5500_INT_Pin)
+  {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    
+    /* Release semaphore to wake up W5500 task */
+    if (w5500_int_semaphore != NULL)
+    {
+      xSemaphoreGiveFromISR(w5500_int_semaphore, &xHigherPriorityTaskWoken);
+      portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    }
+  }
+}
+
 /* USER CODE END 4 */
 
 /**
@@ -219,6 +241,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	if (htim->Instance == TIM2)
 	{
 		wiz_timer_handler();
+	}
+	if (htim->Instance == TIM3)
+	{
+		HAL_TIM_Base_Stop_IT(&htim3);//停止定时器,并关闭背光灯
+		HAL_GPIO_WritePin(LCD_BL_GPIO_Port, LCD_BL_Pin, GPIO_PIN_RESET);
 	}
   /* USER CODE END Callback 1 */
 }

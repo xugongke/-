@@ -340,7 +340,7 @@
               <MiscControls>--diag_suppress=870 --diag_suppress=188 --diag_suppress=546 --diag_suppress=111</MiscControls>
               <Define>USE_HAL_DRIVER,STM32F429xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../Middlewares/LVGL_v8.3.11/lvgl;../Middlewares/LVGL_v8.3.11/lvgl/src;../Middlewares/LVGL_v8.3.11/lvgl/examples;../Middlewares/LVGL_v8.3.11/lvgl/examples/porting;../Middlewares/LVGL_v8.3.11/lvgl/src/hal;../Middlewares/LVGL_v8.3.11/lvgl/src/misc;../Middlewares/LVGL_v8.3.11/lvgl/src/core;../Middlewares/LVGL_v8.3.11/lvgl/src/draw/stm32_dma2d;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2;../Middlewares/LVGL_v8.3.11/lvgl/myGUI/custom;../Middlewares/LVGL_v8.3.11/lvgl/myGUI/generated;../Middlewares/LVGL_v8.3.11/lvgl/myGUI/generated/guider_customer_fonts;../FATFS/Target;../FATFS/App;../Middlewares/Third_Party/FatFs/src;../Middlewares/W5500;../Middlewares/W5500/ioLibrary_Driver/Ethernet;../Middlewares/W5500/ioLibrary_Driver/Ethernet/W5500;../Middlewares/W5500/ioLibrary_Driver/Internet/DHCP;../Middlewares/W5500/wiz_interface;../Middlewares/W5500/wiz_platform;../Middlewares/W5500/user_main</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../Middlewares/LVGL_v8.3.11/lvgl;../Middlewares/LVGL_v8.3.11/lvgl/src;../Middlewares/LVGL_v8.3.11/lvgl/examples;../Middlewares/LVGL_v8.3.11/lvgl/examples/porting;../Middlewares/LVGL_v8.3.11/lvgl/src/hal;../Middlewares/LVGL_v8.3.11/lvgl/src/misc;../Middlewares/LVGL_v8.3.11/lvgl/src/core;../Middlewares/LVGL_v8.3.11/lvgl/src/draw/stm32_dma2d;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2;../Middlewares/LVGL_v8.3.11/lvgl/myGUI/custom;../Middlewares/LVGL_v8.3.11/lvgl/myGUI/generated;../Middlewares/LVGL_v8.3.11/lvgl/myGUI/generated/guider_customer_fonts;../FATFS/Target;../FATFS/App;../Middlewares/Third_Party/FatFs/src;../Middlewares/W5500;../Middlewares/W5500/ioLibrary_Driver/Ethernet;../Middlewares/W5500/ioLibrary_Driver/Ethernet/W5500;../Middlewares/W5500/ioLibrary_Driver/Internet/DHCP;../Middlewares/W5500/wiz_interface;../Middlewares/W5500/wiz_platform;../Middlewares/W5500/user_main;../Middlewares/W5500/ioLibrary_Driver/Internet/SNTP;../Middlewares/W5500/DNS;../Middlewares/W5500/ioLibrary_Driver/Internet/DNS;../Middlewares/W5500/Loopback</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -438,6 +438,11 @@
               <FileName>es1642_usage_guide.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Core\Src\es1642_usage_guide.c</FilePath>
+            </File>
+            <File>
+              <FileName>logo_shunpu.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\logo_shunpu.c</FilePath>
             </File>
             <File>
               <FileName>main.c</FileName>
@@ -865,11 +870,6 @@
               <FileName>stm32f4xx_hal_timebase_tim.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Core/Src/stm32f4xx_hal_timebase_tim.c</FilePath>
-            </File>
-            <File>
-              <FileName>logo_shunpu.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Core\Src\logo_shunpu.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -3669,7 +3669,7 @@
             <File>
               <FileName>loopback.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Middlewares\W5500\ioLibrary_Driver\Application\loopback\loopback.c</FilePath>
+              <FilePath>..\Middlewares\W5500\Loopback\loopback.c</FilePath>
             </File>
           </Files>
         </Group>

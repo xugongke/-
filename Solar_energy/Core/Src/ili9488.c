@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "dma.h"
+#include "tim.h"
 /* ========== FMC 映射地址 ========== */
 /* Bank1 NE1 = 0x60000000 */
 #define LCD_BASE    0x60000000U
@@ -114,6 +115,8 @@ void ILI9488_Init(void)
     /* 显示开 */
     ILI9488_WriteCommand(ILI9488_DISPON);
 		HAL_GPIO_WritePin(LCD_BL_GPIO_Port, LCD_BL_Pin, GPIO_PIN_SET);
+		printf("开启定时器3\r\n");
+		HAL_TIM_Base_Start_IT(&htim3);
     ILI9488_Delay(120);
 }
 

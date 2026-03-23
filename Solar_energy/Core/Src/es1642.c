@@ -19,7 +19,7 @@
  */
 
 #include "es1642.h"
-
+#include <stdio.h>
 #include <string.h>
 
 /* ========================= 内部工具函数 ========================= */
@@ -564,7 +564,12 @@ es1642_status_t ES1642_SendFrame(es1642_handle_t *handle,
     {
         return status;
     }
-
+//		printf("es1642.c的567行，发送协议帧:");
+//		for(int i = 0;i < frame_len;i++)
+//		{
+//			printf("%#x ",frame_buf[i]);
+//		}
+//		printf("\r\n");
     /* 通过回调函数发送数据 */
     send_len = handle->port.write(frame_buf, frame_len, handle->port.user_arg);
 
@@ -821,8 +826,69 @@ es1642_status_t ES1642_InputBuffer(es1642_handle_t *handle,
     return status;
 }
 
+/**
+ * @brief  处理一帧完整的原始帧数据（适用于 DMA/消息缓冲接收一次性得到完整帧的场景）
+ * @param  handle: ES1642 驱动句柄指针
+ * @param  frame_buf: 指向完整原始帧的缓冲区（从帧头开始）
+ * @param  frame_len: 缓冲区长度（应为完整帧长度）
+ * @retval ES1642_STATUS_FRAME_READY: 成功解析并触发 on_frame 回调
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误
+ * @retval ES1642_STATUS_ERROR_BAD_HEAD: 帧头错误
+ * @retval ES1642_STATUS_ERROR_BAD_LENGTH: 长度字段与实际长度不匹配
+ * @retval ES1642_STATUS_ERROR_DATA_TOO_LONG: 声明的数据长度超出最大值
+ * @retval ES1642_STATUS_ERROR_CHECKSUM: 校验失败
+ * @retval 其它错误码: 解析过程中的其它错误
+ * @note   该函数等价于对一个完整帧调用 ES1642_ParseFrame，然后根据解析结果
+ *         触发 `handle->port.on_frame` 或 `handle->port.on_error` 回调。
+ */
+es1642_status_t ES1642_ProcessCompleteFrame(es1642_handle_t *handle,
+                                            const uint8_t *frame_buf,
+                                            uint16_t frame_len)
+{
+    es1642_frame_t frame;
+    es1642_status_t status;
+
+    if ((handle == NULL) || (frame_buf == NULL))
+    {
+        return ES1642_STATUS_ERROR_PARAM;
+    }
+
+    /* 解析传入的完整帧 */
+    status = ES1642_ParseFrame(frame_buf, frame_len, &frame);
+
+    if (status == ES1642_STATUS_OK)
+    {
+        if (handle->port.on_frame != NULL)
+        {
+            handle->port.on_frame(handle, &frame, handle->port.user_arg);
+        }
+
+        /* 如果使用了内部流式接收状态，确保状态被重置以避免残留 */
+        ES1642_ResetRx(handle);
+        return ES1642_STATUS_FRAME_READY;
+    }
+
+    /* 解析失败时通知错误回调（如果有）并返回错误码 */
+    if (handle->port.on_error != NULL)
+    {
+        handle->port.on_error(handle, status, handle->port.user_arg);
+    }
+
+    /* 不改变 RX 状态，调用者可根据需要决定是否重置 */
+    return status;
+}
+
 /* ========================= 命令发送接口 ========================= */
 
+/**
+ * @brief  发送重启命令
+ * @param  handle: ES1642 驱动句柄指针
+ * @retval ES1642_STATUS_OK: 发送成功
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误（handle 为 NULL）
+ * @retval ES1642_STATUS_ERROR_NO_TX_PORT: 未注册发送回调
+ * @retval ES1642_STATUS_ERROR_TX_FAIL: 发送失败
+ * @note   该函数构建一个空数据载荷的重启请求帧并通过注册的写回调发送
+ */
 es1642_status_t ES1642_SendReboot(es1642_handle_t *handle)
 {
     return ES1642_SendFrame(handle,
@@ -832,6 +898,14 @@ es1642_status_t ES1642_SendReboot(es1642_handle_t *handle)
                             0U);
 }
 
+/**
+ * @brief  请求读取模块版本信息
+ * @param  handle: ES1642 驱动句柄指针
+ * @retval ES1642_STATUS_OK: 发送成功
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误
+ * @retval ES1642_STATUS_ERROR_NO_TX_PORT: 未注册发送回调
+ * @retval ES1642_STATUS_ERROR_TX_FAIL: 发送失败
+ */
 es1642_status_t ES1642_SendReadVersion(es1642_handle_t *handle)
 {
     return ES1642_SendFrame(handle,
@@ -841,6 +915,14 @@ es1642_status_t ES1642_SendReadVersion(es1642_handle_t *handle)
                             0U);
 }
 
+/**
+ * @brief  请求读取本地模块 MAC 地址
+ * @param  handle: ES1642 驱动句柄指针
+ * @retval ES1642_STATUS_OK: 发送成功
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误
+ * @retval ES1642_STATUS_ERROR_NO_TX_PORT: 未注册发送回调
+ * @retval ES1642_STATUS_ERROR_TX_FAIL: 发送失败
+ */
 es1642_status_t ES1642_SendReadMac(es1642_handle_t *handle)
 {
     return ES1642_SendFrame(handle,
@@ -850,6 +932,14 @@ es1642_status_t ES1642_SendReadMac(es1642_handle_t *handle)
                             0U);
 }
 
+/**
+ * @brief  请求读取模块自身地址（6 字节）
+ * @param  handle: ES1642 驱动句柄指针
+ * @retval ES1642_STATUS_OK: 发送成功
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误
+ * @retval ES1642_STATUS_ERROR_NO_TX_PORT: 未注册发送回调
+ * @retval ES1642_STATUS_ERROR_TX_FAIL: 发送失败
+ */
 es1642_status_t ES1642_SendReadAddr(es1642_handle_t *handle)
 {
     return ES1642_SendFrame(handle,
@@ -859,6 +949,15 @@ es1642_status_t ES1642_SendReadAddr(es1642_handle_t *handle)
                             0U);
 }
 
+/**
+ * @brief  设置模块地址
+ * @param  handle: ES1642 驱动句柄指针
+ * @param  addr: 要设置的地址，数组长度为 ES1642_ADDR_LEN（6）
+ * @retval ES1642_STATUS_OK: 发送成功
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误（handle 或 addr 为 NULL）
+ * @retval ES1642_STATUS_ERROR_NO_TX_PORT: 未注册发送回调
+ * @retval ES1642_STATUS_ERROR_TX_FAIL: 发送失败
+ */
 es1642_status_t ES1642_SendSetAddr(es1642_handle_t *handle,
                                    const uint8_t addr[ES1642_ADDR_LEN])
 {
@@ -874,6 +973,14 @@ es1642_status_t ES1642_SendSetAddr(es1642_handle_t *handle,
                             ES1642_ADDR_LEN);
 }
 
+/**
+ * @brief  请求读取网络参数（中继深度、网络密钥等）
+ * @param  handle: ES1642 驱动句柄指针
+ * @retval ES1642_STATUS_OK: 发送成功
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误
+ * @retval ES1642_STATUS_ERROR_NO_TX_PORT: 未注册发送回调
+ * @retval ES1642_STATUS_ERROR_TX_FAIL: 发送失败
+ */
 es1642_status_t ES1642_SendReadNetParam(es1642_handle_t *handle)
 {
     return ES1642_SendFrame(handle,
@@ -883,6 +990,15 @@ es1642_status_t ES1642_SendReadNetParam(es1642_handle_t *handle)
                             0U);
 }
 
+/**
+ * @brief  设置网络参数（当前仅支持设置中继深度）
+ * @param  handle: ES1642 驱动句柄指针
+ * @param  relay_depth: 中继深度（0-255，协议中通常只使用低位）
+ * @retval ES1642_STATUS_OK: 发送成功
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误
+ * @retval ES1642_STATUS_ERROR_NO_TX_PORT: 未注册发送回调
+ * @retval ES1642_STATUS_ERROR_TX_FAIL: 发送失败
+ */
 es1642_status_t ES1642_SendSetNetParam(es1642_handle_t *handle,
                                        uint8_t relay_depth)
 {
@@ -898,6 +1014,21 @@ es1642_status_t ES1642_SendSetNetParam(es1642_handle_t *handle,
                             (uint16_t)sizeof(payload));
 }
 
+/**
+ * @brief  发送用户数据到目标地址
+ * @param  handle: ES1642 驱动句柄指针
+ * @param  dst_addr: 目标地址（6 字节）
+ * @param  user_data: 用户数据指针
+ * @param  user_data_len: 用户数据长度
+ * @param  relay_depth: 中继深度（0-15）
+ * @param  prm: 是否为请求模式（true = 请求，false = 应答）
+ * @retval ES1642_STATUS_OK: 发送成功
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误（例如 dst_addr 为 NULL 或 user_data_len>0 但 user_data 为 NULL）
+ * @retval ES1642_STATUS_ERROR_DATA_TOO_LONG: 总载荷超长
+ * @retval ES1642_STATUS_ERROR_NO_TX_PORT: 未注册发送回调
+ * @retval ES1642_STATUS_ERROR_TX_FAIL: 发送失败
+ * @note   载荷格式：DataCtrl(2) + DstAddr(6) + UserLen(2) + UserData
+ */
 es1642_status_t ES1642_SendData(es1642_handle_t *handle,
                                 const uint8_t dst_addr[ES1642_ADDR_LEN],
                                 const uint8_t *user_data,
@@ -944,6 +1075,17 @@ es1642_status_t ES1642_SendData(es1642_handle_t *handle,
                             payload_len);
 }
 
+/**
+ * @brief  发送开始搜索命令
+ * @param  handle: ES1642 驱动句柄指针
+ * @param  depth: 搜索深度（0 表示自动，协议中 0 表示 15）
+ * @param  rule: 搜索规则（枚举类型）
+ * @param  attribute: 搜索属性指针（可选）
+ * @param  attribute_len: 属性长度
+ * @retval ES1642_STATUS_OK: 发送成功
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误
+ * @retval ES1642_STATUS_ERROR_DATA_TOO_LONG: 载荷过长
+ */
 es1642_status_t ES1642_SendStartSearch(es1642_handle_t *handle,
                                        uint8_t depth,
                                        es1642_search_rule_t rule,
@@ -983,6 +1125,12 @@ es1642_status_t ES1642_SendStartSearch(es1642_handle_t *handle,
                             payload_len);
 }
 
+/**
+ * @brief  发送停止搜索命令
+ * @param  handle: ES1642 驱动句柄指针
+ * @retval ES1642_STATUS_OK: 发送成功
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误
+ */
 es1642_status_t ES1642_SendStopSearch(es1642_handle_t *handle)
 {
     return ES1642_SendFrame(handle,
@@ -992,6 +1140,18 @@ es1642_status_t ES1642_SendStopSearch(es1642_handle_t *handle)
                             0U);
 }
 
+/**
+ * @brief  发送搜索应答（回复发起搜索的设备）
+ * @param  handle: ES1642 驱动句柄指针
+ * @param  src_addr: 源设备地址（6 字节）——被回复的设备地址
+ * @param  task_id: 搜索任务 ID
+ * @param  participate: 是否参与（true 参与并可附加 attribute）
+ * @param  attribute: 附加属性指针（可选）
+ * @param  attribute_len: 属性长度
+ * @retval ES1642_STATUS_OK: 发送成功
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误
+ * @retval ES1642_STATUS_ERROR_DATA_TOO_LONG: 载荷过长
+ */
 es1642_status_t ES1642_SendSearchReply(es1642_handle_t *handle,
                                        const uint8_t src_addr[ES1642_ADDR_LEN],
                                        uint8_t task_id,
@@ -1044,6 +1204,16 @@ es1642_status_t ES1642_SendSearchReply(es1642_handle_t *handle,
                             payload_len);
 }
 
+/**
+ * @brief  设置目标设备的 PSK（预共享密钥）
+ * @param  handle: ES1642 驱动句柄指针
+ * @param  dst_addr: 目标设备地址（6 字节）
+ * @param  new_psk: 新 PSK 指针（可选）
+ * @param  new_psk_len: 新 PSK 长度
+ * @retval ES1642_STATUS_OK: 发送成功
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误
+ * @retval ES1642_STATUS_ERROR_DATA_TOO_LONG: 载荷过长
+ */
 es1642_status_t ES1642_SendSetPsk(es1642_handle_t *handle,
                                   const uint8_t dst_addr[ES1642_ADDR_LEN],
                                   const uint8_t *new_psk,
@@ -1087,6 +1257,12 @@ es1642_status_t ES1642_SendSetPsk(es1642_handle_t *handle,
                             payload_len);
 }
 
+/**
+ * @brief  发送空应答（仅控制字与指令，无数据）
+ * @param  handle: ES1642 驱动句柄指针
+ * @param  cmd: 指令字，被应答的命令
+ * @retval ES1642_STATUS_OK: 发送成功
+ */
 es1642_status_t ES1642_SendAckEmpty(es1642_handle_t *handle, uint8_t cmd)
 {
     return ES1642_SendFrame(handle,
@@ -1096,6 +1272,13 @@ es1642_status_t ES1642_SendAckEmpty(es1642_handle_t *handle, uint8_t cmd)
                             0U);
 }
 
+/**
+ * @brief  发送异常应答帧
+ * @param  handle: ES1642 驱动句柄指针
+ * @param  cmd: 原始指令字
+ * @param  exception_code: 异常码
+ * @retval ES1642_STATUS_OK: 发送成功
+ */
 es1642_status_t ES1642_SendException(es1642_handle_t *handle,
                                      uint8_t cmd,
                                      uint8_t exception_code)
@@ -1107,18 +1290,36 @@ es1642_status_t ES1642_SendException(es1642_handle_t *handle,
                             1U);
 }
 
+/**
+ * @brief  发送远程读取版本命令（针对远端设备）
+ * @param  handle: ES1642 驱动句柄指针
+ * @param  dst_addr: 目标设备地址（6 字节）
+ * @retval ES1642_STATUS_OK: 发送成功
+ */
 es1642_status_t ES1642_SendRemoteReadVersion(es1642_handle_t *handle,
                                              const uint8_t dst_addr[ES1642_ADDR_LEN])
 {
     return es1642_send_remote_common(handle, ES1642_CMD_REMOTE_READ_VERSION, dst_addr);
 }
 
+/**
+ * @brief  发送远程读取 MAC 命令
+ * @param  handle: ES1642 驱动句柄指针
+ * @param  dst_addr: 目标设备地址（6 字节）
+ * @retval ES1642_STATUS_OK: 发送成功
+ */
 es1642_status_t ES1642_SendRemoteReadMac(es1642_handle_t *handle,
                                          const uint8_t dst_addr[ES1642_ADDR_LEN])
 {
     return es1642_send_remote_common(handle, ES1642_CMD_REMOTE_READ_MAC, dst_addr);
 }
 
+/**
+ * @brief  发送远程读取网络参数命令
+ * @param  handle: ES1642 驱动句柄指针
+ * @param  dst_addr: 目标设备地址（6 字节）
+ * @retval ES1642_STATUS_OK: 发送成功
+ */
 es1642_status_t ES1642_SendRemoteReadNetParam(es1642_handle_t *handle,
                                               const uint8_t dst_addr[ES1642_ADDR_LEN])
 {
@@ -1127,6 +1328,14 @@ es1642_status_t ES1642_SendRemoteReadNetParam(es1642_handle_t *handle,
 
 /* ========================= 命令解码接口 ========================= */
 
+/**
+ * @brief  解码空载荷响应（用于只需确认成功/失败的命令）
+ * @param  frame: 解析后的帧指针
+ * @param  expect_cmd: 期望的指令字
+ * @retval ES1642_STATUS_OK: 命令正常且没有载荷
+ * @retval ES1642_STATUS_ERROR_PAYLOAD_LENGTH: 载荷长度不为 0
+ * @retval 其它错误码: 参见 es1642_expect_normal_cmd 返回值
+ */
 es1642_status_t ES1642_DecodeEmptyResponse(const es1642_frame_t *frame, uint8_t expect_cmd)
 {
     es1642_status_t status = es1642_expect_normal_cmd(frame, expect_cmd);
@@ -1139,6 +1348,16 @@ es1642_status_t ES1642_DecodeEmptyResponse(const es1642_frame_t *frame, uint8_t 
     return (frame->data_len == 0U) ? ES1642_STATUS_OK : ES1642_STATUS_ERROR_PAYLOAD_LENGTH;
 }
 
+/**
+ * @brief  解码重启命令的响应
+ * @param  frame: 解析后的帧指针
+ * @param  state: 输出参数，设备状态（1 字节）
+ * @param  rsv: 输出参数，保留字节（1 字节）
+ * @retval ES1642_STATUS_OK: 解码成功
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误
+ * @retval ES1642_STATUS_ERROR_PAYLOAD_LENGTH: 载荷长度不为 2
+ * @retval 其它错误码: 指令字不匹配或异常帧等
+ */
 es1642_status_t ES1642_DecodeRebootResponse(const es1642_frame_t *frame,
                                             uint8_t *state,
                                             uint8_t *rsv)
@@ -1161,6 +1380,14 @@ es1642_status_t ES1642_DecodeRebootResponse(const es1642_frame_t *frame,
     return ES1642_STATUS_OK;
 }
 
+/**
+ * @brief  解码读取版本信息的响应
+ * @param  frame: 解析后的帧指针
+ * @param  version: 输出参数，版本信息结构体指针
+ * @retval ES1642_STATUS_OK: 解码成功
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误
+ * @retval ES1642_STATUS_ERROR_PAYLOAD_LENGTH: 载荷长度不为 7
+ */
 es1642_status_t ES1642_DecodeVersion(const es1642_frame_t *frame,
                                      es1642_version_t *version)
 {
@@ -1180,6 +1407,14 @@ es1642_status_t ES1642_DecodeVersion(const es1642_frame_t *frame,
     return ES1642_STATUS_OK;
 }
 
+/**
+ * @brief  解码读取 MAC 响应
+ * @param  frame: 解析后的帧指针
+ * @param  mac: 输出缓冲，长度为 ES1642_ADDR_LEN（6）
+ * @retval ES1642_STATUS_OK: 解码成功
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误
+ * @retval ES1642_STATUS_ERROR_PAYLOAD_LENGTH: 载荷长度与地址长度不符
+ */
 es1642_status_t ES1642_DecodeMac(const es1642_frame_t *frame,
                                  uint8_t mac[ES1642_ADDR_LEN])
 {
@@ -1199,6 +1434,14 @@ es1642_status_t ES1642_DecodeMac(const es1642_frame_t *frame,
     return ES1642_STATUS_OK;
 }
 
+/**
+ * @brief  解码读取模块地址响应
+ * @param  frame: 解析后的帧指针
+ * @param  addr: 输出缓冲，长度为 ES1642_ADDR_LEN（6）
+ * @retval ES1642_STATUS_OK: 解码成功
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误
+ * @retval ES1642_STATUS_ERROR_PAYLOAD_LENGTH: 载荷长度不符
+ */
 es1642_status_t ES1642_DecodeAddr(const es1642_frame_t *frame,
                                   uint8_t addr[ES1642_ADDR_LEN])
 {
@@ -1218,6 +1461,14 @@ es1642_status_t ES1642_DecodeAddr(const es1642_frame_t *frame,
     return ES1642_STATUS_OK;
 }
 
+/**
+ * @brief  解码网络参数响应
+ * @param  frame: 解析后的帧指针
+ * @param  net_param: 输出参数，网络参数结构体指针
+ * @retval ES1642_STATUS_OK: 解码成功
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误
+ * @retval ES1642_STATUS_ERROR_PAYLOAD_LENGTH: 载荷长度不为 7
+ */
 es1642_status_t ES1642_DecodeNetParam(const es1642_frame_t *frame,
                                       es1642_net_param_t *net_param)
 {
@@ -1241,6 +1492,15 @@ es1642_status_t ES1642_DecodeNetParam(const es1642_frame_t *frame,
     return ES1642_STATUS_OK;
 }
 
+/**
+ * @brief  解码接收到的数据帧（RECV_DATA）
+ * @param  frame: 解析后的帧指针
+ * @param  recv_data: 输出参数，接收数据结构体指针
+ * @retval ES1642_STATUS_OK: 解码成功
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误
+ * @retval ES1642_STATUS_ERROR_PAYLOAD_LENGTH: 载荷长度不正确
+ * @note   解码后填写源地址、原始控制字段、RSSI、用户数据指针与长度
+ */
 es1642_status_t ES1642_DecodeRecvData(const es1642_frame_t *frame,
                                       es1642_recv_data_t *recv_data)
 {
@@ -1276,6 +1536,15 @@ es1642_status_t ES1642_DecodeRecvData(const es1642_frame_t *frame,
     return ES1642_STATUS_OK;
 }
 
+/**
+ * @brief  解码搜索结果报告
+ * @param  frame: 解析后的帧指针
+ * @param  result: 输出参数，搜索结果结构体指针
+ * @retval ES1642_STATUS_OK: 解码成功
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误
+ * @retval ES1642_STATUS_ERROR_PAYLOAD_LENGTH: 载荷长度不正确
+//这个命令数据手册有误，在addr前面还有1字节的设备数量
+ */
 es1642_status_t ES1642_DecodeSearchResult(const es1642_frame_t *frame,
                                           es1642_search_result_t *result)
 {
@@ -1287,27 +1556,36 @@ es1642_status_t ES1642_DecodeSearchResult(const es1642_frame_t *frame,
         return (status != ES1642_STATUS_OK) ? status : ES1642_STATUS_ERROR_PARAM;
     }
 
-    if (frame->data_len < 9U)
+    if (frame->data_len < 10U)
+    {
+        return ES1642_STATUS_ERROR_PAYLOAD_LENGTH;
+    }
+		
+    attribute_len = frame->data[9];
+		
+    if (frame->data_len != (uint16_t)(10U + attribute_len))
     {
         return ES1642_STATUS_ERROR_PAYLOAD_LENGTH;
     }
 
-    attribute_len = frame->data[8];
-
-    if (frame->data_len != (uint16_t)(9U + attribute_len))
-    {
-        return ES1642_STATUS_ERROR_PAYLOAD_LENGTH;
-    }
-
-    (void)memcpy(result->dev_addr, &frame->data[0], ES1642_ADDR_LEN);
-    result->raw_dev_ctrl = es1642_get_le16(&frame->data[6]);
+		result->count = frame->data[0];
+    (void)memcpy(result->dev_addr, &frame->data[1], ES1642_ADDR_LEN);
+    result->raw_dev_ctrl = es1642_get_le16(&frame->data[7]);
     result->net_state = (uint8_t)((result->raw_dev_ctrl >> 4) & 0x0FU);
     result->attribute_len = attribute_len;
-    result->attribute = (attribute_len > 0U) ? &frame->data[9] : NULL;
+    result->attribute = (attribute_len > 0U) ? &frame->data[10] : NULL;
 
     return ES1642_STATUS_OK;
 }
 
+/**
+ * @brief  解码搜索通知帧
+ * @param  frame: 解析后的帧指针
+ * @param  notify: 输出参数，搜索通知结构体指针
+ * @retval ES1642_STATUS_OK: 解码成功
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误
+ * @retval ES1642_STATUS_ERROR_PAYLOAD_LENGTH: 载荷长度不正确
+ */
 es1642_status_t ES1642_DecodeSearchNotify(const es1642_frame_t *frame,
                                           es1642_search_notify_t *notify)
 {
@@ -1340,6 +1618,14 @@ es1642_status_t ES1642_DecodeSearchNotify(const es1642_frame_t *frame,
     return ES1642_STATUS_OK;
 }
 
+/**
+ * @brief  解码搜索应答帧
+ * @param  frame: 解析后的帧指针
+ * @param  reply: 输出参数，搜索应答结构体指针
+ * @retval ES1642_STATUS_OK: 解码成功
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误
+ * @retval ES1642_STATUS_ERROR_PAYLOAD_LENGTH: 载荷长度不正确
+ */
 es1642_status_t ES1642_DecodeSearchReply(const es1642_frame_t *frame,
                                          es1642_search_reply_t *reply)
 {
@@ -1373,6 +1659,14 @@ es1642_status_t ES1642_DecodeSearchReply(const es1642_frame_t *frame,
     return ES1642_STATUS_OK;
 }
 
+/**
+ * @brief  解码 PSK 变更通知
+ * @param  frame: 解析后的帧指针
+ * @param  notify: 输出参数，PSK 通知结构体指针
+ * @retval ES1642_STATUS_OK: 解码成功
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误
+ * @retval ES1642_STATUS_ERROR_PAYLOAD_LENGTH: 载荷长度不为 8
+ */
 es1642_status_t ES1642_DecodePskNotify(const es1642_frame_t *frame,
                                        es1642_psk_notify_t *notify)
 {
@@ -1395,6 +1689,14 @@ es1642_status_t ES1642_DecodePskNotify(const es1642_frame_t *frame,
     return ES1642_STATUS_OK;
 }
 
+/**
+ * @brief  解码 PSK 操作结果报告
+ * @param  frame: 解析后的帧指针
+ * @param  result: 输出参数，PSK 结果结构体指针
+ * @retval ES1642_STATUS_OK: 解码成功
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误
+ * @retval ES1642_STATUS_ERROR_PAYLOAD_LENGTH: 载荷长度不为 9
+ */
 es1642_status_t ES1642_DecodePskResult(const es1642_frame_t *frame,
                                        es1642_psk_result_t *result)
 {
@@ -1417,6 +1719,14 @@ es1642_status_t ES1642_DecodePskResult(const es1642_frame_t *frame,
     return ES1642_STATUS_OK;
 }
 
+/**
+ * @brief  解码远程设备的版本信息响应
+ * @param  frame: 解析后的帧指针
+ * @param  version: 输出参数，远程版本信息结构体指针
+ * @retval ES1642_STATUS_OK: 解码成功
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误
+ * @retval ES1642_STATUS_ERROR_PAYLOAD_LENGTH: 载荷长度不为 13
+ */
 es1642_status_t ES1642_DecodeRemoteVersion(const es1642_frame_t *frame,
                                            es1642_remote_version_t *version)
 {
@@ -1438,6 +1748,14 @@ es1642_status_t ES1642_DecodeRemoteVersion(const es1642_frame_t *frame,
     return ES1642_STATUS_OK;
 }
 
+/**
+ * @brief  解码远程设备的 MAC 响应
+ * @param  frame: 解析后的帧指针
+ * @param  mac: 输出参数，远程 MAC 结构体指针
+ * @retval ES1642_STATUS_OK: 解码成功
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误
+ * @retval ES1642_STATUS_ERROR_PAYLOAD_LENGTH: 载荷长度不为 12
+ */
 es1642_status_t ES1642_DecodeRemoteMac(const es1642_frame_t *frame,
                                        es1642_remote_mac_t *mac)
 {
@@ -1459,6 +1777,14 @@ es1642_status_t ES1642_DecodeRemoteMac(const es1642_frame_t *frame,
     return ES1642_STATUS_OK;
 }
 
+/**
+ * @brief  解码远程设备的网络参数响应
+ * @param  frame: 解析后的帧指针
+ * @param  net_param: 输出参数，远程网络参数结构体指针
+ * @retval ES1642_STATUS_OK: 解码成功
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误
+ * @retval ES1642_STATUS_ERROR_PAYLOAD_LENGTH: 载荷长度不为 13
+ */
 es1642_status_t ES1642_DecodeRemoteNetParam(const es1642_frame_t *frame,
                                             es1642_remote_net_param_t *net_param)
 {
@@ -1483,6 +1809,15 @@ es1642_status_t ES1642_DecodeRemoteNetParam(const es1642_frame_t *frame,
     return ES1642_STATUS_OK;
 }
 
+/**
+ * @brief  解码本地异常应答（模块本地返回的异常）
+ * @param  frame: 解析后的帧指针
+ * @param  exception_code: 输出参数，异常码
+ * @retval ES1642_STATUS_OK: 解码成功
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误
+ * @retval ES1642_STATUS_ERROR_NOT_EXCEPTION_FRAME: 不是异常帧
+ * @retval ES1642_STATUS_ERROR_PAYLOAD_LENGTH: 载荷长度不为 1
+ */
 es1642_status_t ES1642_DecodeLocalException(const es1642_frame_t *frame,
                                             uint8_t *exception_code)
 {
@@ -1505,6 +1840,16 @@ es1642_status_t ES1642_DecodeLocalException(const es1642_frame_t *frame,
     return ES1642_STATUS_OK;
 }
 
+/**
+ * @brief  解码远程异常应答（远端设备返回的异常）
+ * @param  frame: 解析后的帧指针
+ * @param  src_addr: 输出参数，产生异常的远端设备地址（6 字节）
+ * @param  exception_code: 输出参数，异常码
+ * @retval ES1642_STATUS_OK: 解码成功
+ * @retval ES1642_STATUS_ERROR_PARAM: 参数错误
+ * @retval ES1642_STATUS_ERROR_NOT_EXCEPTION_FRAME: 不是异常帧
+ * @retval ES1642_STATUS_ERROR_PAYLOAD_LENGTH: 载荷长度不为 7
+ */
 es1642_status_t ES1642_DecodeRemoteException(const es1642_frame_t *frame,
                                              uint8_t src_addr[ES1642_ADDR_LEN],
                                              uint8_t *exception_code)

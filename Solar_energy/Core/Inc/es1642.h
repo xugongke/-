@@ -201,7 +201,7 @@ typedef struct
 {
     uint32_t raw_data_ctrl;                     /* 24 位有效 */
     uint8_t  relay_depth;                       /* 从 DataCtrl 中解析出的中继深度 */
-    int16_t  rssi;                              /* 按协议位域解析出的 RSSI(9位有符号数) */
+    int16_t  rssi;                              /* 按协议位域解析出的 RSSI(接收信号强度指示，有符号整形数值) */
     uint8_t  src_addr[ES1642_ADDR_LEN];
     uint16_t user_data_len;
     const uint8_t *user_data;                  /* 指向原始帧缓存中的用户数据 */
@@ -209,6 +209,7 @@ typedef struct
 
 typedef struct
 {
+		uint8_t  count;
     uint8_t  dev_addr[ES1642_ADDR_LEN];
     uint16_t raw_dev_ctrl;
     uint8_t  net_state;
@@ -349,6 +350,9 @@ es1642_status_t ES1642_InputByte(es1642_handle_t *handle, uint8_t byte);
 es1642_status_t ES1642_InputBuffer(es1642_handle_t *handle,
                                    const uint8_t *data,
                                    uint16_t len);
+es1642_status_t ES1642_ProcessCompleteFrame(es1642_handle_t *handle,
+                                            const uint8_t *frame_buf,
+                                            uint16_t frame_len);															 
 
 /* ========================= 常用命令发送接口 ========================= */
 

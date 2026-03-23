@@ -23,6 +23,7 @@
 #include "key.h"
 #include "lv_group.h"
 #include "tpad.h"
+#include "tim.h"
 /*********************
  *      DEFINES
  *********************/
@@ -86,8 +87,8 @@ lv_indev_t * indev_encoder;
 lv_indev_t * indev_button;
 #endif
 
-static int32_t encoder_diff;
-static lv_indev_state_t encoder_state;
+//static int32_t encoder_diff;
+//static lv_indev_state_t encoder_state;
 
 /**********************
  *      MACROS
@@ -349,6 +350,12 @@ static void keypad_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
             case 6:
                 act_key = LV_KEY_ESC;//退出键
                 break;
+            case 7:
+                act_key = LV_KEY_UP;//up
+                break;
+            case 8:
+                act_key = LV_KEY_DOWN;//down
+                break;
 				/* 这里可以添加更多操作符 */
         }
 
@@ -366,6 +373,20 @@ static uint32_t keypad_get_key(void)
 {
     key_id_t kid_edge;
     key_event_t ev = KEY_Scan(&kid_edge);   /* 每次调用都更新消抖状态 */
+	
+		if(ev == KEY_EVENT_SHORT_PRESS)
+		{
+				HAL_GPIO_WritePin(LCD_BL_GPIO_Port, LCD_BL_Pin, GPIO_PIN_SET);
+			
+				// 1. 停止定时器
+				HAL_TIM_Base_Stop_IT(&htim3);
+
+				// 2. 计数器 清0 → 从头开始计数
+				__HAL_TIM_SET_COUNTER(&htim3, 0);
+
+				// 3. 再次启动定时器
+				HAL_TIM_Base_Start_IT(&htim3);
+		}
 
     /* 1) 方向键：稳定按下期间持续返回 -> LVGL 才能识别“按住”并自动 repeat */
     if (KEY_IsPressedStable(Key_Down))  return 1;   /* 例如：下/next */
@@ -380,6 +401,8 @@ static uint32_t keypad_get_key(void)
         {
             case Key_Enter: return 5;   /* ENTER */
             case Key_Return: return 6;   /* ESC */
+            case Key1: return 7;   /* up */
+            case Key2: return 8;   /* down */					
             default: break;
         }
     }
