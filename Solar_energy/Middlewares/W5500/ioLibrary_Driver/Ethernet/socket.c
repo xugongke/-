@@ -313,7 +313,7 @@ int8_t disconnect(uint8_t sn)
 	}
 	return SOCK_OK;
 }
-
+#include <stdio.h>
 int32_t send(uint8_t sn, uint8_t * buf, uint16_t len)
 {
    uint8_t tmp=0;
@@ -340,7 +340,7 @@ int32_t send(uint8_t sn, uint8_t * buf, uint16_t len)
                return SOCK_BUSY;
             }
          #endif
-         sock_is_sending &= ~(1<<sn);         
+         sock_is_sending &= ~(1<<sn);
       }
       else if(tmp & Sn_IR_TIMEOUT)
       {

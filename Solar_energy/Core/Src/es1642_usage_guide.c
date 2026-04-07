@@ -14,7 +14,8 @@
 #include "usart.h"
 #include "es1642_usage_guide.h"
 #include <stdio.h>
-
+#include "ff.h"
+#include "device_manager.h"
 
 /* ========================= 使用说明 ========================= */
 
@@ -134,7 +135,14 @@ void es1642_on_frame_received(es1642_handle_t *handle,
             status = ES1642_DecodeRebootResponse(frame, &state, &rsv);
             if (status == ES1642_STATUS_OK)
             {
-                printf("重启响应: state=0x%02X, rsv=0x%02X\r\n", state, rsv);
+							if(state == 0x01)
+							{
+								printf("重启成功\r\n");
+							}
+							else
+							{
+								printf("重启失败\r\n");
+							}
             }
             break;
         }
@@ -236,23 +244,39 @@ void es1642_on_frame_received(es1642_handle_t *handle,
             if (status == ES1642_STATUS_OK)
             {
                 printf("停止搜索: OK\r\n");
+								save_devices();//保存设备表
+								print_device_list();
             }
             break;
         }
 
         case ES1642_CMD_REPORT_SEARCH_RESULT:
         {
-						printf("有设备响应搜索\r\n");
             es1642_search_result_t result;
             status = ES1642_DecodeSearchResult(frame, &result);
             if (status == ES1642_STATUS_OK)
             {
-							printf("设备数目:%d\r\n搜索到设备: 地址=%02X:%02X:%02X:%02X:%02X:%02X, "
+							printf("设备数目:%d\r\n搜索到设备: 通信地址=%02X:%02X:%02X:%02X:%02X:%02X, "
                        "网络状态=%d\r\n",result.count,
                        result.dev_addr[0], result.dev_addr[1],
                        result.dev_addr[2], result.dev_addr[3],
                        result.dev_addr[4], result.dev_addr[5],
                        result.net_state);
+							if(result.attribute_len == 6)
+							{
+								printf("MAC地址:");
+								for(int i = 0;i < result.attribute_len;i++)
+								{
+									printf("%x:",result.attribute[i]);
+								}
+								printf("\r\n");
+								//添加更新设备表
+								add_device((uint8_t*)result.attribute, result.dev_addr,result.net_state);							
+							}
+							else
+							{
+								printf("MAC地址获取失败,result.attribute_len:%d\r\n",result.attribute_len);
+							}
             }
             break;
         }
@@ -263,7 +287,7 @@ void es1642_on_frame_received(es1642_handle_t *handle,
             status = ES1642_DecodeSearchNotify(frame, &notify);
             if (status == ES1642_STATUS_OK)
             {
-                printf("搜索通知: 源地址=%02X:%02X:%02X:%02X:%02X:%02X, 任务ID=%d, 属性长度=%d\r\n",
+                printf("有设备在进行搜索，是否参加？: 源地址=%02X:%02X:%02X:%02X:%02X:%02X, 任务ID=%d, 属性长度=%d\r\n",
                        notify.src_addr[0], notify.src_addr[1], notify.src_addr[2],
                        notify.src_addr[3], notify.src_addr[4], notify.src_addr[5],
                        notify.task_id, notify.attribute_len);
@@ -274,14 +298,10 @@ void es1642_on_frame_received(es1642_handle_t *handle,
 
         case ES1642_CMD_REPLY_SEARCH:
         {
-            es1642_search_reply_t reply;
-            status = ES1642_DecodeSearchReply(frame, &reply);
+            status = ES1642_DecodeEmptyResponse(frame, ES1642_CMD_REPLY_SEARCH);
             if (status == ES1642_STATUS_OK)
             {
-                printf("搜索回复: 源地址=%02X:%02X:%02X:%02X:%02X:%02X, 参与=%d, 任务ID=%d, 属性长度=%d\r\n",
-                       reply.src_addr[0], reply.src_addr[1], reply.src_addr[2],
-                       reply.src_addr[3], reply.src_addr[4], reply.src_addr[5],
-                       reply.participate, reply.task_id, reply.attribute_len);
+                printf("回复设备搜索 OK\r\n");
             }
             break;
         }
@@ -375,11 +395,11 @@ void es1642_on_frame_received(es1642_handle_t *handle,
             if (status == ES1642_STATUS_OK)
             {
                 printf("收到数据: 源地址=%02X:%02X:%02X:%02X:%02X:%02X, "
-                       "长度=%d, RSSI=%d\r\n",
+							"长度=%d, RSSI=%d,中继深度:%d\r\n",
                        recv_data.src_addr[0], recv_data.src_addr[1],
                        recv_data.src_addr[2], recv_data.src_addr[3],
                        recv_data.src_addr[4], recv_data.src_addr[5],
-                       recv_data.user_data_len, recv_data.rssi);
+                       recv_data.user_data_len, recv_data.rssi,recv_data.relay_depth);
                 
                 /* 处理用户数据 */
                 if (recv_data.user_data_len > 0 && recv_data.user_data != NULL)
@@ -471,7 +491,7 @@ int ES1642_InitModule(void)
     /* 启动串口DMA+空闲中断接收 */
     if (HAL_UARTEx_ReceiveToIdle_DMA(&huart2, g_es1642_rx_buf, sizeof(g_es1642_rx_buf)) != HAL_OK)
     {
-        printf("启动UART DMA接收失败\r\n");
+        printf("ES1642启动UART2 DMA接收失败\r\n");
         return -1;
     }
 		__HAL_DMA_DISABLE_IT(huart2.hdmarx, DMA_IT_HT); // 关闭半传中断，避免重复回调
@@ -609,6 +629,7 @@ int ES1642_StartSearch(uint8_t depth, es1642_search_rule_t rule)
 {
     es1642_status_t status;
     
+		Clear_devices();//清空设备表
     printf("正在启动设备搜索...\r\n");
     
     /* 启动搜索，不携带属性数据 */

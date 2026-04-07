@@ -445,7 +445,7 @@
 #define LV_LABEL_LONG_TXT_HINT 1
 #endif    /* LV_USE_LABEL */
 
-#define LV_USE_LINE 0
+#define LV_USE_LINE 1
 
 #define LV_USE_ROLLER 0
 #if LV_USE_ROLLER

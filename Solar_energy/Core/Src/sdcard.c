@@ -89,7 +89,7 @@ void ui_load_user_detail(lv_ui *ui, uint32_t user_no)
     lv_table_set_cell_value(ui->screen_user_detail_table_1,3,1,year);
 }
 /* 全局或静态变量，保存上次的编号 */
-uint8_t s_last_user_no = 1; /* 默认选中第 1 个 */
+uint8_t s_last_user_no = 0; /* 默认选中第 0 个 */
 //用户按键统一回调函数
 void user_list_item_event_handler(lv_event_t *e)
 {
@@ -148,10 +148,7 @@ void sdcard_write(uint32_t i)
 }
 void Create_der(uint32_t i)
 {
-    static FIL myFile;                                                    // 文件对象; 这个结构体占用570字节，有点大，需用static修饰(存放在全局数据区), 避免stack溢出
-    static FRESULT f_res;                                                 // 文件操作结果
-    static uint32_t num;                                                  // 文件实际成功读写的字节数
-    char aWriteBuf[64];      // 要写入的数据
+    static FRESULT f_res;                                                 // 文件操作结果                                           // 文件实际成功读写的字节数
 		char path[64];
 	
 		lv_snprintf(path, sizeof(path), "0:/USER/%lu", (unsigned long)i);

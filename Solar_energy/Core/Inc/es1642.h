@@ -76,24 +76,24 @@ extern "C" {
 
 typedef enum
 {
-    ES1642_CMD_REBOOT                 = 0x01,
-    ES1642_CMD_READ_VERSION           = 0x02,
-    ES1642_CMD_READ_MAC               = 0x03,
-    ES1642_CMD_READ_ADDR              = 0x0B,
-    ES1642_CMD_SET_ADDR               = 0x0C,
-    ES1642_CMD_READ_NET_PARAM         = 0x0D,
-    ES1642_CMD_SET_NET_PARAM          = 0x0E,
+		ES1642_CMD_REBOOT                 = 0x01,//模块重启,						单片机下发到模块
+    ES1642_CMD_READ_VERSION           = 0x02,//读取 模块 版本信息,	单片机下发到模块
+    ES1642_CMD_READ_MAC               = 0x03,//读取模块 MAC 地址,		单片机下发到模块
+    ES1642_CMD_READ_ADDR              = 0x0B,//读取模块通信地址,		单片机下发到模块
+    ES1642_CMD_SET_ADDR               = 0x0C,//设置模块通信地址,		单片机下发到模块
+    ES1642_CMD_READ_NET_PARAM         = 0x0D,//读取 模块 网络参数,	单片机下发到模块
+    ES1642_CMD_SET_NET_PARAM          = 0x0E,//设置 模块 网络参数,	单片机下发到模块
 
-    ES1642_CMD_SEND_DATA              = 0x14,
-    ES1642_CMD_RECV_DATA              = 0x15,
-    ES1642_CMD_START_SEARCH           = 0x17,
-    ES1642_CMD_STOP_SEARCH            = 0x18,
-    ES1642_CMD_REPORT_SEARCH_RESULT   = 0x19,
-    ES1642_CMD_NOTIFY_SEARCH          = 0x1A,
-    ES1642_CMD_REPLY_SEARCH           = 0x1B,
-    ES1642_CMD_SET_PSK                = 0x1C,
-    ES1642_CMD_NOTIFY_PSK             = 0x1D,
-    ES1642_CMD_REPORT_PSK_RESULT      = 0x1F,
+    ES1642_CMD_SEND_DATA              = 0x14,//发送数据,						单片机下发到模块
+		ES1642_CMD_RECV_DATA              = 0x15,//接收数据,						模块回复给单片机
+    ES1642_CMD_START_SEARCH           = 0x17,//发起设备搜索,				单片机下发到模块
+    ES1642_CMD_STOP_SEARCH            = 0x18,//停止设备搜索,				单片机下发到模块
+    ES1642_CMD_REPORT_SEARCH_RESULT   = 0x19,//上报搜索 结果,				模块回复给单片机
+    ES1642_CMD_NOTIFY_SEARCH          = 0x1A,//通知 设备 搜索,			模块回复给单片机
+    ES1642_CMD_REPLY_SEARCH           = 0x1B,//响应 设备 搜索,			单片机下发到模块
+    ES1642_CMD_SET_PSK                = 0x1C,//设置网络口令,				单片机下发到模块
+    ES1642_CMD_NOTIFY_PSK             = 0x1D,//通知网络口令设置,		模块回复给单片机
+    ES1642_CMD_REPORT_PSK_RESULT      = 0x1F,//上报网络口令设置结果,模块回复给单片机
 
     ES1642_CMD_REMOTE_READ_VERSION    = 0x52,
     ES1642_CMD_REMOTE_READ_MAC        = 0x53,
@@ -225,16 +225,6 @@ typedef struct
     uint8_t  attribute_len;
     const uint8_t *attribute;                  /* 指向原始帧缓存中的属性数据 */
 } es1642_search_notify_t;
-
-typedef struct
-{
-    uint16_t raw_data_ctrl;
-    bool     participate;
-    uint8_t  src_addr[ES1642_ADDR_LEN];
-    uint8_t  task_id;
-    uint8_t  attribute_len;
-    const uint8_t *attribute;                  /* 指向原始帧缓存中的属性数据 */
-} es1642_search_reply_t;
 
 typedef struct
 {
@@ -429,8 +419,6 @@ es1642_status_t ES1642_DecodeSearchResult(const es1642_frame_t *frame,
                                           es1642_search_result_t *result);
 es1642_status_t ES1642_DecodeSearchNotify(const es1642_frame_t *frame,
                                           es1642_search_notify_t *notify);
-es1642_status_t ES1642_DecodeSearchReply(const es1642_frame_t *frame,
-                                         es1642_search_reply_t *reply);
 es1642_status_t ES1642_DecodePskNotify(const es1642_frame_t *frame,
                                        es1642_psk_notify_t *notify);
 es1642_status_t ES1642_DecodePskResult(const es1642_frame_t *frame,

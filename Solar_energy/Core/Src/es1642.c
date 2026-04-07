@@ -1619,47 +1619,6 @@ es1642_status_t ES1642_DecodeSearchNotify(const es1642_frame_t *frame,
 }
 
 /**
- * @brief  解码搜索应答帧
- * @param  frame: 解析后的帧指针
- * @param  reply: 输出参数，搜索应答结构体指针
- * @retval ES1642_STATUS_OK: 解码成功
- * @retval ES1642_STATUS_ERROR_PARAM: 参数错误
- * @retval ES1642_STATUS_ERROR_PAYLOAD_LENGTH: 载荷长度不正确
- */
-es1642_status_t ES1642_DecodeSearchReply(const es1642_frame_t *frame,
-                                         es1642_search_reply_t *reply)
-{
-    uint8_t attribute_len;
-    es1642_status_t status = es1642_expect_normal_cmd(frame, ES1642_CMD_REPLY_SEARCH);
-
-    if ((status != ES1642_STATUS_OK) || (reply == NULL))
-    {
-        return (status != ES1642_STATUS_OK) ? status : ES1642_STATUS_ERROR_PARAM;
-    }
-
-    if (frame->data_len < 10U)
-    {
-        return ES1642_STATUS_ERROR_PAYLOAD_LENGTH;
-    }
-
-    attribute_len = frame->data[9];
-
-    if (frame->data_len != (uint16_t)(10U + attribute_len))
-    {
-        return ES1642_STATUS_ERROR_PAYLOAD_LENGTH;
-    }
-
-    reply->raw_data_ctrl = es1642_get_le16(&frame->data[0]);
-    reply->participate = (((reply->raw_data_ctrl >> 8) & 0x01U) != 0U);
-    (void)memcpy(reply->src_addr, &frame->data[2], ES1642_ADDR_LEN);
-    reply->task_id = frame->data[8];
-    reply->attribute_len = attribute_len;
-    reply->attribute = (attribute_len > 0U) ? &frame->data[10] : NULL;
-
-    return ES1642_STATUS_OK;
-}
-
-/**
  * @brief  解码 PSK 变更通知
  * @param  frame: 解析后的帧指针
  * @param  notify: 输出参数，PSK 通知结构体指针

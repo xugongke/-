@@ -4,6 +4,7 @@
 #include "wiz_interface.h"
 #include <stdio.h>
 #include <stdint.h>
+#include "interrupt.h" 
 
 extern SPI_HandleTypeDef hspi1;
 extern UART_HandleTypeDef huart1;
@@ -119,5 +120,19 @@ void wiz_tim_irq_enable(void)
 void wiz_tim_irq_disable(void)
 {
     HAL_TIM_Base_Stop_IT(&htim2);
+}
+
+/**
+ * @brief   INTn GPIO 中断回调
+ * @param   none
+ * @return  none
+ */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    if (GPIO_Pin == W5500_INT_Pin)
+    {
+        wizchip_ISR();
+        __HAL_GPIO_EXTI_CLEAR_IT(GPIO_Pin);
+    }
 }
 

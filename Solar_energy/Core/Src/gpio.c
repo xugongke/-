@@ -45,13 +45,21 @@ void MX_GPIO_Init(void)
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
-  __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
+  __HAL_RCC_GPIOG_CLK_ENABLE();
+  __HAL_RCC_GPIOI_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(RS485_CTRL4_GPIO_Port, RS485_CTRL4_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(RS485_CTRL5_GPIO_Port, RS485_CTRL5_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(ES1642_RST_GPIO_Port, ES1642_RST_Pin, GPIO_PIN_SET);
@@ -69,7 +77,27 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(LCD_BL_GPIO_Port, LCD_BL_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(RS485_CTRL1_GPIO_Port, RS485_CTRL1_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(RS485_CTRL2_GPIO_Port, RS485_CTRL2_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(RS485_CTRL3_GPIO_Port, RS485_CTRL3_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : RS485_CTRL4_Pin */
+  GPIO_InitStruct.Pin = RS485_CTRL4_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(RS485_CTRL4_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : RS485_CTRL5_Pin */
+  GPIO_InitStruct.Pin = RS485_CTRL5_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(RS485_CTRL5_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : Key_Down_Pin Key_Right_Pin Key2_Pin Key1_Pin */
   GPIO_InitStruct.Pin = Key_Down_Pin|Key_Right_Pin|Key2_Pin|Key1_Pin;
@@ -137,12 +165,26 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LED1_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : RS485_CTRL1_Pin */
+  GPIO_InitStruct.Pin = RS485_CTRL1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(RS485_CTRL1_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pin : RS485_CTRL2_Pin */
   GPIO_InitStruct.Pin = RS485_CTRL2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(RS485_CTRL2_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : RS485_CTRL3_Pin */
+  GPIO_InitStruct.Pin = RS485_CTRL3_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(RS485_CTRL3_GPIO_Port, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI9_5_IRQn, 5, 0);

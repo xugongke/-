@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include "wizchip_conf.h"
 #include "wiz_interface.h"
-#include "loopback.h"
+#include "interrupt.h"
 
 #include "cmsis_os.h"
 #include "main.h"
@@ -16,10 +16,10 @@
 //	wizchip_RESET	 --->     STM32_GPIOD8
 //	wizchip_INT    --->     STM32_GPIOD9
 
-/* Define network information */
+/* network information */
 wiz_NetInfo default_net_info = {
     .mac = {0x00, 0x08, 0xdc, 0x12, 0x22, 0x12},
-    .ip = {192, 168, 1, 212},
+    .ip = {192, 168, 1, 139},
     .gw = {192, 168, 1, 1},
     .sn = {255, 255, 255, 0},
     .dns = {8, 8, 8, 8},
@@ -37,39 +37,36 @@ static uint8_t ethernet_buf[ETHERNET_BUF_MAX_SIZE] = {0};
  */
 //void user_run(void)
 //{
-//  printf("wizchip TCP Server example\r\n");
+//  printf("wizchip interrupt example\r\n");
 
 //  /* wizchip init */
 //  wizchip_initialize();
 
 //  /* set network information */
 //  network_init(ethernet_buf, &default_net_info);
-
-//  /* Enable keepalive,Parameter 2 is the keep alive time, with a unit of 5 seconds */
-//  setSn_KPALVTR(SOCKET_ID, 6); // 30s keepalive
-//	
+//  setSIMR(0xff); // enable all socket interrupt
+//  setSn_IMR(SOCKET_ID, 0x0f);
 //  while (1)
-//	{
-//			loopback_tcps(SOCKET_ID, ethernet_buf, local_port);
-//	}
+//  {
+//    loopback_tcps_interrupt(SOCKET_ID, ethernet_buf, local_port);
+//  }
 //}
 void W5500_Task(void *argument)
 {
   /* USER CODE BEGIN W5500Taskfun */
-  printf("wizchip TCP Server example\r\n");
+//  printf("wizchip interrupt example\r\n");
 
-  /* wizchip init */
-  wizchip_initialize();
+//  /* wizchip init */
+//  wizchip_initialize();
 
-  /* set network information */
-  network_init(ethernet_buf, &default_net_info);
-
-  /* Enable keepalive,Parameter 2 is the keep alive time, with a unit of 5 seconds */
-  setSn_KPALVTR(SOCKET_ID, 6); // 30s keepalive
+//  /* 设置网络信息 */
+//  network_init(ethernet_buf, &default_net_info);
+//  setSIMR(0xff); // 启用所有套接字中断
+//  setSn_IMR(SOCKET_ID, 0x0f);
   /* Infinite loop */
   for(;;)
   {
-		loopback_tcps(SOCKET_ID, ethernet_buf, local_port);
+//    loopback_tcps_interrupt(SOCKET_ID, ethernet_buf, local_port);
 		osDelay(1);
   }
   /* USER CODE END W5500Taskfun */

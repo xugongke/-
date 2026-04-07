@@ -12,7 +12,6 @@
   */
 
 #include "rx8025t_example.h"
-#include "rx8025t.h"
 #include "ili9488.h"
 #include <stdio.h>
 #include <string.h>
@@ -40,7 +39,7 @@
 #define BACKGROUND_COLOR    BLACK
 
 /**
-  * @brief  Update time display on LCD
+  * @brief  在 LCD 上更新时间显示
   * @param  None
   * @retval HAL status
   */
@@ -49,7 +48,7 @@ HAL_StatusTypeDef RX8025T_UpdateTimeDisplay(void)
     RX8025T_DateTimeCompact datetime;
     char time_str[20];
     char date_str[20];
-    char weekday_str[15];
+//    char weekday_str[15];
     HAL_StatusTypeDef status;
     
     /* 读取日期和时间 */
@@ -77,14 +76,14 @@ HAL_StatusTypeDef RX8025T_UpdateTimeDisplay(void)
 }
 
 /**
-  * @brief  Initialize RTC and display system
+  * @brief  初始化RTC并显示系统
   * @param  None
   * @retval HAL status
   */
 HAL_StatusTypeDef RX8025T_InitAndDisplay(void)
 {
     HAL_StatusTypeDef status;
-    RX8025T_DateTimeCompact initial_time;
+//    RX8025T_DateTimeCompact initial_time;
     
     /* 初始化RX-8025T */
     status = RX8025T_Init();
@@ -92,16 +91,42 @@ HAL_StatusTypeDef RX8025T_InitAndDisplay(void)
         return status;
     }
     
+//这里就不要设置网络时间了，这样就算是网络时间获取失败，也会按照上次关机前的时间走
+//    initial_time.seconds = 50;
+//    initial_time.minutes = 59;
+//    initial_time.hours = 12;
+//    initial_time.weekday = 3;  // Wednesday
+//    initial_time.day = 12;
+//    initial_time.month = 3;
+//    initial_time.year = 26;     // 2026
+//    
+//    status = RX8025T_SetDateTime(&initial_time);
+//    if (status != HAL_OK) {
+//        return status;
+//    }
 
-    initial_time.seconds = 50;
-    initial_time.minutes = 59;
-    initial_time.hours = 12;
-    initial_time.weekday = 3;  // Wednesday
-    initial_time.day = 12;
-    initial_time.month = 3;
-    initial_time.year = 26;     // 2026
     
-    status = RX8025T_SetDateTime(&initial_time);
+    /* 第一次更新显示 */
+    status = RX8025T_UpdateTimeDisplay();
+    
+    return status;
+}
+/**
+  * @brief  设置RTC并显示系统
+  * @param  None
+  * @retval HAL status
+  */
+HAL_StatusTypeDef RX8025T_Display(RX8025T_DateTimeCompact *DateTime)
+{
+    HAL_StatusTypeDef status;
+    
+    /* 初始化RX-8025T */
+    status = RX8025T_Init();
+    if (status != HAL_OK) {
+        return status;
+    }
+    
+    status = RX8025T_SetDateTime(DateTime);
     if (status != HAL_OK) {
         return status;
     }
@@ -114,7 +139,7 @@ HAL_StatusTypeDef RX8025T_InitAndDisplay(void)
 }
 
 /**
-  * @brief  RTC task for periodic update (call this in main loop or timer)
+  * @brief  RTC 定时更新任务（在主循环或定时器中调用此任务）
   * @param  None
   * @retval HAL status
   */
@@ -132,7 +157,7 @@ HAL_StatusTypeDef RX8025T_Task(void)
 //		//获取当前活动页面,这个判断页面,通过判断切换到主页的方式可能遇到主页已经切换但是标签还没生成的情况，就可能会访问到野指针,所以我直接判断标签组件是否有效
 //    lv_obj_t *current_scr = lv_scr_act();
 	
-    /* 只有当秒数变化并且当前页面为主页时时才更新显示&& current_scr == guider_ui.screen_user_home */
+    /* 只有当秒数变化并且两个标签都有效的时候才更新时间 */
     if (current_time.seconds != last_second && lv_obj_is_valid(guider_ui.screen_user_home_label_Date) && lv_obj_is_valid(guider_ui.screen_user_home_label_Time)) 
 		{
         last_second = current_time.seconds;

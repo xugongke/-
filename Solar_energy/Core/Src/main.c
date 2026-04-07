@@ -36,6 +36,7 @@
 #include "stdio.h"
 #include "wiz_interface.h"
 #include "lv_port_disp.h"
+#include "rs485_usart.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -56,8 +57,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-/* W5500 interrupt semaphore for FreeRTOS task synchronization */
-SemaphoreHandle_t w5500_int_semaphore = NULL;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -113,7 +113,15 @@ int main(void)
   MX_ADC1_Init();
   MX_USART2_UART_Init();
   MX_TIM3_Init();
+  MX_UART4_Init();
+  MX_UART7_Init();
+  MX_UART8_Init();
+  MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
+	RS485_USART6_Init();
+	RS485_UART4_Init();
+	RS485_UART7_Init();
+	RS485_UART8_Init();
 	//注册搬运图像数据完成回调函数
 	HAL_DMA_RegisterCallback(&hdma_memtomem_dma2_stream0, HAL_DMA_XFER_CPLT_CB_ID, LVGL_LCD_FSMC_DMA_pCallback);
 
@@ -198,25 +206,6 @@ void vApplicationTickHook(void)
     lv_tick_inc(1);  // 告诉 LVGL 过了 1 毫秒
 }
 
-/**
-  * @brief  EXTI line detection callbacks
-  * @param  GPIO_Pin: Specifies the pins connected EXTI line
-  * @retval None
-  */
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-  if (GPIO_Pin == W5500_INT_Pin)
-  {
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    
-    /* Release semaphore to wake up W5500 task */
-    if (w5500_int_semaphore != NULL)
-    {
-      xSemaphoreGiveFromISR(w5500_int_semaphore, &xHigherPriorityTaskWoken);
-      portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-    }
-  }
-}
 
 /* USER CODE END 4 */
 

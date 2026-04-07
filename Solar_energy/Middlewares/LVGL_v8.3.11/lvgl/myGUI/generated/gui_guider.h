@@ -18,6 +18,9 @@ extern "C" {
 typedef struct
 {
   
+	lv_obj_t *Startup_screen;
+	bool Startup_screen_del;
+	lv_obj_t *Startup_screen_img_1;
 	lv_obj_t *screen_user_home;
 	bool screen_user_home_del;
 	lv_obj_t *screen_user_home_user_list_btn;
@@ -29,6 +32,11 @@ typedef struct
 	lv_obj_t *screen_user_home_cont_2;
 	lv_obj_t *screen_user_home_label_2;
 	lv_obj_t *screen_user_home_label_1;
+	lv_obj_t *screen_user_home_cont_Signal;
+	lv_obj_t *screen_user_home_line_1;
+	lv_obj_t *screen_user_home_line_2;
+	lv_obj_t *screen_user_home_line_3;
+	lv_obj_t *screen_user_home_label_3;
 	lv_obj_t *screen_user_list;
 	bool screen_user_list_del;
 	lv_obj_t *screen_user_list_label_1;
@@ -60,13 +68,16 @@ void init_keyboard(lv_ui *ui);
 extern lv_ui guider_ui;
 
 
+void setup_scr_Startup_screen(lv_ui *ui);
 void setup_scr_screen_user_home(lv_ui *ui);
 void setup_scr_screen_user_list(lv_ui *ui);
 void setup_scr_screen_user_detail(lv_ui *ui);
 LV_IMG_DECLARE(_logo_shunpu_alpha_338x72);
+LV_IMG_DECLARE(_logo_shunpu_alpha_338x72);
 
 LV_FONT_DECLARE(lv_font_SourceHanSerifSC_Regular_16)
 LV_FONT_DECLARE(lv_font_montserratMedium_16)
+LV_FONT_DECLARE(lv_font_montserratMedium_26)
 LV_FONT_DECLARE(lv_font_montserratMedium_12)
 
 

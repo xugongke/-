@@ -75,6 +75,7 @@ void ui_animation(void * var, int32_t duration, int32_t delay, int32_t start_val
 void init_scr_del_flag(lv_ui *ui)
 {
 
+    ui->Startup_screen_del = true;
     ui->screen_user_home_del = true;
     ui->screen_user_list_del = true;
     ui->screen_user_detail_del = true;
@@ -84,8 +85,8 @@ void setup_ui(lv_ui *ui)
 {
     init_scr_del_flag(ui);
     init_keyboard(ui);
-    setup_scr_screen_user_home(ui);
-    lv_scr_load(ui->screen_user_home);
+    setup_scr_Startup_screen(ui);
+    lv_scr_load(ui->Startup_screen);
 }
 
 void init_keyboard(lv_ui *ui)

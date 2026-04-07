@@ -17,6 +17,7 @@
 
 #include "sdcard.h"
 #include "user_status.h"
+#include "device_manager.h"
 extern lv_indev_t * indev_keypad;
 lv_group_t * g_keypad_group;//创建全局group(可被焦点选中的对象集合)指针，在lv_init后分配空间
 
@@ -46,7 +47,7 @@ static void screen_user_home_user_list_btn_event_handler (lv_event_t *e)
     switch (code) {
     case LV_EVENT_CLICKED:
     {
-        ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_list, guider_ui.screen_user_list_del, &guider_ui.screen_user_home_del, setup_scr_screen_user_list, LV_SCR_LOAD_ANIM_NONE, 10, 10, true, true);
+        ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_list, guider_ui.screen_user_list_del, &guider_ui.screen_user_home_del, setup_scr_screen_user_list, LV_SCR_LOAD_ANIM_NONE, 10, 10, true, false);
         break;
     }
     default:
@@ -66,15 +67,27 @@ static void screen_user_list_event_handler (lv_event_t *e)
     switch (code) {
     case LV_EVENT_SCREEN_LOADED:
     {
+        house_info_t house;//创建户号结构体
         lv_group_remove_all_objs(g_keypad_group);//清空group中的所有组件
         /* 如果 GUI-Guider 已经往 list 里塞了东西，先清空 */
         lv_obj_clean(guider_ui.screen_user_list_list_1);
 
         //给group添加新组件
-        for(uint32_t i = 1; i <= 50; i++)
+        for(uint32_t i = 0; i < device_count; i++)
         {
-            char txt[16];
-            lv_snprintf(txt, sizeof(txt), "用户 %lu", (unsigned long)i);
+            char txt[100];
+            if(device_list[i].valid != 1)
+            {
+                lv_snprintf(txt, sizeof(txt), "未入网   MAC %02X:%02X:%02X:%02X:%02X:%02X  ",
+                            device_list[i].mac[0],device_list[i].mac[1],device_list[i].mac[2],device_list[i].mac[3],device_list[i].mac[4],device_list[i].mac[5]);
+            }
+            else if(device_list[i].valid == 1)
+            {
+                parse_addr(device_list[i].addr, &house);
+                lv_snprintf(txt, sizeof(txt), "%d楼 %d单元 %d   MAC %02X:%02X:%02X:%02X:%02X:%02X ", house.building,house.unit,house.room,
+                            device_list[i].mac[0],device_list[i].mac[1],device_list[i].mac[2],device_list[i].mac[3],device_list[i].mac[4],device_list[i].mac[5]);
+            }
+
 
             /* 创建 list item（返回的是一个 btn） */
             lv_obj_t *btn = lv_list_add_btn(guider_ui.screen_user_list_list_1, LV_SYMBOL_HOME, txt);
@@ -98,9 +111,9 @@ static void screen_user_list_event_handler (lv_event_t *e)
             lv_obj_add_style(btn, &style_screen_user_list_list_1_extra_btns_main_default, LV_PART_MAIN|LV_STATE_DEFAULT);
 
             lv_group_add_obj(g_keypad_group, btn);//将按键添加进焦点组
-            /* 给每个 btn 绑定同一个按下按钮时执行的回调函数，并用 user_data 传用户编号 */
+            /* 给每个 btn 绑定同一个按下按钮时执行的回调函数，并用 user_data 传用户编号,LV_EVENT_CLICKED代表已按下 */
             lv_obj_add_event_cb(btn, user_list_item_event_handler, LV_EVENT_CLICKED, (void*)(uintptr_t)i);
-
+            /* 再给每个按钮绑定按键操作回调函数 */
             lv_obj_add_event_cb(btn, screen_user_list_item_event_handler, LV_EVENT_KEY, (void*)(uintptr_t)i);
 
             /* 如果这是上次选中的编号，就让它获得焦点 */

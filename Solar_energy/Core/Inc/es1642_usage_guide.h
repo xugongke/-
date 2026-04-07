@@ -155,6 +155,14 @@ int ES1642_SendSearch(const uint8_t src_addr[ES1642_ADDR_LEN],
                           bool participate,
                           const uint8_t *attribute,
                           uint8_t attribute_len);
+/**
+ * @brief  设置PSK
+ * @param  dst_addr: 目标地址（6字节）
+ * @param  new_psk: 新的PSK指针（8字节）
+ * @retval 0: 成功, -1: 失败
+ */
+int ES1642_SetPsk(const uint8_t dst_addr[ES1642_ADDR_LEN],
+                 const uint8_t new_psk[ES1642_SET_PSK_LEN]);
 													
 
 #ifdef __cplusplus

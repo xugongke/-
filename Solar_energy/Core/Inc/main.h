@@ -63,6 +63,10 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define RS485_CTRL4_Pin GPIO_PIN_4
+#define RS485_CTRL4_GPIO_Port GPIOE
+#define RS485_CTRL5_Pin GPIO_PIN_8
+#define RS485_CTRL5_GPIO_Port GPIOF
 #define Key_Down_Pin GPIO_PIN_9
 #define Key_Down_GPIO_Port GPIOF
 #define Key_Right_Pin GPIO_PIN_10
@@ -100,8 +104,12 @@ void Error_Handler(void);
 #define LED1_GPIO_Port GPIOC
 #define LED2_Pin GPIO_PIN_7
 #define LED2_GPIO_Port GPIOC
+#define RS485_CTRL1_Pin GPIO_PIN_13
+#define RS485_CTRL1_GPIO_Port GPIOG
 #define RS485_CTRL2_Pin GPIO_PIN_5
 #define RS485_CTRL2_GPIO_Port GPIOB
+#define RS485_CTRL3_Pin GPIO_PIN_7
+#define RS485_CTRL3_GPIO_Port GPIOI
 
 /* USER CODE BEGIN Private defines */
 

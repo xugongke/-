@@ -28,7 +28,7 @@ void setup_scr_screen_user_list(lv_ui *ui)
 
     //Write codes screen_user_list_label_1
     ui->screen_user_list_label_1 = lv_label_create(ui->screen_user_list);
-    lv_label_set_text(ui->screen_user_list_label_1, "用户列表\n");
+    lv_label_set_text(ui->screen_user_list_label_1, "用户列表\n未入网楼单元晴天，晴转多云，多云，阴天，雾，霾，小雨，中雨，大雨，冻雨，小雪，中雪，大雪，雪粒，阵雨，阵雪，雷暴，冰雹，未知，白黑 ");
     lv_label_set_long_mode(ui->screen_user_list_label_1, LV_LABEL_LONG_WRAP);
     lv_obj_set_pos(ui->screen_user_list_label_1, 0, 0);
     lv_obj_set_size(ui->screen_user_list_label_1, 480, 16);

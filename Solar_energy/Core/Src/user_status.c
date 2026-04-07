@@ -7,7 +7,8 @@
 #include "es1642_usage_guide.h"
 #include "key.h" // Added for key handling
 #include "main.h" // For HAL_GetTick
-
+#include "a7680c_at.h"
+#include "a7680c_http.h"
 static USER_STATUS_FILE user_file;
 
 uint8_t dirty_flag = 0;
@@ -181,6 +182,7 @@ void USER_STATUS_Init(void)
     }
 }
 
+
 void screen_user_list_item_event_handler(lv_event_t *e)
 {
     /* user_data 里放 user_no（1~50）获取用户编号 */
@@ -193,34 +195,38 @@ void screen_user_list_item_event_handler(lv_event_t *e)
         uint32_t key = lv_event_get_key(e);
         if(key == LV_KEY_LEFT)//左键，用户离线
         {
-					printf("停止搜索设备\r\n");
-					ES1642_StopSearch();
+					ES1642_ReadAddr();
 //					USER_SetOffline(user_no);//用户离线
         }
 				
         if(key == LV_KEY_RIGHT)//右键，用户上线
         {
-					printf("开始搜索设备\r\n");
+					printf("开始搜索全部设备\r\n");
 					ES1642_StartSearch(0,ES1642_SEARCH_RULE_ALL);
 //					USER_SetOnline(user_no);//用户上线
         }
 				
         if(key == LV_KEY_UP)
         {
-					printf("up\r\n");
-					const uint8_t buf[] = {0x12,0x34,0x56,0x78,0x9A,0xBC};
-					ES1642_SetModuleAddr(buf);
+						WeatherCurrent_t weather_data;
+						uint8_t jwd_buff[64];
+					
+						A7680C_SendAT("AT+CLBS=1\r\n", "CLBS", 5000,jwd_buff);//读取经纬度
+						CLBS_PosTypeDef pos = A7680C_ParseCLBS((char*)jwd_buff);//解析经纬度
+					
+						A7680C_HTTP_GetWeatherData(pos.latitude,pos.longitude,&weather_data);//读取天气代码
+						const char* Weather_buff = Weather_GetShortDesc(weather_data.weather_code);//将天气代码翻译成中文
+						printf("%s\r\n",Weather_buff);
         }
 				
         if(key == LV_KEY_DOWN)
         {
-					printf("down\r\n");
-					ES1642_ReadAddr();
+					
         }
 				
         if(key == LV_KEY_ESC)//ESC键，返回首页
         {
-					 s_last_user_no = 1;//回到首页，重置用户列表焦点
+					 s_last_user_no = 0;//回到首页，重置用户列表焦点
 					 ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_home, guider_ui.screen_user_home_del, &guider_ui.screen_user_list_del, setup_scr_screen_user_home, LV_SCR_LOAD_ANIM_NONE, 10, 10, true, true);
         }
 
