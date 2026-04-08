@@ -126,14 +126,14 @@ const osThreadAttr_t W5500Task_attributes = {
 osThreadId_t ES1642TaskHandle;
 const osThreadAttr_t ES1642Task_attributes = {
   .name = "ES1642Task",
-  .stack_size = 1024 * 4,
+  .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityLow5,
 };
 /* Definitions for RTCTask */
 osThreadId_t RTCTaskHandle;
 const osThreadAttr_t RTCTask_attributes = {
   .name = "RTCTask",
-  .stack_size = 128 * 4,
+  .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityLow3,
 };
 /* Definitions for WeatherTask */
@@ -453,7 +453,6 @@ void ES1642_Task(void *argument)
 		size_t n = xMessageBufferReceive(uart2Message, buf, sizeof(buf), portMAX_DELAY);
 		if(n)
 		{
-			printf("n:%d\r\n",n);
 				ES1642_ProcessCompleteFrame(&g_es1642_handle,buf,n);
 		}
   }
@@ -527,20 +526,20 @@ void Weather_Task(void *argument)
 		A7680C_SendAT("AT+CLBS=1\r\n", "CLBS", 5000,jwd_buff);//读取经纬度
 		pos = A7680C_ParseCLBS((char*)jwd_buff);//解析经纬度
 	
-		A7680C_HTTP_GetWeatherData(pos.latitude,pos.longitude,&weather_data);//读取天气代码
-		const char* Weather_buff = Weather_GetShortDesc(weather_data.weather_code);//将天气代码翻译成中文
-		if(lv_obj_is_valid(guider_ui.screen_user_home_label_1) && lv_obj_is_valid(guider_ui.screen_user_home_label_2))
-		{
-				lv_label_set_text(guider_ui.screen_user_home_label_1, Weather_buff);
-				if(weather_data.is_day == 1)
-				{
-					lv_label_set_text(guider_ui.screen_user_home_label_2,"白天 ");
-				}
-				else
-				{
-					lv_label_set_text(guider_ui.screen_user_home_label_2,"黑天 ");
-				}
-		}
+//		A7680C_HTTP_GetWeatherData(pos.latitude,pos.longitude,&weather_data);//读取天气代码
+//		const char* Weather_buff = Weather_GetShortDesc(weather_data.weather_code);//将天气代码翻译成中文
+//		if(lv_obj_is_valid(guider_ui.screen_user_home_label_1) && lv_obj_is_valid(guider_ui.screen_user_home_label_2))
+//		{
+//				lv_label_set_text(guider_ui.screen_user_home_label_1, Weather_buff);
+//				if(weather_data.is_day == 1)
+//				{
+//					lv_label_set_text(guider_ui.screen_user_home_label_2,"白天 ");
+//				}
+//				else
+//				{
+//					lv_label_set_text(guider_ui.screen_user_home_label_2,"黑天 ");
+//				}
+//		}
   }
   /* USER CODE END Weather_Task */
 }
@@ -556,6 +555,13 @@ void Callback01(void *argument)
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
-
+//freertos任务堆栈溢出错误回调函数
+void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
+{
+    (void)xTask;
+    printf("Stack overflow: %s\r\n", pcTaskName);
+    taskDISABLE_INTERRUPTS();
+    for(;;);
+}
 /* USER CODE END Application */
 

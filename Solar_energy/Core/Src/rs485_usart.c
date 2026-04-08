@@ -77,10 +77,10 @@ void RS485_UART8_Init(void)
 // 每收到1个字节，自动进入这个函数
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-		printf("进入中断\r\n");
     /*---------- USART6 中断处理 ----------*/
     if(huart->Instance == USART6)
     {
+				printf("USART6_RX_BUF[%d]:%#x\r\n",USART6_RX_CNT,USART6_RX_BUF[USART6_RX_CNT]);
         // 接收长度+1
         USART6_RX_CNT++;
         // 缓冲区满则清零（防止溢出）
