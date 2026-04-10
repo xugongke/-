@@ -126,9 +126,12 @@ int at_find(const char *key)
  */
 void at_process_data(uint8_t *data, uint16_t len)
 {
-    if (at_index + len >= AT_PARSE_BUFFER_SIZE)
-    {
-        // 防止溢出
+		if (data == NULL || len == 0) return;
+	
+    if (len >= AT_PARSE_BUFFER_SIZE) {
+        len = AT_PARSE_BUFFER_SIZE - 1;
+        at_index = 0;
+    } else if (at_index + len >= AT_PARSE_BUFFER_SIZE) {
         at_index = 0;
     }
 

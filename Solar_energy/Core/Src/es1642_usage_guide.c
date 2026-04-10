@@ -71,7 +71,7 @@
 es1642_handle_t g_es1642_handle;
 
 /* 串口接收缓冲区（DMA使用） */
-__attribute__((aligned(256))) uint8_t g_es1642_rx_buf[ES1642_MAX_FRAME_LEN];
+uint8_t g_es1642_rx_buf[ES1642_MAX_FRAME_LEN];
 
 /* 串口句柄（假设使用huart2） */
 extern UART_HandleTypeDef huart2;
@@ -448,25 +448,6 @@ void es1642_on_error(es1642_handle_t *handle,
                            void *user_arg)
 {
     printf("ES1642错误: %s\r\n", ES1642_StatusString(status));
-    
-    /* 可以根据不同的错误类型进行不同的处理 */
-    switch (status)
-    {
-        case ES1642_STATUS_ERROR_CHECKSUM:
-            printf("校验和错误，请检查硬件连接\r\n");
-            break;
-            
-        case ES1642_STATUS_ERROR_BUFFER_TOO_SMALL:
-            printf("接收缓冲区溢出，可能存在数据干扰\r\n");
-            break;
-            
-        case ES1642_STATUS_ERROR_TX_FAIL:
-            printf("发送失败，请检查串口配置\r\n");
-            break;
-            
-        default:
-            break;
-    }
 }
 
 
@@ -477,17 +458,12 @@ void es1642_on_error(es1642_handle_t *handle,
  * @retval 0: 成功, -1: 失败
  */
 int ES1642_InitModule(void)
-{
-    es1642_port_t port;
-    
+{ 
     /* 配置端口参数 */
-    port.write = es1642_uart_write;      /* 发送回调 */
-    port.on_frame = es1642_on_frame_received;  /* 帧接收回调 */
-    port.on_error = es1642_on_error;     /* 错误回调 */
-    port.user_arg = NULL;                /* 用户参数 */
-    
-    /* 初始化ES1642驱动 */
-    ES1642_Init(&g_es1642_handle, &port);
+    g_es1642_handle.port.write = es1642_uart_write;      /* 发送回调 */
+    g_es1642_handle.port.on_frame = es1642_on_frame_received;  /* 帧接收回调 */
+    g_es1642_handle.port.on_error = es1642_on_error;     /* 错误回调 */
+    g_es1642_handle.port.user_arg = NULL;                /* 用户参数 */
     
     /* 启动串口DMA+空闲中断接收 */
     if (HAL_UARTEx_ReceiveToIdle_DMA(&huart2, g_es1642_rx_buf, sizeof(g_es1642_rx_buf)) != HAL_OK)
@@ -958,49 +934,6 @@ int ES1642_SendExceptionResponse(uint8_t cmd, uint8_t exception_code)
     printf("异常应答发送成功\r\n");
     return 0;
 }
-
-/* ======== 步骤8：main函数中使用示例 ======== */
-
-/*
- * int main(void)
- * {
- *     HAL_Init();
- *     SystemClock_Config();
- *     MX_GPIO_Init();
- *     MX_USART1_UART_Init();  // 初始化串口1
- *     MX_DMA_Init();          // 初始化DMA
- *     
- *     // 初始化ES1642模块
- *     if (ES1642_InitModule() != 0)
- *     {
- *         Error_Handler();
- *     }
- *     
- *     // 读取版本信息
- *     ES1642_ReadVersion();
- *     
- *     // 读取MAC地址
- *     ES1642_ReadMac();
- *     
- *     // 读取模块地址
- *     ES1642_ReadAddr();
- *     
- *     // 设置网络参数
- *     ES1642_SetNetParam(3);
- *     
- *     // 启动搜索
- *     ES1642_StartSearch(5, ES1642_SEARCH_RULE_SAME_NETWORK);
- *     
- *     while (1)
- *     {
- *         HAL_Delay(1000);
- *         
- *         // 可以在这里添加其他业务逻辑
- *         // 例如：定时发送数据、处理接收到的数据等
- *     }
- * }
- */
-
 
 /* ======== 步骤10：CubeMX配置要点 ======== */
 

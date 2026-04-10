@@ -290,16 +290,9 @@ typedef struct
 struct es1642_handle
 {
     es1642_port_t port;
-//    uint8_t rx_buf[ES1642_MAX_FRAME_LEN];
-//    uint16_t rx_index;
-//    uint16_t rx_expected_len;
 };
 
 /* ========================= 通用工具函数 ========================= */
-
-void ES1642_Init(es1642_handle_t *handle, const es1642_port_t *port);
-//void ES1642_ResetRx(es1642_handle_t *handle);
-
 uint8_t ES1642_MakeDeviceRequestCtrl(void);
 uint8_t ES1642_MakeDeviceReplyCtrl(void);
 uint8_t ES1642_MakeDeviceExceptionCtrl(void);
@@ -335,11 +328,7 @@ es1642_status_t ES1642_SendFrame(es1642_handle_t *handle,
 es1642_status_t ES1642_ParseFrame(const uint8_t *raw_frame,
                                   uint16_t frame_len,
                                   es1642_frame_t *frame);
-//这是给stm8单片机使用的两个函数，因为stm8不能使用消息缓冲区
-//es1642_status_t ES1642_InputByte(es1642_handle_t *handle, uint8_t byte);
-//es1642_status_t ES1642_InputBuffer(es1642_handle_t *handle,
-//                                   const uint8_t *data,
-//                                   uint16_t len);
+
 es1642_status_t ES1642_ProcessCompleteFrame(es1642_handle_t *handle,
                                             const uint8_t *frame_buf,
                                             uint16_t frame_len);															 
