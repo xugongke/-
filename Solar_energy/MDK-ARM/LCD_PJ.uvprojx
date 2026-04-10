@@ -400,11 +400,6 @@
               <FilePath>..\Core\Src\key.c</FilePath>
             </File>
             <File>
-              <FileName>tpad.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Core\Src\tpad.c</FilePath>
-            </File>
-            <File>
               <FileName>sdcard.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Core\Src\sdcard.c</FilePath>

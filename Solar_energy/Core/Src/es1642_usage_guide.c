@@ -71,7 +71,7 @@
 es1642_handle_t g_es1642_handle;
 
 /* 串口接收缓冲区（DMA使用） */
-uint8_t g_es1642_rx_buf[ES1642_MAX_FRAME_LEN];
+__attribute__((aligned(256))) uint8_t g_es1642_rx_buf[ES1642_MAX_FRAME_LEN];
 
 /* 串口句柄（假设使用huart2） */
 extern UART_HandleTypeDef huart2;
@@ -97,8 +97,8 @@ static int32_t es1642_uart_write(const uint8_t *data, uint16_t len, void *user_a
         return -1;
     }
     
-    /* 使用DMA方式发送数据 */
-    status = HAL_UART_Transmit_DMA(&huart2, (uint8_t *)data, len);
+    /* 使用中断方式发送数据（因为DMA不够用了）所以要保证给es1642模块发送的字节数要少，要不然会频繁占用CPU */
+    status = HAL_UART_Transmit_IT(&huart2, (uint8_t *)data, len);
     
     if (status == HAL_OK)
     {
@@ -106,6 +106,7 @@ static int32_t es1642_uart_write(const uint8_t *data, uint16_t len, void *user_a
     }
     else
     {
+				printf("es1642发送命令失败\r\n");
         return -1;  /* 发送失败 */
     }
 }

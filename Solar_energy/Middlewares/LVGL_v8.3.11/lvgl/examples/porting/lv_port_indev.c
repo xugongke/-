@@ -22,7 +22,6 @@
 #include "lvgl.h"
 #include "key.h"
 #include "lv_group.h"
-#include "tpad.h"
 #include "tim.h"
 /*********************
  *      DEFINES

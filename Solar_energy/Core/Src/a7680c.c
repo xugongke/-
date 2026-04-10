@@ -59,7 +59,7 @@ void A7680C_Send(char *data)
 uint8_t A7680C_SendAT(char *cmd, char *ack, uint32_t timeout,uint8_t* data)
 {
     // ==============================================
-    // 【第一步：互斥锁 —— 保证同一时刻只有一个人调用】
+    // 【第一步：互斥锁 —— 保证同一时刻只有一个人调用A7680C_Send】
     // ==============================================
     if (osSemaphoreAcquire(at_mutexHandle, osWaitForever) != osOK)
     {
@@ -96,7 +96,7 @@ uint8_t A7680C_SendAT(char *cmd, char *ack, uint32_t timeout,uint8_t* data)
 				else
 				{
 					if(data != NULL)
-					{
+					{//接收到的完整帧保存到了data中，不用担心at_parse_buf被覆盖导致数据丢失了
 						memcpy(data, at_parse_buf, a7680c_rx_len + 1);//加一是因为最后还有个字符串结束符号
 					}
 				}

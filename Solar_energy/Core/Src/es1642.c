@@ -227,17 +227,18 @@ void ES1642_Init(es1642_handle_t *handle, const es1642_port_t *port)
  * @retval None
  * @note   清除接收缓冲区索引和期望帧长度
  *         通常在接收错误或接收到完整帧后调用
+如果使用了内部流式接收状态，确保状态被重置以避免残留，stm8使用
  */
-void ES1642_ResetRx(es1642_handle_t *handle)
-{
-    if (handle == NULL)
-    {
-        return;
-    }
+//void ES1642_ResetRx(es1642_handle_t *handle)
+//{
+//    if (handle == NULL)
+//    {
+//        return;
+//    }
 
-    handle->rx_index = 0U;         /* 重置接收索引 */
-    handle->rx_expected_len = 0U;  /* 重置期望帧长度 */
-}
+//    handle->rx_index = 0U;         /* 重置接收索引 */
+//    handle->rx_expected_len = 0U;  /* 重置期望帧长度 */
+//}
 
 /**
  * @brief  生成设备请求控制字节
@@ -564,12 +565,6 @@ es1642_status_t ES1642_SendFrame(es1642_handle_t *handle,
     {
         return status;
     }
-//		printf("es1642.c的567行，发送协议帧:");
-//		for(int i = 0;i < frame_len;i++)
-//		{
-//			printf("%#x ",frame_buf[i]);
-//		}
-//		printf("\r\n");
     /* 通过回调函数发送数据 */
     send_len = handle->port.write(frame_buf, frame_len, handle->port.user_arg);
 
@@ -656,175 +651,175 @@ es1642_status_t ES1642_ParseFrame(const uint8_t *raw_frame,
     return ES1642_STATUS_OK;
 }
 
-/**
- * @brief  流式接收单个字节
- * @param  handle: ES1642驱动句柄
- * @param  byte: 接收到的字节
- * @retval 状态码
- * @note   实现流式接收，支持接收不完整的数据帧
- *         状态机设计：
- *         1. 等待帧头（0x79）
- *         2. 接收长度字段
- *         3. 接收数据载荷
- *         4. 接收校验和
- *         5. 完整帧到达后调用回调
- * 
- *         配合DMA+空闲中断使用效果最佳
- */
-es1642_status_t ES1642_InputByte(es1642_handle_t *handle, uint8_t byte)
-{
-    es1642_frame_t frame;
-    es1642_status_t status;
+///**
+// * @brief  流式接收单个字节
+// * @param  handle: ES1642驱动句柄
+// * @param  byte: 接收到的字节
+// * @retval 状态码
+// * @note   实现流式接收，支持接收不完整的数据帧
+// *         状态机设计：
+// *         1. 等待帧头（0x79）
+// *         2. 接收长度字段
+// *         3. 接收数据载荷
+// *         4. 接收校验和
+// *         5. 完整帧到达后调用回调
+// * 
+// *         配合DMA+空闲中断使用效果最佳
+// */
+//es1642_status_t ES1642_InputByte(es1642_handle_t *handle, uint8_t byte)
+//{
+//    es1642_frame_t frame;
+//    es1642_status_t status;
 
-    if (handle == NULL)
-    {
-        return ES1642_STATUS_ERROR_PARAM;
-    }
+//    if (handle == NULL)
+//    {
+//        return ES1642_STATUS_ERROR_PARAM;
+//    }
 
-    /* 尚未进入一帧，先等待帧头（0x79） */
-    if (handle->rx_index == 0U)
-    {
-        if (byte != ES1642_FRAME_HEAD)
-        {
-            return ES1642_STATUS_IN_PROGRESS;  /* 继续等待帧头 */
-        }
+//    /* 尚未进入一帧，先等待帧头（0x79） */
+//    if (handle->rx_index == 0U)
+//    {
+//        if (byte != ES1642_FRAME_HEAD)
+//        {
+//            return ES1642_STATUS_IN_PROGRESS;  /* 继续等待帧头 */
+//        }
 
-        handle->rx_buf[0] = byte;  /* 保存帧头 */
-        handle->rx_index = 1U;
-        handle->rx_expected_len = 0U;
-        return ES1642_STATUS_IN_PROGRESS;
-    }
+//        handle->rx_buf[0] = byte;  /* 保存帧头 */
+//        handle->rx_index = 1U;
+//        handle->rx_expected_len = 0U;
+//        return ES1642_STATUS_IN_PROGRESS;
+//    }
 
-    /* 检查缓冲区是否溢出 */
-    if (handle->rx_index >= (uint16_t)sizeof(handle->rx_buf))
-    {
-        ES1642_ResetRx(handle);  /* 重置接收状态 */
+//    /* 检查缓冲区是否溢出 */
+//    if (handle->rx_index >= (uint16_t)sizeof(handle->rx_buf))
+//    {
+//        ES1642_ResetRx(handle);  /* 重置接收状态 */
 
-        if (handle->port.on_error != NULL)
-        {
-            handle->port.on_error(handle, ES1642_STATUS_ERROR_BUFFER_TOO_SMALL, handle->port.user_arg);
-        }
+//        if (handle->port.on_error != NULL)
+//        {
+//            handle->port.on_error(handle, ES1642_STATUS_ERROR_BUFFER_TOO_SMALL, handle->port.user_arg);
+//        }
 
-        return ES1642_STATUS_ERROR_BUFFER_TOO_SMALL;
-    }
+//        return ES1642_STATUS_ERROR_BUFFER_TOO_SMALL;
+//    }
 
-    /* 保存接收到的字节 */
-    handle->rx_buf[handle->rx_index++] = byte;
+//    /* 保存接收到的字节 */
+//    handle->rx_buf[handle->rx_index++] = byte;
 
-    /* 收到长度字段（字节2）后，立即确定整个帧长度 */
-    if (handle->rx_index == 3U)
-    {
-        uint16_t data_len = es1642_get_le16(&handle->rx_buf[1]);  /* 读取数据长度 */
+//    /* 收到长度字段（字节2）后，立即确定整个帧长度 */
+//    if (handle->rx_index == 3U)
+//    {
+//        uint16_t data_len = es1642_get_le16(&handle->rx_buf[1]);  /* 读取数据长度 */
 
-        /* 检查数据长度是否合法 */
-        if (data_len > ES1642_MAX_DATA_LEN)
-        {
-            ES1642_ResetRx(handle);
+//        /* 检查数据长度是否合法 */
+//        if (data_len > ES1642_MAX_DATA_LEN)
+//        {
+//            ES1642_ResetRx(handle);
 
-            if (handle->port.on_error != NULL)
-            {
-                handle->port.on_error(handle, ES1642_STATUS_ERROR_DATA_TOO_LONG, handle->port.user_arg);
-            }
+//            if (handle->port.on_error != NULL)
+//            {
+//                handle->port.on_error(handle, ES1642_STATUS_ERROR_DATA_TOO_LONG, handle->port.user_arg);
+//            }
 
-            return ES1642_STATUS_ERROR_DATA_TOO_LONG;
-        }
+//            return ES1642_STATUS_ERROR_DATA_TOO_LONG;
+//        }
 
-        /* 计算完整帧长度 */
-        handle->rx_expected_len = (uint16_t)(ES1642_MIN_FRAME_LEN + data_len);
+//        /* 计算完整帧长度 */
+//        handle->rx_expected_len = (uint16_t)(ES1642_MIN_FRAME_LEN + data_len);
 
-        /* 检查缓冲区是否足够 */
-        if (handle->rx_expected_len > (uint16_t)sizeof(handle->rx_buf))
-        {
-            ES1642_ResetRx(handle);
+//        /* 检查缓冲区是否足够 */
+//        if (handle->rx_expected_len > (uint16_t)sizeof(handle->rx_buf))
+//        {
+//            ES1642_ResetRx(handle);
 
-            if (handle->port.on_error != NULL)
-            {
-                handle->port.on_error(handle, ES1642_STATUS_ERROR_BUFFER_TOO_SMALL, handle->port.user_arg);
-            }
+//            if (handle->port.on_error != NULL)
+//            {
+//                handle->port.on_error(handle, ES1642_STATUS_ERROR_BUFFER_TOO_SMALL, handle->port.user_arg);
+//            }
 
-            return ES1642_STATUS_ERROR_BUFFER_TOO_SMALL;
-        }
-    }
+//            return ES1642_STATUS_ERROR_BUFFER_TOO_SMALL;
+//        }
+//    }
 
-    /* 检查是否收到完整帧 */
-    if ((handle->rx_expected_len > 0U) && (handle->rx_index >= handle->rx_expected_len))
-    {
-        /* 解析帧 */
-        status = ES1642_ParseFrame(handle->rx_buf, handle->rx_expected_len, &frame);
+//    /* 检查是否收到完整帧 */
+//    if ((handle->rx_expected_len > 0U) && (handle->rx_index >= handle->rx_expected_len))
+//    {
+//        /* 解析帧 */
+//        status = ES1642_ParseFrame(handle->rx_buf, handle->rx_expected_len, &frame);
 
-        if (status == ES1642_STATUS_OK)
-        {
-            /* 调用帧接收回调 */
-            if (handle->port.on_frame != NULL)
-            {
-                handle->port.on_frame(handle, &frame, handle->port.user_arg);
-            }
+//        if (status == ES1642_STATUS_OK)
+//        {
+//            /* 调用帧接收回调 */
+//            if (handle->port.on_frame != NULL)
+//            {
+//                handle->port.on_frame(handle, &frame, handle->port.user_arg);
+//            }
 
-            ES1642_ResetRx(handle);  /* 重置接收状态，准备接收下一帧 */
-            return ES1642_STATUS_FRAME_READY;
-        }
+//            ES1642_ResetRx(handle);  /* 重置接收状态，准备接收下一帧 */
+//            return ES1642_STATUS_FRAME_READY;
+//        }
 
-        /* 解析失败，重置接收状态 */
-        ES1642_ResetRx(handle);
+//        /* 解析失败，重置接收状态 */
+//        ES1642_ResetRx(handle);
 
-        if (handle->port.on_error != NULL)
-        {
-            handle->port.on_error(handle, status, handle->port.user_arg);
-        }
+//        if (handle->port.on_error != NULL)
+//        {
+//            handle->port.on_error(handle, status, handle->port.user_arg);
+//        }
 
-        return status;
-    }
+//        return status;
+//    }
 
-    return ES1642_STATUS_IN_PROGRESS;  /* 继续接收 */
-}
+//    return ES1642_STATUS_IN_PROGRESS;  /* 继续接收 */
+//}
 
-/**
- * @brief  流式接收缓冲区数据
- * @param  handle: ES1642驱动句柄
- * @param  data: 数据缓冲区指针
- * @param  len: 数据长度
- * @retval 状态码
- * @note   逐字节调用ES1642_InputByte处理
- *         通常在DMA接收完成或串口空闲中断后调用
- *         返回值说明：
- *         - ES1642_STATUS_IN_PROGRESS: 接收中
- *         - ES1642_STATUS_FRAME_READY: 收到完整帧
- *         - 错误码: 发生错误
- */
-es1642_status_t ES1642_InputBuffer(es1642_handle_t *handle,
-                                   const uint8_t *data,
-                                   uint16_t len)
-{
-    uint16_t i;
-    es1642_status_t status = ES1642_STATUS_IN_PROGRESS;  /* 默认状态 */
+///**
+// * @brief  流式接收缓冲区数据
+// * @param  handle: ES1642驱动句柄
+// * @param  data: 数据缓冲区指针
+// * @param  len: 数据长度
+// * @retval 状态码
+// * @note   逐字节调用ES1642_InputByte处理
+// *         通常在DMA接收完成或串口空闲中断后调用
+// *         返回值说明：
+// *         - ES1642_STATUS_IN_PROGRESS: 接收中
+// *         - ES1642_STATUS_FRAME_READY: 收到完整帧
+// *         - 错误码: 发生错误
+// */
+//es1642_status_t ES1642_InputBuffer(es1642_handle_t *handle,
+//                                   const uint8_t *data,
+//                                   uint16_t len)
+//{
+//    uint16_t i;
+//    es1642_status_t status = ES1642_STATUS_IN_PROGRESS;  /* 默认状态 */
 
-    if (handle == NULL)
-    {
-        return ES1642_STATUS_ERROR_PARAM;
-    }
+//    if (handle == NULL)
+//    {
+//        return ES1642_STATUS_ERROR_PARAM;
+//    }
 
-    if ((len > 0U) && (data == NULL))
-    {
-        return ES1642_STATUS_ERROR_PARAM;
-    }
+//    if ((len > 0U) && (data == NULL))
+//    {
+//        return ES1642_STATUS_ERROR_PARAM;
+//    }
 
-    /* 逐字节处理接收到的数据 */
-    for (i = 0U; i < len; ++i)
-    {
-        es1642_status_t one = ES1642_InputByte(handle, data[i]);
+//    /* 逐字节处理接收到的数据 */
+//    for (i = 0U; i < len; ++i)
+//    {
+//        es1642_status_t one = ES1642_InputByte(handle, data[i]);
 
-        if (one == ES1642_STATUS_FRAME_READY)
-        {
-            status = ES1642_STATUS_FRAME_READY;  /* 收到完整帧 */
-        }
-        else if ((one >= ES1642_STATUS_ERROR_PARAM) && (status != ES1642_STATUS_FRAME_READY))
-        {
-            status = one;  /* 记录错误，但继续处理剩余字节 */
-        }
-    }
+//        if (one == ES1642_STATUS_FRAME_READY)
+//        {
+//            status = ES1642_STATUS_FRAME_READY;  /* 收到完整帧 */
+//        }
+//        else if ((one >= ES1642_STATUS_ERROR_PARAM) && (status != ES1642_STATUS_FRAME_READY))
+//        {
+//            status = one;  /* 记录错误，但继续处理剩余字节 */
+//        }
+//    }
 
-    return status;
-}
+//    return status;
+//}
 
 /**
  * @brief  处理一帧完整的原始帧数据（适用于 DMA/消息缓冲接收一次性得到完整帧的场景）
@@ -863,8 +858,6 @@ es1642_status_t ES1642_ProcessCompleteFrame(es1642_handle_t *handle,
             handle->port.on_frame(handle, &frame, handle->port.user_arg);
         }
 
-        /* 如果使用了内部流式接收状态，确保状态被重置以避免残留 */
-        ES1642_ResetRx(handle);
         return ES1642_STATUS_FRAME_READY;
     }
 

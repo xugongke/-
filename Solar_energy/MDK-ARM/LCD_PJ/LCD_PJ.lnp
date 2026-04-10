@@ -1,7 +1,6 @@
 --cpu=Cortex-M4.fp.sp
 "lcd_pj\startup_stm32f429xx.o"
 "lcd_pj\key.o"
-"lcd_pj\tpad.o"
 "lcd_pj\sdcard.o"
 "lcd_pj\user_status.o"
 "lcd_pj\ili9488.o"

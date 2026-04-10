@@ -210,7 +210,7 @@ void LCD_DMA_DispFlush(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, lv_co
 		//设置显示区域
     ILI9488_SetAddressWindow(x1, y1, x2, y2);
 	//启动DMA搬运,这里要给LCD_DATA宏定义取地址，因为LCD_DATA是把地址解引用
-		HAL_DMA_Start_IT(&hdma_memtomem_dma2_stream0, (uint32_t) color_p, (uint32_t) &LCD_DATA,total);
+		HAL_DMA_Start_IT(&hdma_memtomem_dma2_stream4, (uint32_t) color_p, (uint32_t) &LCD_DATA,total);
 }
 
 

@@ -195,7 +195,8 @@ void screen_user_list_item_event_handler(lv_event_t *e)
         uint32_t key = lv_event_get_key(e);
         if(key == LV_KEY_LEFT)//左键，用户离线
         {
-					ES1642_ReadAddr();
+					printf("停止设备搜索\r\n");
+					ES1642_StopSearch();
 //					USER_SetOffline(user_no);//用户离线
         }
 				
@@ -221,7 +222,7 @@ void screen_user_list_item_event_handler(lv_event_t *e)
 				
         if(key == LV_KEY_DOWN)
         {
-					
+					ES1642_ReadAddr();
         }
 				
         if(key == LV_KEY_ESC)//ESC键，返回首页

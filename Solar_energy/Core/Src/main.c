@@ -118,12 +118,9 @@ int main(void)
   MX_UART8_Init();
   MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
-	RS485_USART6_Init();
-	RS485_UART4_Init();
-	RS485_UART7_Init();
-	RS485_UART8_Init();
+	RS485_USART_Init_All();
 	//注册搬运图像数据完成回调函数
-	HAL_DMA_RegisterCallback(&hdma_memtomem_dma2_stream0, HAL_DMA_XFER_CPLT_CB_ID, LVGL_LCD_FSMC_DMA_pCallback);
+	HAL_DMA_RegisterCallback(&hdma_memtomem_dma2_stream4, HAL_DMA_XFER_CPLT_CB_ID, LVGL_LCD_FSMC_DMA_pCallback);
 
   /* USER CODE END 2 */
 

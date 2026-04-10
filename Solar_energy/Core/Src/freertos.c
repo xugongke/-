@@ -32,7 +32,6 @@
 #include "lv_port_indev.h"
 #include "lv_port_fs.h"
 #include "key.h"
-#include "tpad.h"
 #include "gui_guider.h"           // Gui Guider 生成的界面和控件的声明
 #include "events_init.h"          // Gui Guider 生成的初始化事件、回调函数
 #include "sdio.h"
@@ -143,6 +142,13 @@ const osThreadAttr_t WeatherTask_attributes = {
   .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityLow2,
 };
+/* Definitions for RS485UARTProces */
+osThreadId_t RS485UARTProcesHandle;
+const osThreadAttr_t RS485UARTProces_attributes = {
+  .name = "RS485UARTProces",
+  .stack_size = 256 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
 /* Definitions for weatherTimer */
 osTimerId_t weatherTimerHandle;
 const osTimerAttr_t weatherTimer_attributes = {
@@ -171,6 +177,7 @@ extern void W5500_Task(void *argument);
 void ES1642_Task(void *argument);
 void RTC_Task(void *argument);
 void Weather_Task(void *argument);
+extern void RS485_UART_ProcessTask(void *argument);
 void Callback01(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -259,6 +266,9 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of WeatherTask */
   WeatherTaskHandle = osThreadNew(Weather_Task, NULL, &WeatherTask_attributes);
+
+  /* creation of RS485UARTProces */
+  RS485UARTProcesHandle = osThreadNew(RS485_UART_ProcessTask, NULL, &RS485UARTProces_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -526,20 +536,20 @@ void Weather_Task(void *argument)
 		A7680C_SendAT("AT+CLBS=1\r\n", "CLBS", 5000,jwd_buff);//读取经纬度
 		pos = A7680C_ParseCLBS((char*)jwd_buff);//解析经纬度
 	
-//		A7680C_HTTP_GetWeatherData(pos.latitude,pos.longitude,&weather_data);//读取天气代码
-//		const char* Weather_buff = Weather_GetShortDesc(weather_data.weather_code);//将天气代码翻译成中文
-//		if(lv_obj_is_valid(guider_ui.screen_user_home_label_1) && lv_obj_is_valid(guider_ui.screen_user_home_label_2))
-//		{
-//				lv_label_set_text(guider_ui.screen_user_home_label_1, Weather_buff);
-//				if(weather_data.is_day == 1)
-//				{
-//					lv_label_set_text(guider_ui.screen_user_home_label_2,"白天 ");
-//				}
-//				else
-//				{
-//					lv_label_set_text(guider_ui.screen_user_home_label_2,"黑天 ");
-//				}
-//		}
+		A7680C_HTTP_GetWeatherData(pos.latitude,pos.longitude,&weather_data);//读取天气代码
+		const char* Weather_buff = Weather_GetShortDesc(weather_data.weather_code);//将天气代码翻译成中文
+		if(lv_obj_is_valid(guider_ui.screen_user_home_label_1) && lv_obj_is_valid(guider_ui.screen_user_home_label_2))
+		{
+				lv_label_set_text(guider_ui.screen_user_home_label_1, Weather_buff);
+				if(weather_data.is_day == 1)
+				{
+					lv_label_set_text(guider_ui.screen_user_home_label_2,"白天 ");
+				}
+				else
+				{
+					lv_label_set_text(guider_ui.screen_user_home_label_2,"黑天 ");
+				}
+		}
   }
   /* USER CODE END Weather_Task */
 }
