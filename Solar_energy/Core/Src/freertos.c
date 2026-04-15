@@ -276,7 +276,7 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
-	osTimerStart(weatherTimerHandle, 900000);//每15分钟调用一次获取天气函数
+	osTimerStart(weatherTimerHandle, 7000);//每15分钟调用一次获取天气函数
   /* USER CODE END RTOS_EVENTS */
 
 }

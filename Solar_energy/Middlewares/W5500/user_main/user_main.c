@@ -23,8 +23,8 @@ wiz_NetInfo default_net_info = {
     .gw = {192, 168, 1, 1},
     .sn = {255, 255, 255, 0},
     .dns = {8, 8, 8, 8},
-    .dhcp = NETINFO_DHCP // dhcp get ip
-    //.dhcp = NETINFO_STATIC  //static ip
+//    .dhcp = NETINFO_DHCP // dhcp get ip
+    .dhcp = NETINFO_STATIC  //static ip
 };
 
 uint16_t local_port = 8080;
@@ -54,19 +54,19 @@ static uint8_t ethernet_buf[ETHERNET_BUF_MAX_SIZE] = {0};
 void W5500_Task(void *argument)
 {
   /* USER CODE BEGIN W5500Taskfun */
-//  printf("wizchip interrupt example\r\n");
+  printf("wizchip interrupt example\r\n");
 
-//  /* wizchip init */
-//  wizchip_initialize();
+  /* wizchip init */
+  wizchip_initialize();
 
-//  /* 设置网络信息 */
-//  network_init(ethernet_buf, &default_net_info);
-//  setSIMR(0xff); // 启用所有套接字中断
-//  setSn_IMR(SOCKET_ID, 0x0f);
+  /* 设置网络信息 */
+  network_init(ethernet_buf, &default_net_info);
+  setSIMR(0xff); // 启用所有套接字中断
+  setSn_IMR(SOCKET_ID, 0x0f);
   /* Infinite loop */
   for(;;)
   {
-//    loopback_tcps_interrupt(SOCKET_ID, ethernet_buf, local_port);
+    loopback_tcps_interrupt(SOCKET_ID, ethernet_buf, local_port);
 		osDelay(1);
   }
   /* USER CODE END W5500Taskfun */

@@ -7,9 +7,9 @@ at_result_t at_result;
 char *keyword = NULL;
 
 /* DMA接收数据缓冲区 */
-__attribute__((aligned(256)))uint8_t a7680c_rx_buf[UART_RX_DMA_SIZE];
+uint8_t a7680c_rx_buf[UART_RX_DMA_SIZE];
 
-__attribute__((aligned(256)))uint8_t at_parse_buf[AT_PARSE_BUFFER_SIZE];//流式拼接缓冲区，接收到的完整的4G数据存储在这里面
+uint8_t at_parse_buf[AT_PARSE_BUFFER_SIZE];//流式拼接缓冲区，接收到的完整的4G数据存储在这里面
 uint16_t at_index = 0;//记录缓冲区下标
 
 /* 接收到的完整帧总长度 */
