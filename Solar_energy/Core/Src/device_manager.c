@@ -133,9 +133,13 @@ FRESULT load_devices(void)
     }
 
     res = f_read(&file, device_list, sizeof(device_list), &br);
+    if (res != FR_OK)
+    {
+        printf("设备表文档f_read失败\r\n");
+    }
 
     f_close(&file);
-
+		//br是实际读取到的字节数,也就是用户真实的数量
     device_count = br / sizeof(device_t);
 
     printf("加载设备数量:%d\r\n", device_count);

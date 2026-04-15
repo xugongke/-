@@ -195,34 +195,30 @@ void screen_user_list_item_event_handler(lv_event_t *e)
         uint32_t key = lv_event_get_key(e);
         if(key == LV_KEY_LEFT)//左键，用户离线
         {
-					printf("停止设备搜索\r\n");
-					ES1642_StopSearch();
+					const uint8_t dst_addr[] = {0x33,0x33,0x33,0x33,0x33,0x33};
+					const uint8_t data[] = {0x77,0x77,0x77,0x77,0x77,0x77};
+					ES1642_SendUserData(dst_addr,data,sizeof(data),0);
 //					USER_SetOffline(user_no);//用户离线
         }
 				
         if(key == LV_KEY_RIGHT)//右键，用户上线
         {
-					printf("开始搜索全部设备\r\n");
-					ES1642_StartSearch(0,ES1642_SEARCH_RULE_ALL);
+					const uint8_t dst_addr[] = {0x33,0x33,0x33,0x33,0x33,0x33};
+					const uint8_t data[] = {0x66,0x66,0x66,0x66,0x66,0x66};
+					ES1642_SendUserData(dst_addr,data,sizeof(data),0);
 //					USER_SetOnline(user_no);//用户上线
         }
 				
         if(key == LV_KEY_UP)
         {
-						WeatherCurrent_t weather_data;
-						uint8_t jwd_buff[64];
-					
-						A7680C_SendAT("AT+CLBS=1\r\n", "CLBS", 5000,jwd_buff);//读取经纬度
-						CLBS_PosTypeDef pos = A7680C_ParseCLBS((char*)jwd_buff);//解析经纬度
-					
-						A7680C_HTTP_GetWeatherData(pos.latitude,pos.longitude,&weather_data);//读取天气代码
-						const char* Weather_buff = Weather_GetShortDesc(weather_data.weather_code);//将天气代码翻译成中文
-						printf("%s\r\n",Weather_buff);
+					printf("开始搜索全部设备\r\n");
+					ES1642_StartSearch(0,ES1642_SEARCH_RULE_ALL);
         }
 				
         if(key == LV_KEY_DOWN)
         {
-					ES1642_ReadAddr();
+					printf("停止设备搜索\r\n");
+					ES1642_StopSearch();
         }
 				
         if(key == LV_KEY_ESC)//ESC键，返回首页

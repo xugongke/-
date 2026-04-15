@@ -245,8 +245,15 @@ void es1642_on_frame_received(es1642_handle_t *handle,
             if (status == ES1642_STATUS_OK)
             {
                 printf("停止搜索: OK\r\n");
-								save_devices();//保存设备表
-								print_device_list();
+								if(device_count > 0)
+								{
+									save_devices();//保存RAM中的设备表到SD卡中
+									print_device_list();
+								}
+								else if(device_count == 0)
+								{
+									device_manager_init();//重新读取SD卡中的记录并加载到RAM中
+								}
             }
             break;
         }
@@ -271,7 +278,7 @@ void es1642_on_frame_received(es1642_handle_t *handle,
 									printf("%x:",result.attribute[i]);
 								}
 								printf("\r\n");
-								//添加更新设备表
+								//添加更新设备表到RAM中
 								add_device((uint8_t*)result.attribute, result.dev_addr,result.net_state);							
 							}
 							else
@@ -390,7 +397,6 @@ void es1642_on_frame_received(es1642_handle_t *handle,
         
         case ES1642_CMD_RECV_DATA:
         {
-					char bufff[] = {0x01,0x02,0x03,0x04,0x05,0x06};
             es1642_recv_data_t recv_data;
             status = ES1642_DecodeRecvData(frame, &recv_data);
             if (status == ES1642_STATUS_OK)
@@ -406,9 +412,9 @@ void es1642_on_frame_received(es1642_handle_t *handle,
                 if (recv_data.user_data_len > 0 && recv_data.user_data != NULL)
                 {
 										//给从机回复123456
-										ES1642_SendUserData(recv_data.src_addr,(const uint8_t *)bufff,sizeof(bufff),0);
                     /* 这里可以根据业务逻辑处理用户数据 */
                     /* 注意：recv_data.user_data指向驱动内部缓冲区，如需长期保存请自行拷贝 */
+
                 }
             }
             break;
@@ -460,10 +466,10 @@ void es1642_on_error(es1642_handle_t *handle,
 int ES1642_InitModule(void)
 { 
     /* 配置端口参数 */
-    g_es1642_handle.port.write = es1642_uart_write;      /* 发送回调 */
-    g_es1642_handle.port.on_frame = es1642_on_frame_received;  /* 帧接收回调 */
-    g_es1642_handle.port.on_error = es1642_on_error;     /* 错误回调 */
-    g_es1642_handle.port.user_arg = NULL;                /* 用户参数 */
+    g_es1642_handle.write = es1642_uart_write;      /* 发送回调 */
+    g_es1642_handle.on_frame = es1642_on_frame_received;  /* 帧接收回调 */
+    g_es1642_handle.on_error = es1642_on_error;     /* 错误回调 */
+    g_es1642_handle.user_arg = NULL;                /* 用户参数 */
     
     /* 启动串口DMA+空闲中断接收 */
     if (HAL_UARTEx_ReceiveToIdle_DMA(&huart2, g_es1642_rx_buf, sizeof(g_es1642_rx_buf)) != HAL_OK)

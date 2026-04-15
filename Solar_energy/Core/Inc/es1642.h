@@ -258,8 +258,7 @@ typedef struct
     es1642_net_param_t net_param;
 } es1642_remote_net_param_t;
 
-struct es1642_handle;
-typedef struct es1642_handle es1642_handle_t;
+typedef struct es1642_port_t es1642_handle_t;
 
 /* 串口发送回调函数
  * 返回值：
@@ -279,18 +278,14 @@ typedef void (*es1642_error_cb_t)(es1642_handle_t *handle,
                                   es1642_status_t status,
                                   void *user_arg);
 
-typedef struct
+struct es1642_port_t
 {
     es1642_write_fn_t write;
     es1642_frame_cb_t on_frame;
     es1642_error_cb_t on_error;
     void *user_arg;
-} es1642_port_t;
-
-struct es1642_handle
-{
-    es1642_port_t port;
 };
+
 
 /* ========================= 通用工具函数 ========================= */
 uint8_t ES1642_MakeDeviceRequestCtrl(void);

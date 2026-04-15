@@ -505,7 +505,7 @@ es1642_status_t ES1642_SendFrame(es1642_handle_t *handle,
     }
 
     /* 检查是否注册了发送回调 */
-    if (handle->port.write == NULL)
+    if (handle->write == NULL)
     {
         return ES1642_STATUS_ERROR_NO_TX_PORT;
     }
@@ -523,7 +523,7 @@ es1642_status_t ES1642_SendFrame(es1642_handle_t *handle,
         return status;
     }
     /* 通过回调函数发送数据 */
-    send_len = handle->port.write(frame_buf, frame_len, handle->port.user_arg);
+    send_len = handle->write(frame_buf, frame_len, handle->user_arg);
 
     /* 检查是否全部发送成功 */
     if (send_len != (int32_t)frame_len)
@@ -640,18 +640,18 @@ es1642_status_t ES1642_ProcessCompleteFrame(es1642_handle_t *handle,
 
     if (status == ES1642_STATUS_OK)
     {
-        if (handle->port.on_frame != NULL)
+        if (handle->on_frame != NULL)
         {
-            handle->port.on_frame(handle, &frame, handle->port.user_arg);
+            handle->on_frame(handle, &frame, handle->user_arg);
         }
 
         return ES1642_STATUS_FRAME_READY;
     }
 
     /* 解析失败时通知错误回调（如果有）并返回错误码 */
-    if (handle->port.on_error != NULL)
+    if (handle->on_error != NULL)
     {
-        handle->port.on_error(handle, status, handle->port.user_arg);
+        handle->on_error(handle, status, handle->user_arg);
     }
 
     /* 不改变 RX 状态，调用者可根据需要决定是否重置 */

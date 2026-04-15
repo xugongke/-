@@ -780,7 +780,6 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 		RS485_UART_Data_t *p_tx = NULL;
     if (huart == &huart2 && Size > 0) 
 		{
-				printf("es1642接收到%d字节的数据\r\n",Size);
 				// 把这一批数据投递到消息缓冲区（给任务处理）
         size_t sent = xMessageBufferSendFromISR(uart2Message,g_es1642_rx_buf,Size,&xHigherPriorityTaskWoken);
 			

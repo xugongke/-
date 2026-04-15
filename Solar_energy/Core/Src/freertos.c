@@ -119,7 +119,7 @@ osThreadId_t W5500TaskHandle;
 const osThreadAttr_t W5500Task_attributes = {
   .name = "W5500Task",
   .stack_size = 512 * 4,
-  .priority = (osPriority_t) osPriorityLow6,
+  .priority = (osPriority_t) osPriorityLow,
 };
 /* Definitions for ES1642Task */
 osThreadId_t ES1642TaskHandle;
@@ -276,7 +276,7 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
-	osTimerStart(weatherTimerHandle, 7000);//每15分钟调用一次获取天气函数
+	osTimerStart(weatherTimerHandle, 900000);//每15分钟调用一次获取天气函数
   /* USER CODE END RTOS_EVENTS */
 
 }
@@ -479,6 +479,7 @@ void ES1642_Task(void *argument)
 void RTC_Task(void *argument)
 {
   /* USER CODE BEGIN RTC_Task */
+	uint8_t step;
 	if (RX8025T_InitAndDisplay() == HAL_OK) 
 	{
 //		printf("外部RTC时钟通信成功\r\n");
@@ -489,7 +490,6 @@ void RTC_Task(void *argument)
 	}
 	//更新网络时间
 	osDelay(4000);
-	uint8_t step = 0;
 	at_result_t ret = A7680C_GetNetworkTime_Debug(&step);
 	A7680C_HTTP_Init();//初始化HTTP
 	if (ret == AT_RESULT_OK)
