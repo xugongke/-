@@ -7,10 +7,15 @@
 #include "main.h"
 
 /* ===================== 接收缓冲区定义 ===================== */
+__attribute__((section("RW_IRAM1")))// 放到普通 SRAM（0x20000000）
 uint8_t USART1_RX_BUF[RS485_RX_BUFFER_SIZE] = {0};
+__attribute__((section("RW_IRAM1")))// 放到普通 SRAM（0x20000000）
 uint8_t USART6_RX_BUF[RS485_RX_BUFFER_SIZE] = {0};
+__attribute__((section("RW_IRAM1")))// 放到普通 SRAM（0x20000000）
 uint8_t UART4_RX_BUF[RS485_RX_BUFFER_SIZE] = {0};
+__attribute__((section("RW_IRAM1")))// 放到普通 SRAM（0x20000000）
 uint8_t UART7_RX_BUF[RS485_RX_BUFFER_SIZE] = {0};
+__attribute__((section("RW_IRAM1")))// 放到普通 SRAM（0x20000000）
 uint8_t UART8_RX_BUF[RS485_RX_BUFFER_SIZE] = {0};
 
 /* ===================== 数据结构体实例定义 ===================== */

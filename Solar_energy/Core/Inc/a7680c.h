@@ -9,9 +9,9 @@
 /*=============================
 A7680C串口接收缓冲区大小
 =============================*/
-#define UART_RX_DMA_SIZE        256
-#define AT_MSG_BUFFER_SIZE      4096
-#define AT_PARSE_BUFFER_SIZE    2048
+#define UART_RX_DMA_SIZE        256 
+#define AT_MSG_BUFFER_SIZE      1024//freertos消息缓冲区的大小
+#define AT_PARSE_BUFFER_SIZE    2048//流式拼接缓冲区的大小
 
 
 /*=============================
@@ -23,8 +23,6 @@ extern UART_HandleTypeDef huart3;
 
 /* A7680C接收缓冲区 */
 extern uint8_t a7680c_rx_buf[UART_RX_DMA_SIZE];
-
-extern uint8_t at_parse_buf[AT_PARSE_BUFFER_SIZE];
 
 extern uint16_t at_index;//记录缓冲区下标
 

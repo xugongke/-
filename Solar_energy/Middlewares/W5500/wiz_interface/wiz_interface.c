@@ -319,9 +319,5 @@ void network_init(uint8_t *ethernet_buff, wiz_NetInfo *conf_info)
             wizchip_setnetinfo(conf_info);
         }
     }
-		else
-		{
-			printf("使用静态IP\r\n");
-		}
     print_network_information();
 }

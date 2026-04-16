@@ -71,6 +71,7 @@
 es1642_handle_t g_es1642_handle;
 
 /* 串口接收缓冲区（DMA使用） */
+__attribute__((section("RW_IRAM1")))// 放到普通 SRAM（0x20000000）
 uint8_t g_es1642_rx_buf[ES1642_MAX_FRAME_LEN];
 
 /* 串口句柄（假设使用huart2） */
