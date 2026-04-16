@@ -112,7 +112,7 @@ void loopback_tcps_interrupt(uint8_t sn, uint8_t *buf, uint16_t port)
             buf[len] = 0x00;
             printf("%d:recv data:%s\r\n", sn, buf);
             I_STATUS[sn] &= ~(Sn_IR_RECV);
-            send(sn, buf, len);
+//            send(sn, buf, len);
         }
         disconnect(sn);
         ch_status[sn] = closed_status;
@@ -145,7 +145,7 @@ void loopback_tcps_interrupt(uint8_t sn, uint8_t *buf, uint16_t port)
             len = recv(sn, buf, len);
             buf[len] = 0x00;
             printf("%d:recv data:%s\r\n", sn, buf);
-            send(sn, buf, len);
+//            send(sn, buf, len);
         }
     }
 

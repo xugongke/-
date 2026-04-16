@@ -305,13 +305,13 @@ void StartDefaultTask(void *argument)
 				i = 0;
 			}
 		}
-		//不管在哪个页面都不停的检测sim卡是否正常插入，是否正常通信
-		if(A7680C_SendAT_CPIN() == AT_RESULT_OK)//检测SIM卡是否插好	
+		//只有跳转到home界面创建了信号线段组件才开始设置图形显示
+		if(lv_obj_is_valid(guider_ui.screen_user_home_line_1) && lv_obj_is_valid(guider_ui.screen_user_home_line_3) && lv_obj_is_valid(guider_ui.screen_user_home_label_3))
 		{
-			card_flag = 1;
-			//只有跳转到home界面创建了信号线段组件才开始设置图形显示
-			if(lv_obj_is_valid(guider_ui.screen_user_home_line_1) && lv_obj_is_valid(guider_ui.screen_user_home_line_3) && lv_obj_is_valid(guider_ui.screen_user_home_label_3))
+			//不管在哪个页面都不停的检测sim卡是否正常插入，是否正常通信
+			if(A7680C_SendAT_CPIN() == AT_RESULT_OK)//检测SIM卡是否插好	
 			{
+				card_flag = 1;
 				uint8_t Signal_buff[32];
 				if(A7680C_SendAT_CSQ(Signal_buff) == AT_RESULT_OK)//如果查询信号强度成功
 				{
@@ -344,22 +344,19 @@ void StartDefaultTask(void *argument)
 					}
 				}
 			}
-		}
-		else//检测不到sim卡
-		{
-			card_flag = 0;
-			if(lv_obj_is_valid(guider_ui.screen_user_home_line_1) && lv_obj_is_valid(guider_ui.screen_user_home_line_3) && lv_obj_is_valid(guider_ui.screen_user_home_label_3))
+			else//检测不到sim卡
 			{
+				card_flag = 0;
 				lv_obj_set_style_line_color(guider_ui.screen_user_home_line_1, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
 				lv_obj_set_style_line_color(guider_ui.screen_user_home_line_2, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
 				lv_obj_set_style_line_color(guider_ui.screen_user_home_line_3, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
 				//显示标签
 				lv_obj_clear_flag(guider_ui.screen_user_home_label_3, LV_OBJ_FLAG_HIDDEN);
-			}
-			i++;
-			if(i == 10)
-			{
-				A7680C_SendAT_CFUN();//重启模块
+				i++;
+				if(i == 10)
+				{
+					A7680C_SendAT_CFUN();//重启模块
+				}
 			}
 		}
     osDelay(1000);

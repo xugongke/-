@@ -169,7 +169,6 @@ void A7680C_HTTP_GetWeatherData(float latitude, float longitude, WeatherCurrent_
 		A7680C_HTTP_SetConfig();//设置URL
 		A7680C_HTTP_GET(len_buff);//发送GET请求,此时网络中的数据就已经存储到了A7680C中	
 		uint32_t len = A7680C_ParseHttpActionDataLen((char *)len_buff);//把网页获取到的字符串长度解析出来
-		printf("一次读取%d\r\n",len);
 		A7680C_HTTP_ReadResponse(0,len,Weather_buff);//一次读取len字节数据
 		printf("%s",Weather_buff);
 		*weather_data = Weather_ParseCurrent((const char *)Weather_buff);//解析JSON

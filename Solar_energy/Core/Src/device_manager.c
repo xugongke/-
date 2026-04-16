@@ -25,8 +25,7 @@ int find_device_by_mac(uint8_t *mac)
 {
     for (int i = 0; i < device_count; i++)
     {
-        if (device_list[i].valid &&
-            memcmp(device_list[i].mac, mac, 6) == 0)
+        if (device_list[i].valid && memcmp(device_list[i].mac, mac, 6) == 0)
         {
             return i;
         }
@@ -64,6 +63,11 @@ void update_device(uint8_t *mac, uint8_t *addr)
 {
     int index = find_device_by_mac(mac);//查找小程序发来的要绑定的设备在设备表中的位置
 		const uint8_t new_psk[ES1642_SET_PSK_LEN] = {0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18};//统一网络口令
+		
+    if (index < 0) {
+        printf("update_device: 未找到对应 MAC\r\n");
+        return;
+    }
 		
 		if(device_list[index].valid == 0)//如果搜索结果是没入网，那就进行入网
 		{
