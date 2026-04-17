@@ -73,6 +73,7 @@ es1642_handle_t g_es1642_handle;
 /* 串口接收缓冲区（DMA使用） */
 __attribute__((section("RW_IRAM1")))// 放到普通 SRAM（0x20000000）
 uint8_t g_es1642_rx_buf[ES1642_MAX_FRAME_LEN];
+uint8_t* Current_addr = NULL;
 
 /* 串口句柄（假设使用huart2） */
 extern UART_HandleTypeDef huart2;
@@ -231,7 +232,7 @@ void es1642_on_frame_received(es1642_handle_t *handle,
         }
 
         case ES1642_CMD_START_SEARCH:
-        {
+				{
             status = ES1642_DecodeEmptyResponse(frame, ES1642_CMD_START_SEARCH);
             if (status == ES1642_STATUS_OK)
             {
@@ -273,12 +274,6 @@ void es1642_on_frame_received(es1642_handle_t *handle,
                        result.net_state);
 							if(result.attribute_len == 6)
 							{
-								printf("MAC地址:");
-								for(int i = 0;i < result.attribute_len;i++)
-								{
-									printf("%x:",result.attribute[i]);
-								}
-								printf("\r\n");
 								//添加更新设备表到RAM中
 								add_device((uint8_t*)result.attribute, result.dev_addr,result.net_state);							
 							}
@@ -402,6 +397,11 @@ void es1642_on_frame_received(es1642_handle_t *handle,
             status = ES1642_DecodeRecvData(frame, &recv_data);
             if (status == ES1642_STATUS_OK)
             {
+							if(strncmp((const char*)Current_addr,(const char*)recv_data.src_addr,6))
+							{
+								osSemaphoreRelease(ES1642_sendHandle);//接收到从机发来的消息，释放信号量解除阻塞
+							}
+							
                 printf("收到数据: 源地址=%02X:%02X:%02X:%02X:%02X:%02X, "
 							"长度=%d, RSSI=%d,中继深度:%d\r\n",
                        recv_data.src_addr[0], recv_data.src_addr[1],
@@ -563,7 +563,23 @@ int ES1642_SendUserData(const uint8_t dst_addr[ES1642_ADDR_LEN],
                         uint16_t len,
                         uint8_t relay_depth)
 {
+    /* ==============================================
+     【第一步：互斥锁 —— 保证同一时刻只有一个人调用A7680C_Send】
+    ==============================================*/
+    if (osSemaphoreAcquire(ES1642_mutexHandle, osWaitForever) != osOK)
+    {
+        return 0; // 获取不到锁，直接退出（不会进入业务）
+    }
+    /* ==============================================
+     【第二步：清空残留信号量】
+			因为这个信号量是接收任务释放的，必须清空历史残留
+     ==============================================*/
+    while (osSemaphoreAcquire(ES1642_sendHandle, 0) == osOK);
+    /* ==============================================
+     【第三步：给从机发送命令】
+    ==============================================*/
     es1642_status_t status;
+		Current_addr = (uint8_t*)dst_addr;//保存现在正在通信的从机的通信地址
     
     if (dst_addr == NULL || (len > 0 && data == NULL))
     {
@@ -582,7 +598,19 @@ int ES1642_SendUserData(const uint8_t dst_addr[ES1642_ADDR_LEN],
         return -1;
     }
     
-    printf("数据发送成功\r\n");
+    printf("数据发送成功,等待从机响应\r\n");
+		if (osSemaphoreAcquire(ES1642_sendHandle, pdMS_TO_TICKS(2000)) == osOK)
+		{
+			printf("成功接收到从机的响应\r\n");
+		}
+		else
+		{
+			printf("从机地址为%#x响应超时\r\n",dst_addr[0]);
+		}
+    // ==============================================
+    // 【第五步：释放互斥锁 —— 允许下一个任务调用】
+    // ==============================================
+    osSemaphoreRelease(ES1642_mutexHandle);
     return 0;
 }
 

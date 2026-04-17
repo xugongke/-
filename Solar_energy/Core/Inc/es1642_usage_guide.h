@@ -33,6 +33,10 @@ extern uint8_t g_es1642_rx_buf[ES1642_MAX_FRAME_LEN];
 /* 串口句柄（假设使用huart1） */
 extern UART_HandleTypeDef huart1;
 
+extern osSemaphoreId_t ES1642_mutexHandle;
+
+extern osSemaphoreId_t ES1642_sendHandle;
+
 /* ======== 步骤2：实现串口发送回调函数 ======== */
 
 /**

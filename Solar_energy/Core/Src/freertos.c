@@ -164,6 +164,16 @@ osSemaphoreId_t at_mutexHandle;
 const osSemaphoreAttr_t at_mutex_attributes = {
   .name = "at_mutex"
 };
+/* Definitions for ES1642_send */
+osSemaphoreId_t ES1642_sendHandle;
+const osSemaphoreAttr_t ES1642_send_attributes = {
+  .name = "ES1642_send"
+};
+/* Definitions for ES1642_mutex */
+osSemaphoreId_t ES1642_mutexHandle;
+const osSemaphoreAttr_t ES1642_mutex_attributes = {
+  .name = "ES1642_mutex"
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -216,6 +226,12 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of at_mutex */
   at_mutexHandle = osSemaphoreNew(1, 1, &at_mutex_attributes);
+
+  /* creation of ES1642_send */
+  ES1642_sendHandle = osSemaphoreNew(1, 0, &ES1642_send_attributes);
+
+  /* creation of ES1642_mutex */
+  ES1642_mutexHandle = osSemaphoreNew(1, 1, &ES1642_mutex_attributes);
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
 	
@@ -287,8 +303,8 @@ void MX_FREERTOS_Init(void) {
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_StartDefaultTask */
 uint8_t card_flag = 0;
+/* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */

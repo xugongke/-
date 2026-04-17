@@ -68,7 +68,7 @@ uint8_t A7680C_SendAT(char *cmd, char *ack, uint32_t timeout,uint8_t* data)
 
     // 清空接收缓冲区
     at_index = 0;
-    keyword = ack;  // 设置本次要等待的关键字
+    keyword = ack;  // 设置本次要等待的关键字,因为同一时刻只允许一个任务调用A7680C_Send，所以不用担心keyword被覆盖
 
     // ==============================================
     // 【第二步：清空残留信号量】

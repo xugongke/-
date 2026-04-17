@@ -50,7 +50,7 @@ int find_device_by_mac(uint8_t *mac);
 void add_device(uint8_t *mac, uint8_t *addr,uint8_t net_state);
 
 // ================== 用户小程序发送过来绑定命令时 更新设备 表中的通信地址 ==================
-void update_device(uint8_t *mac, uint8_t *addr);
+int update_device(uint8_t *mac, uint8_t *addr);
 
 /**
  * @brief 保存设备表到SD卡
@@ -69,5 +69,12 @@ void parse_addr(uint8_t *addr, house_info_t *info);
  */
 void print_device_list(void);
 void Clear_devices(void);
+/**
+ * @brief 生成通信地址（户号编码）
+ */
+void make_addr(uint8_t *addr,
+               uint8_t building,
+               uint8_t unit,
+               uint16_t room);
 #endif
 

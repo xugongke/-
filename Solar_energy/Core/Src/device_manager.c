@@ -20,12 +20,12 @@ void device_manager_init(void)
     }
 }
 
-// ================== 查找设备 ==================
+// ================== 根据mac地址查找设备 ==================
 int find_device_by_mac(uint8_t *mac)
 {
     for (int i = 0; i < device_count; i++)
     {
-        if (device_list[i].valid && memcmp(device_list[i].mac, mac, 6) == 0)
+        if (memcmp(device_list[i].mac, mac, 6) == 0)
         {
             return i;
         }
@@ -58,29 +58,35 @@ void add_device(uint8_t *mac, uint8_t *addr,uint8_t net_state)
 		device_changed = 1;
 }
 
-// ================== 用户小程序发送过来绑定命令时更新设备表中的通信地址 ==================
-void update_device(uint8_t *mac, uint8_t *addr)
+// ================== 电脑软件发送过来绑定命令时更新设备表中的通信地址 ==================
+int update_device(uint8_t *mac, uint8_t *addr)
 {
     int index = find_device_by_mac(mac);//查找小程序发来的要绑定的设备在设备表中的位置
 		const uint8_t new_psk[ES1642_SET_PSK_LEN] = {0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18};//统一网络口令
 		
     if (index < 0) {
         printf("update_device: 未找到对应 MAC\r\n");
-        return;
+        return -1;
     }
 		
-		if(device_list[index].valid == 0)//如果搜索结果是没入网，那就进行入网
+		if(device_list[index].valid == 0)//如果是没入网，那就进行入网，入网了才能正常通信
 		{
-				ES1642_SetPsk(device_list[index].addr,new_psk);
+				if(ES1642_SetPsk(device_list[index].addr,new_psk) != 0)
+				{
+					return -1;
+				}
+				device_list[index].valid = 1;
 		}
 
 		// MAC已存在 → 判断通信地址是否变化
-		if (memcmp(device_list[index].addr, addr, 6) != 0)//通信地址发生变化
+		if (memcmp(device_list[index].addr, addr, 6) != 0)//通信地址发生变化就更新一下列表,并给从机发送修改通信地址命令
 		{
+				const uint8_t bufff[3] = {0x88,0x88,0x88};
+				ES1642_SendUserData(device_list[index].addr,bufff,sizeof(bufff),0);
 				memcpy(device_list[index].addr, addr, 6);
-				device_list[index].valid = 1;
 				device_changed = 1;
 		}
+		return 0;
 }
 
 
