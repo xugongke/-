@@ -149,6 +149,11 @@ const osThreadAttr_t RS485UARTProces_attributes = {
   .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
+/* Definitions for ES1642_Rece */
+osMessageQueueId_t ES1642_ReceHandle;
+const osMessageQueueAttr_t ES1642_Rece_attributes = {
+  .name = "ES1642_Rece"
+};
 /* Definitions for weatherTimer */
 osTimerId_t weatherTimerHandle;
 const osTimerAttr_t weatherTimer_attributes = {
@@ -244,6 +249,10 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
+
+  /* Create the queue(s) */
+  /* creation of ES1642_Rece */
+  ES1642_ReceHandle = osMessageQueueNew (16, sizeof(uint8_t), &ES1642_Rece_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -480,6 +489,11 @@ void ES1642_Task(void *argument)
   {
 		//等待消息缓冲区有消息包，然后读取一包数据,xMessageBufferReceive会释放cpu,只要消息缓冲区有消息就会解除阻塞向下执行
 		size_t n = xMessageBufferReceive(uart2Message, buf, sizeof(buf), portMAX_DELAY);
+//		for(int i = 0;i < n;i++)
+//		{
+//			printf("%#x ",buf[i]);
+//		}
+//		printf("\r\n");
 		if(n)
 		{
 				ES1642_ProcessCompleteFrame(&g_es1642_handle,buf,n);

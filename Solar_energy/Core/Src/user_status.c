@@ -194,25 +194,35 @@ void screen_user_list_item_event_handler(lv_event_t *e)
     {
         uint32_t key = lv_event_get_key(e);
         if(key == LV_KEY_LEFT)//左键，用户离线
-        {
-					const uint8_t dst_addr[] = {0x33,0x33,0x33,0x33,0x33,0x33};
-					const uint8_t data[] = {0x77,0x77,0x77,0x77,0x77,0x77};
-					ES1642_SendUserData(dst_addr,data,sizeof(data),0);
+        {	
+					const uint8_t dst_addr[] = {0x22,0x22,0x22,0x22,0x22,0x22};
+//					const uint8_t data[] = {0x77,0x77,0x77,0x77,0x77,0x77};
+//					ES1642_SendUserData(dst_addr,data,sizeof(data),0);
+					
 //					USER_SetOffline(user_no);//用户离线
+					
+					const uint8_t new_psk[ES1642_SET_PSK_LEN] = {0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18};//统一网络口令,这个值是任意值,只要是主控发送的就行
+					if(ES1642_SetPsk(dst_addr,new_psk) != 0)
+					{
+						printf("1发送设置网络口令失败\r\n");
+					}
+					
         }
 				
         if(key == LV_KEY_RIGHT)//右键，用户上线
         {
 					const uint8_t dst_addr[] = {0x33,0x33,0x33,0x33,0x33,0x33};
-					const uint8_t data[] = {0x66,0x66,0x66,0x66,0x66,0x66};
-					ES1642_SendUserData(dst_addr,data,sizeof(data),0);
-//					USER_SetOnline(user_no);//用户上线
+					const uint8_t new_psk[ES1642_SET_PSK_LEN] = {0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18};//统一网络口令
+					if(ES1642_SetPsk(dst_addr,new_psk) != 0)
+					{
+						printf("2发送设置网络口令失败\r\n");
+					}
         }
 				
         if(key == LV_KEY_UP)
         {
 					printf("开始搜索全部设备\r\n");
-					ES1642_StartSearch(0,ES1642_SEARCH_RULE_ALL);
+					ES1642_StartSearch(1,ES1642_SEARCH_RULE_ALL);
         }
 				
         if(key == LV_KEY_DOWN)

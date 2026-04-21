@@ -63,28 +63,74 @@ int update_device(uint8_t *mac, uint8_t *addr)
 {
     int index = find_device_by_mac(mac);//查找小程序发来的要绑定的设备在设备表中的位置
 		const uint8_t new_psk[ES1642_SET_PSK_LEN] = {0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18};//统一网络口令
+		es1642_response_t response; // 用于接收从机响应数据
+		int ret;
 		
-    if (index < 0) {
-        printf("update_device: 未找到对应 MAC\r\n");
-        return -1;
-    }
+    if (index < 0) {return 1;}//设备列表不存在，请重新搜索设备
+
+		// MAC已存在 → 判断通信地址是否变化，如果通信地址发生变化，就给从机发送设置通信地址命令
+		if (memcmp(device_list[index].addr, addr, 6) != 0)//通信地址发生变化就更新一下列表,并给从机发送修改通信地址命令
+		{
+				/* 给从机发送新通信地址，从机修改成功后会回复响应数据
+				 * 注意：这里用 ES1642_ADDR_LEN(6) 而不是 sizeof(addr)，因为 addr 是指针，sizeof 指针为 4
+				 */
+				ret = ES1642_SendUserData(device_list[index].addr, addr, ES1642_ADDR_LEN, 0, &response);
+
+				if (ret == 0)
+				{
+						/* 成功收到从机响应，可以在这里根据 response.data 判断从机是否修改成功 */
+						/* 例如：从机回复 response.data[0] == 0x01 表示修改成功 */
+					  if (memcmp(addr, response.src_addr, ES1642_ADDR_LEN) == 0 && response.data[0] == 0xaa)
+						{
+							printf("从机修改通信地址成功, 响应长度=%d\r\n", response.data_len);
+							memcpy(device_list[index].addr, addr, 6); // 通信地址修改成功，更新设备表
+							device_changed = 1;
+						}
+						else
+						{
+							printf("从机es1642模块损坏，请更换模块\r\n");
+							return 2;
+						}
+
+				}
+				else if (ret == -2)
+				{
+						/* 从机响应超时，通信地址可能没有修改成功 */
+						printf("从机修改通信地址超时，请检查从机状态\r\n");
+						return 3; // 从机响应超时
+				}
+				else
+				{
+						/* 发送失败 */
+						printf("发送修改通信地址命令失败\r\n");
+						return 4;
+				}
+		}
 		
 		if(device_list[index].valid == 0)//如果是没入网，那就进行入网，入网了才能正常通信
 		{
-				if(ES1642_SetPsk(device_list[index].addr,new_psk) != 0)
+				ret = ES1642_SetPsk(device_list[index].addr, new_psk);
+				if (ret == 0)
 				{
-					return -1;
+						printf("从机入网成功\r\n");
+						device_list[index].valid = 1;
+						device_changed = 1;
 				}
-				device_list[index].valid = 1;
-		}
-
-		// MAC已存在 → 判断通信地址是否变化
-		if (memcmp(device_list[index].addr, addr, 6) != 0)//通信地址发生变化就更新一下列表,并给从机发送修改通信地址命令
-		{
-				const uint8_t bufff[3] = {0x88,0x88,0x88};
-				ES1642_SendUserData(device_list[index].addr,bufff,sizeof(bufff),0);
-				memcpy(device_list[index].addr, addr, 6);
-				device_changed = 1;
+				else if (ret == -2)
+				{
+						printf("从机入网响应超时\r\n");
+						return 5; // 入网超时
+				}
+				else if (ret == -3)
+				{
+						printf("从机入网失败\r\n");
+						return 6; // 入网失败
+				}
+				else
+				{
+						printf("发送入网命令失败\r\n");
+						return 7;
+				}
 		}
 		return 0;
 }
@@ -229,4 +275,3 @@ void print_device_list(void)
         printf("\r\n");
     }
 }
-

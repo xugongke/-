@@ -75,6 +75,18 @@ __attribute__((section("RW_IRAM1")))// 放到普通 SRAM（0x20000000）
 uint8_t g_es1642_rx_buf[ES1642_MAX_FRAME_LEN];
 uint8_t* Current_addr = NULL;
 
+/* ES1642 响应数据缓冲区
+ * 由 es1642_on_frame_received 写入，由 ES1642_SendUserData 读取
+ * 受 ES1642_mutexHandle 互斥锁保护，同一时刻只有一个调用者
+ */
+es1642_response_t g_es1642_response;
+
+/* 当前等待的响应类型，用于区分信号量是由 RECV_DATA 还是 REPORT_PSK_RESULT 释放 */
+es1642_wait_type_t g_es1642_wait_type = ES1642_WAIT_NONE;
+
+/* PSK设置结果缓冲区 */
+es1642_psk_result_response_t g_es1642_psk_result;
+
 /* 串口句柄（假设使用huart2） */
 extern UART_HandleTypeDef huart2;
 
@@ -341,10 +353,18 @@ void es1642_on_frame_received(es1642_handle_t *handle,
             status = ES1642_DecodePskResult(frame, &result);
             if (status == ES1642_STATUS_OK)
             {
-                printf("PSK结果: 源地址=%02X:%02X:%02X:%02X:%02X:%02X, 状态=%d\r\n",
-                       result.src_addr[0], result.src_addr[1], result.src_addr[2],
-                       result.src_addr[3], result.src_addr[4], result.src_addr[5],
-                       result.state);
+//                printf("PSK结果: 源地址=%02X:%02X:%02X:%02X:%02X:%02X, 状态=%d\r\n",
+//                       result.src_addr[0], result.src_addr[1], result.src_addr[2],
+//                       result.src_addr[3], result.src_addr[4], result.src_addr[5],
+//                       result.state);
+
+                /* 如果当前正在等待PSK结果，保存数据并释放信号量 */
+                if (g_es1642_wait_type == ES1642_WAIT_PSK_RESULT)
+                {
+                    memcpy(g_es1642_psk_result.src_addr, result.src_addr, ES1642_ADDR_LEN);
+                    g_es1642_psk_result.state = result.state;
+                    osSemaphoreRelease(ES1642_sendHandle);
+                }
             }
             break;
         }
@@ -397,26 +417,26 @@ void es1642_on_frame_received(es1642_handle_t *handle,
             status = ES1642_DecodeRecvData(frame, &recv_data);
             if (status == ES1642_STATUS_OK)
             {
-							if(strncmp((const char*)Current_addr,(const char*)recv_data.src_addr,6))
-							{
-								osSemaphoreRelease(ES1642_sendHandle);//接收到从机发来的消息，释放信号量解除阻塞
-							}
-							
                 printf("收到数据: 源地址=%02X:%02X:%02X:%02X:%02X:%02X, "
-							"长度=%d, RSSI=%d,中继深度:%d\r\n",
+                       "长度=%d, RSSI=%d, 中继深度:%d\r\n",
                        recv_data.src_addr[0], recv_data.src_addr[1],
                        recv_data.src_addr[2], recv_data.src_addr[3],
                        recv_data.src_addr[4], recv_data.src_addr[5],
-                       recv_data.user_data_len, recv_data.rssi,recv_data.relay_depth);
-                
-                /* 处理用户数据 */
-                if (recv_data.user_data_len > 0 && recv_data.user_data != NULL)
-                {
-										//给从机回复123456
-                    /* 这里可以根据业务逻辑处理用户数据 */
-                    /* 注意：recv_data.user_data指向驱动内部缓冲区，如需长期保存请自行拷贝 */
+                       recv_data.user_data_len, recv_data.rssi, recv_data.relay_depth);
 
-                }
+								/* 将响应数据拷贝到全局响应缓冲区（供 ES1642_SendUserData 读取） */
+								memcpy(g_es1642_response.src_addr, recv_data.src_addr, ES1642_ADDR_LEN);
+
+								if (recv_data.user_data_len > 0 && recv_data.user_data != NULL && recv_data.user_data_len <= ES1642_RESP_MAX_LEN)
+								{
+										memcpy(g_es1642_response.data, recv_data.user_data, recv_data.user_data_len);
+										g_es1642_response.data_len = recv_data.user_data_len;
+								}
+								else
+								{
+										g_es1642_response.data_len = 0;
+								}
+								osSemaphoreRelease(ES1642_sendHandle); /* 释放信号量，解除 ES1642_SendUserData 的阻塞 */
             }
             break;
         }
@@ -561,57 +581,82 @@ int ES1642_ReadAddr(void)
 int ES1642_SendUserData(const uint8_t dst_addr[ES1642_ADDR_LEN], 
                         const uint8_t *data, 
                         uint16_t len,
-                        uint8_t relay_depth)
+                        uint8_t relay_depth,
+                        es1642_response_t *response)
 {
-    /* ==============================================
-     【第一步：互斥锁 —— 保证同一时刻只有一个人调用A7680C_Send】
-    ==============================================*/
-    if (osSemaphoreAcquire(ES1642_mutexHandle, osWaitForever) != osOK)
-    {
-        return 0; // 获取不到锁，直接退出（不会进入业务）
-    }
-    /* ==============================================
-     【第二步：清空残留信号量】
-			因为这个信号量是接收任务释放的，必须清空历史残留
-     ==============================================*/
-    while (osSemaphoreAcquire(ES1642_sendHandle, 0) == osOK);
-    /* ==============================================
-     【第三步：给从机发送命令】
-    ==============================================*/
     es1642_status_t status;
-		Current_addr = (uint8_t*)dst_addr;//保存现在正在通信的从机的通信地址
-    
+
     if (dst_addr == NULL || (len > 0 && data == NULL))
     {
         printf("参数错误\r\n");
         return -1;
     }
-    
+
+    /* ==============================================
+    【第一步：互斥锁 —— 保证同一时刻主机只和一个从机通信，避免总线冲突】
+    ==============================================*/
+    if (osSemaphoreAcquire(ES1642_mutexHandle, osWaitForever) != osOK)
+    {
+        return -1; /* 获取不到锁 */
+    }
+
+    /* ==============================================
+    【第二步：清空残留信号量】
+    因为这个信号量是接收回调释放的，必须清空历史残留
+    ==============================================*/
+    while (osSemaphoreAcquire(ES1642_sendHandle, 0) == osOK) {}
+
+    /* ==============================================
+    【第三步：清空响应缓冲区，设置等待类型和当前通信地址】
+    ==============================================*/
+    memset(&g_es1642_response, 0, sizeof(g_es1642_response));
+    g_es1642_wait_type = ES1642_WAIT_RECV_DATA; /* 标记当前等待的是从机数据响应 */
+    Current_addr = (uint8_t*)dst_addr; /* 保存现在正在通信的从机的通信地址 */
+
+    /* ==============================================
+    【第四步：给从机发送命令】
+    ==============================================*/
     printf("正在发送数据到设备...\r\n");
-    
+
     /* prm=false表示发送请求（非响应） */
     status = ES1642_SendData(&g_es1642_handle, dst_addr, data, len, relay_depth, false);
-    
+
     if (status != ES1642_STATUS_OK)
     {
         printf("发送数据失败: %s\r\n", ES1642_StatusString(status));
+        Current_addr = NULL;
+        osSemaphoreRelease(ES1642_mutexHandle);
         return -1;
     }
-    
+
+    /* ==============================================
+    【第五步：等待从机响应】
+    ==============================================*/
     printf("数据发送成功,等待从机响应\r\n");
-		if (osSemaphoreAcquire(ES1642_sendHandle, pdMS_TO_TICKS(2000)) == osOK)
-		{
-			printf("成功接收到从机的响应\r\n");
-		}
-		else
-		{
-			printf("从机地址为%#x响应超时\r\n",dst_addr[0]);
-		}
-    // ==============================================
-    // 【第五步：释放互斥锁 —— 允许下一个任务调用】
-    // ==============================================
-    osSemaphoreRelease(ES1642_mutexHandle);
-    return 0;
+
+    if (osSemaphoreAcquire(ES1642_sendHandle, pdMS_TO_TICKS(2000)) == osOK)
+    {
+        printf("成功接收到从机的响应\r\n");
+
+        /* 将响应数据拷贝给调用者（如果调用者需要） */
+        if (response != NULL)
+        {
+            memcpy(response, &g_es1642_response, sizeof(es1642_response_t));
+        }
+
+        g_es1642_wait_type = ES1642_WAIT_NONE;
+        Current_addr = NULL;
+        osSemaphoreRelease(ES1642_mutexHandle);
+        return 0;  /* 成功：发送成功且收到响应 */
+    }
+    else
+    {
+        printf("从机地址为%02X响应超时\r\n", dst_addr[0]);
+        g_es1642_wait_type = ES1642_WAIT_NONE;
+        Current_addr = NULL;
+        osSemaphoreRelease(ES1642_mutexHandle);
+        return -2; /* 响应超时 */
+    }
 }
 
 /**
@@ -627,8 +672,8 @@ int ES1642_SendBroadcastData(const uint8_t *data, uint16_t len)
     /* 设置广播地址（全0xFF） */
     ES1642_SetBroadcastAddr(broadcast_addr);
     
-    /* 发送广播数据，中继深度为0（自动） */
-    return ES1642_SendUserData(broadcast_addr, data, len, 0);
+    /* 发送广播数据，中继深度为0（自动），不需要响应 */
+    return ES1642_SendUserData(broadcast_addr, data, len, 0, NULL);
 }
 
 /**
@@ -809,34 +854,101 @@ int ES1642_SendSearch(const uint8_t src_addr[ES1642_ADDR_LEN],
 }
 
 /**
- * @brief  设置PSK
+ * @brief  设置PSK并等待从机入网结果
  * @param  dst_addr: 目标地址（6字节）
  * @param  new_psk: 新的PSK指针（8字节）
- * @retval 0: 成功, -1: 失败
+ * @param  result_state: 输出参数，PSK设置结果（0=失败, 1=成功），可为NULL
+ * @retval 0: 命令发送成功且收到结果, -1: 发送失败, -2: 响应超时
+ * @note   流程：发送SetPsk命令 → 模块回复空应答(SET_PSK) → 
+ *         从机处理入网 → 从机上报结果(REPORT_PSK_RESULT, state=0失败/1成功)
  */
 int ES1642_SetPsk(const uint8_t dst_addr[ES1642_ADDR_LEN],
                  const uint8_t new_psk[ES1642_SET_PSK_LEN])
 {
     es1642_status_t status;
-    
+
     if (dst_addr == NULL || new_psk == NULL)
     {
         printf("参数错误\r\n");
         return -1;
     }
-    
-    printf("正在设置PSK...\r\n");
-    
-    status = ES1642_SendSetPsk(&g_es1642_handle, dst_addr, new_psk, ES1642_SET_PSK_LEN);
-    
-    if (status != ES1642_STATUS_OK)
+
+    /* ==============================================
+    【第一步：互斥锁 —— 保证同一时刻只有一个任务操作ES1642模块】
+    ==============================================*/
+    if (osSemaphoreAcquire(ES1642_mutexHandle, osWaitForever) != osOK)
     {
-        printf("设置PSK失败: %s\r\n", ES1642_StatusString(status));
         return -1;
     }
-    
-    printf("PSK设置成功\r\n");
-    return 0;
+
+    /* ==============================================
+    【第二步：清空残留信号量】
+    ==============================================*/
+    while (osSemaphoreAcquire(ES1642_sendHandle, 0) == osOK) {}
+
+    /* ==============================================
+    【第三步：设置等待类型为PSK结果，保存目标地址】
+    ==============================================*/
+    g_es1642_wait_type = ES1642_WAIT_PSK_RESULT;
+    Current_addr = (uint8_t*)dst_addr;
+    memset(&g_es1642_psk_result, 0, sizeof(g_es1642_psk_result));
+
+    /* ==============================================
+    【第四步：发送SetPsk命令】
+    ==============================================*/
+    printf("正在发送设置PSK命令...\r\n");
+
+    status = ES1642_SendSetPsk(&g_es1642_handle, dst_addr, new_psk, ES1642_SET_PSK_LEN);
+
+    if (status != ES1642_STATUS_OK)
+    {
+        printf("发送设置PSK命令失败: %s\r\n", ES1642_StatusString(status));
+        g_es1642_wait_type = ES1642_WAIT_NONE;
+        Current_addr = NULL;
+        osSemaphoreRelease(ES1642_mutexHandle);
+        return -1;
+    }
+
+    /* ==============================================
+    【第五步：等待从机上报PSK设置结果（REPORT_PSK_RESULT）】
+    注意：中间会先收到模块的空应答(SET_PSK)，但那不会释放信号量
+    只有收到 REPORT_PSK_RESULT 且 wait_type == WAIT_PSK_RESULT 时才释放信号量
+    ==============================================*/
+    printf("设置PSK命令已发送,等待从机入网结果...\r\n");
+
+    if (osSemaphoreAcquire(ES1642_sendHandle, pdMS_TO_TICKS(5000)) == osOK)
+    {
+        printf("收到PSK设置结果: 地址=%02X:%02X:%02X:%02X:%02X:%02X, state=%d\r\n",
+               g_es1642_psk_result.src_addr[0], g_es1642_psk_result.src_addr[1],
+               g_es1642_psk_result.src_addr[2], g_es1642_psk_result.src_addr[3],
+               g_es1642_psk_result.src_addr[4], g_es1642_psk_result.src_addr[5],
+               g_es1642_psk_result.state);
+
+        if (g_es1642_psk_result.state == 0x01)
+        {
+            printf("从机入网成功\r\n");
+            g_es1642_wait_type = ES1642_WAIT_NONE;
+            Current_addr = NULL;
+            osSemaphoreRelease(ES1642_mutexHandle);
+            return 0;  /* 入网成功 */
+        }
+        else
+        {
+            printf("从机入网失败, state=%d\r\n", g_es1642_psk_result.state);
+            g_es1642_wait_type = ES1642_WAIT_NONE;
+            Current_addr = NULL;
+            osSemaphoreRelease(ES1642_mutexHandle);
+            return -3; /* 入网失败 */
+        }
+    }
+    else
+    {
+        printf("等待PSK设置结果超时\r\n");
+        g_es1642_wait_type = ES1642_WAIT_NONE;
+        Current_addr = NULL;
+        osSemaphoreRelease(ES1642_mutexHandle);
+        return -2; /* 响应超时 */
+    }
 }
 
 /**

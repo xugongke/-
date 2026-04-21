@@ -37,6 +37,33 @@ extern osSemaphoreId_t ES1642_mutexHandle;
 
 extern osSemaphoreId_t ES1642_sendHandle;
 
+/* ES1642 等待响应类型（区分当前等待的是数据响应还是PSK结果）*/
+typedef enum {
+    ES1642_WAIT_NONE = 0,       /* 未在等待任何响应 */
+    ES1642_WAIT_RECV_DATA,      /* 等待从机数据响应 (ES1642_CMD_RECV_DATA) */
+    ES1642_WAIT_PSK_RESULT      /* 等待PSK设置结果 (ES1642_CMD_REPORT_PSK_RESULT) */
+} es1642_wait_type_t;
+
+extern es1642_wait_type_t g_es1642_wait_type;
+
+/* ES1642 响应数据缓冲区（由 es1642_on_frame_received 写入，ES1642_SendUserData 读取）*/
+#define ES1642_RESP_MAX_LEN  128
+typedef struct {
+    uint8_t src_addr[ES1642_ADDR_LEN]; /* 响应来源地址 */
+    uint8_t data[ES1642_RESP_MAX_LEN]; /* 响应数据 */
+    uint16_t data_len;                  /* 响应数据长度 */
+} es1642_response_t;
+
+extern es1642_response_t g_es1642_response;
+
+/* ES1642 PSK设置结果（由 es1642_on_frame_received 写入，ES1642_SetPsk 读取）*/
+typedef struct {
+    uint8_t src_addr[ES1642_ADDR_LEN]; /* 目标设备地址 */
+    uint8_t state;                      /* 0=失败, 1=成功 */
+} es1642_psk_result_response_t;
+
+extern es1642_psk_result_response_t g_es1642_psk_result;
+
 /* ======== 步骤2：实现串口发送回调函数 ======== */
 
 /**
@@ -114,10 +141,20 @@ int ES1642_ReadAddr(void);
  * @param  relay_depth: 中继深度（0表示自动）
  * @retval 0: 成功, -1: 失败
  */
+/**
+ * @brief  发送数据到指定设备并等待从机响应
+ * @param  dst_addr: 目标地址（6字节）
+ * @param  data: 要发送的数据
+ * @param  len: 数据长度
+ * @param  relay_depth: 中继深度（0表示自动）
+ * @param  response: 输出参数，从机响应数据（可为NULL，表示不需要响应数据）
+ * @retval 0: 成功（发送成功且收到响应）, -1: 发送失败, -2: 响应超时
+ */
 int ES1642_SendUserData(const uint8_t dst_addr[ES1642_ADDR_LEN], 
                         const uint8_t *data, 
                         uint16_t len,
-                        uint8_t relay_depth);
+                        uint8_t relay_depth,
+                        es1642_response_t *response);
 
 /**
  * @brief  发送广播数据

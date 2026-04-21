@@ -94,7 +94,7 @@ void tcp_send_device_list(uint8_t sn)
     }
 		send(sn, (uint8_t*)"END\n", sizeof("END\n"));
 }
-//把用户住址转换成通信地址绑定到设备列表
+//把用户住址转换成通信地址,并给从机发送修改通信地址命令，绑定到设备列表
 void tcp_handle_bind_cmd(uint8_t sn,const char *cmd)
 {
     // 命令格式: BIND,AA:BB:CC:DD:EE:FF,2,1,301
@@ -116,11 +116,50 @@ void tcp_handle_bind_cmd(uint8_t sn,const char *cmd)
 				send(sn, (uint8_t*)"ERR,MAC格式错误\n", sizeof("ERR,MAC格式错误\n"));
         return;
     }
-		//生成通信地址
+		//将用户住址转换成通信地址
     make_addr(addr, (uint8_t)building, (uint8_t)unit, (uint16_t)room);
-    update_device(mac, addr);//执行入网命令
+		//判断通信地址是否改变，并设置通信地址后入网
+    int ret = update_device(mac, addr);
+    switch (ret)
+    {
+        case 1:
+        {
+						send(sn, (uint8_t*)"设备列表中没有该设备，请重新搜索设备\r\n", sizeof("设备列表中没有该设备，请重新搜索设备\r\n"));
+            break;
+        }
+        case 2:
+        {
+						send(sn, (uint8_t*)"从机es1642模块损坏，请更换模块\r\n", sizeof("从机es1642模块损坏，请更换模块\r\n"));
+            break;
+        }
+        case 3:
+        {
+						send(sn, (uint8_t*)"从机修改通信地址超时，请检查从机状态\r\n", sizeof("从机修改通信地址超时，请检查从机状态\r\n"));
+            break;
+        }
+        case 4:
+        {
+						send(sn, (uint8_t*)"发送修改通信地址命令失败\r\n", sizeof("发送修改通信地址命令失败\r\n"));
+            break;
+        }
+        case 5:
+        {
+						send(sn, (uint8_t*)"从机入网响应超时\r\n", sizeof("从机入网响应超时\r\n"));
+            break;
+        }
+        case 6:
+        {
+						send(sn, (uint8_t*)"从机入网失败\r\n", sizeof("从机入网失败\r\n"));
+            break;
+        }
+        case 7:
+        {
+						send(sn, (uint8_t*)"发送入网命令失败\r\n", sizeof("发送入网命令失败\r\n"));
+            break;
+        }
+		}
     save_devices();
-		send(sn, (uint8_t*)"OK\n", sizeof("OK\n"));
+		send(sn, (uint8_t*)"OK\r\n", sizeof("OK\r\n"));
 }
 
 /**
@@ -226,7 +265,7 @@ void loopback_tcps_interrupt(uint8_t sn, uint8_t *buf, uint16_t port)
 								tcp_send_device_list(sn);
 								return;
 						}
-						if (strncmp((char*)buf, "BIND,", 5) == 0)
+						if (strncmp((char*)buf, "BIND,", 5) == 0)//进行修改通信地址并入网
 						{
 								tcp_handle_bind_cmd(sn,(const char *)buf);
 								return;
