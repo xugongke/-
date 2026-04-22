@@ -42,8 +42,8 @@ void W5500_Task(void *argument)
   for(;;)
   {
     loopback_tcps_interrupt(SOCKET_ID, ethernet_buf, local_port);
+    tcp_process_search_pending();  /* 处理待发送的搜索设备数据 */
 		osDelay(1);
   }
   /* USER CODE END W5500Taskfun */
 }
-

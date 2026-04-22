@@ -222,7 +222,7 @@ void screen_user_list_item_event_handler(lv_event_t *e)
         if(key == LV_KEY_UP)
         {
 					printf("开始搜索全部设备\r\n");
-					ES1642_StartSearch(1,ES1642_SEARCH_RULE_ALL);
+					ES1642_StartSearch(0,ES1642_SEARCH_RULE_ALL);
         }
 				
         if(key == LV_KEY_DOWN)

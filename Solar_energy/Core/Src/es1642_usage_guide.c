@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include "ff.h"
 #include "device_manager.h"
+#include "interrupt.h"
 
 /* ========================= 使用说明 ========================= */
 
@@ -286,8 +287,10 @@ void es1642_on_frame_received(es1642_handle_t *handle,
                        result.net_state);
 							if(result.attribute_len == 6)
 							{
-								//添加更新设备表到RAM中
-								add_device((uint8_t*)result.attribute, result.dev_addr,result.net_state);							
+								/* 添加更新设备表到RAM中 */
+								add_device((uint8_t*)result.attribute, result.dev_addr, result.net_state);
+								/* 实时推送搜索到的设备到PC上位机 */
+								tcp_send_search_device((uint8_t*)result.attribute, result.dev_addr, result.net_state);
 							}
 							else
 							{
@@ -353,11 +356,6 @@ void es1642_on_frame_received(es1642_handle_t *handle,
             status = ES1642_DecodePskResult(frame, &result);
             if (status == ES1642_STATUS_OK)
             {
-//                printf("PSK结果: 源地址=%02X:%02X:%02X:%02X:%02X:%02X, 状态=%d\r\n",
-//                       result.src_addr[0], result.src_addr[1], result.src_addr[2],
-//                       result.src_addr[3], result.src_addr[4], result.src_addr[5],
-//                       result.state);
-
                 /* 如果当前正在等待PSK结果，保存数据并释放信号量 */
                 if (g_es1642_wait_type == ES1642_WAIT_PSK_RESULT)
                 {

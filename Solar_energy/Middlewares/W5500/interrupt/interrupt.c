@@ -5,6 +5,7 @@
 #include "string.h"
 #include "main.h"
 #include "device_manager.h"
+#include "es1642_usage_guide.h"
 
 #define ETHERNET_BUF_MAX_SIZE (1024 * 2) // Send and receive cache size
 #define INTERRUPT_DEBUG
@@ -20,6 +21,23 @@ enum SN_STATUS
 };
 static uint8_t I_STATUS[_WIZCHIP_SOCK_NUM_];
 static uint8_t ch_status[_WIZCHIP_SOCK_NUM_] = {0};
+
+/* 搜索设备时保存当前TCP连接的socket编号，用于实时推送搜索结果 */
+static int8_t g_search_sn = -1;
+
+/* ====== 搜索结果待发送队列（中断写入，主循环读取并发送） ====== */
+#define SEARCH_PENDING_MAX  16
+
+typedef struct {
+    uint8_t mac[6];
+    uint8_t addr[6];
+    uint8_t valid;
+    uint8_t is_done;  /* 1=搜索完成标志, 0=普通设备数据 */
+} search_pending_item_t;
+
+static volatile uint8_t g_search_pending_head = 0;
+static volatile uint8_t g_search_pending_tail = 0;
+static search_pending_item_t g_search_pending_buf[SEARCH_PENDING_MAX];
 /**
  * @brief   确定中断类型并将值存储在 I_STATUS 中
  * @param   none
@@ -162,6 +180,83 @@ void tcp_handle_bind_cmd(uint8_t sn,const char *cmd)
 		send(sn, (uint8_t*)"OK\r\n", sizeof("OK\r\n"));
 }
 
+/* ==================== 搜索设备相关函数 ==================== */
+
+void tcp_set_search_socket(uint8_t sn)
+{
+    g_search_sn = (int8_t)sn;
+}
+
+void tcp_clear_search_socket(void)
+{
+    g_search_sn = -1;
+}
+
+void tcp_send_search_device(const uint8_t mac[6], const uint8_t addr[6], uint8_t valid)
+{
+    /* 将数据存入队列，由 tcp_process_search_pending() 在主循环中实际发送 */
+    uint8_t next_head = (g_search_pending_head + 1) % SEARCH_PENDING_MAX;
+    if (next_head == g_search_pending_tail)
+    {
+        return;  /* 队列满，丢弃 */
+    }
+    memcpy(g_search_pending_buf[g_search_pending_head].mac, mac, 6);
+    memcpy(g_search_pending_buf[g_search_pending_head].addr, addr, 6);
+    g_search_pending_buf[g_search_pending_head].valid = valid;
+    g_search_pending_buf[g_search_pending_head].is_done = 0;
+    g_search_pending_head = next_head;
+}
+
+void tcp_send_search_done(void)
+{
+    /* 将 SEARCH_DONE 标志存入队列 */
+    uint8_t next_head = (g_search_pending_head + 1) % SEARCH_PENDING_MAX;
+    if (next_head == g_search_pending_tail)
+    {
+        return;  /* 队列满，丢弃 */
+    }
+    memset(&g_search_pending_buf[g_search_pending_head], 0, sizeof(search_pending_item_t));
+    g_search_pending_buf[g_search_pending_head].is_done = 1;
+    g_search_pending_head = next_head;
+}
+
+void tcp_process_search_pending(void)
+{
+    /* 在 W5500 主循环中调用，安全地执行 TCP 发送 */
+    char line[128];
+    char mac_str[32];
+    char addr_str[32];
+
+    while (g_search_pending_tail != g_search_pending_head)
+    {
+        search_pending_item_t *item = &g_search_pending_buf[g_search_pending_tail];
+
+        if (item->is_done)
+        {
+            /* 发送搜索完成标志 */
+            if (g_search_sn >= 0)
+            {
+                send((uint8_t)g_search_sn, (uint8_t*)"SEARCH_DONE\n", sizeof("SEARCH_DONE\n"));
+                g_search_sn = -1;
+            }
+        }
+        else
+        {
+            /* 发送搜索到的设备信息 */
+            if (g_search_sn >= 0)
+            {
+                mac_to_string(item->mac, mac_str);
+                addr_to_string(item->addr, addr_str);
+                sprintf(line, "SEARCH_DEV,%s,%s,%u\n", mac_str, addr_str, item->valid);
+								printf("%s\r\n",line);
+                send((uint8_t)g_search_sn, (uint8_t*)line, strlen(line));
+            }
+        }
+
+        g_search_pending_tail = (g_search_pending_tail + 1) % SEARCH_PENDING_MAX;
+    }
+}
+
 /**
  * @brief   TCP 服务器中断模式回环
  * @param   none
@@ -214,6 +309,7 @@ void loopback_tcps_interrupt(uint8_t sn, uint8_t *buf, uint16_t port)
     if (I_STATUS[sn] & Sn_IR_DISCON)
     {
         printf("%d:套接字已断开\r\n", sn);
+        tcp_clear_search_socket();  /* 断开时清除搜索socket */
         if ((getSn_RX_RSR(sn)) > 0)
         {
             len = getSn_RX_RSR(sn);
@@ -270,6 +366,20 @@ void loopback_tcps_interrupt(uint8_t sn, uint8_t *buf, uint16_t port)
 								tcp_handle_bind_cmd(sn,(const char *)buf);
 								return;
 						}
+						if (strncmp((char*)buf, "SEARCH_START", 12) == 0)//启动设备搜索
+						{
+								tcp_set_search_socket(sn);
+								ES1642_StartSearch(0, ES1642_SEARCH_RULE_ALL);  /* depth=0(自动), rule=搜索所有设备 */
+								send(sn, (uint8_t*)"OK\r\n", strlen("OK\r\n"));
+								return;
+						}
+						if (strncmp((char*)buf, "SEARCH_STOP", 11) == 0)//停止设备搜索
+						{
+								ES1642_StopSearch();
+								tcp_send_search_done();  /* 发送SEARCH_DONE作为搜索结束标志 */
+								return;
+						}
+						
         }
     }
 
