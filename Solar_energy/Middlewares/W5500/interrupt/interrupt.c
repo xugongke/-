@@ -24,20 +24,6 @@ static uint8_t ch_status[_WIZCHIP_SOCK_NUM_] = {0};
 
 /* 搜索设备时保存当前TCP连接的socket编号，用于实时推送搜索结果 */
 static int8_t g_search_sn = -1;
-
-/* ====== 搜索结果待发送队列（中断写入，主循环读取并发送） ====== */
-#define SEARCH_PENDING_MAX  16
-
-typedef struct {
-    uint8_t mac[6];
-    uint8_t addr[6];
-    uint8_t valid;
-    uint8_t is_done;  /* 1=搜索完成标志, 0=普通设备数据 */
-} search_pending_item_t;
-
-static volatile uint8_t g_search_pending_head = 0;
-static volatile uint8_t g_search_pending_tail = 0;
-static search_pending_item_t g_search_pending_buf[SEARCH_PENDING_MAX];
 /**
  * @brief   确定中断类型并将值存储在 I_STATUS 中
  * @param   none
@@ -194,67 +180,30 @@ void tcp_clear_search_socket(void)
 
 void tcp_send_search_device(const uint8_t mac[6], const uint8_t addr[6], uint8_t valid)
 {
-    /* 将数据存入队列，由 tcp_process_search_pending() 在主循环中实际发送 */
-    uint8_t next_head = (g_search_pending_head + 1) % SEARCH_PENDING_MAX;
-    if (next_head == g_search_pending_tail)
-    {
-        return;  /* 队列满，丢弃 */
-    }
-    memcpy(g_search_pending_buf[g_search_pending_head].mac, mac, 6);
-    memcpy(g_search_pending_buf[g_search_pending_head].addr, addr, 6);
-    g_search_pending_buf[g_search_pending_head].valid = valid;
-    g_search_pending_buf[g_search_pending_head].is_done = 0;
-    g_search_pending_head = next_head;
-}
-
-void tcp_send_search_done(void)
-{
-    /* 将 SEARCH_DONE 标志存入队列 */
-    uint8_t next_head = (g_search_pending_head + 1) % SEARCH_PENDING_MAX;
-    if (next_head == g_search_pending_tail)
-    {
-        return;  /* 队列满，丢弃 */
-    }
-    memset(&g_search_pending_buf[g_search_pending_head], 0, sizeof(search_pending_item_t));
-    g_search_pending_buf[g_search_pending_head].is_done = 1;
-    g_search_pending_head = next_head;
-}
-
-void tcp_process_search_pending(void)
-{
-    /* 在 W5500 主循环中调用，安全地执行 TCP 发送 */
     char line[128];
     char mac_str[32];
     char addr_str[32];
 
-    while (g_search_pending_tail != g_search_pending_head)
+    if (g_search_sn < 0)
     {
-        search_pending_item_t *item = &g_search_pending_buf[g_search_pending_tail];
-
-        if (item->is_done)
-        {
-            /* 发送搜索完成标志 */
-            if (g_search_sn >= 0)
-            {
-                send((uint8_t)g_search_sn, (uint8_t*)"SEARCH_DONE\n", sizeof("SEARCH_DONE\n"));
-                g_search_sn = -1;
-            }
-        }
-        else
-        {
-            /* 发送搜索到的设备信息 */
-            if (g_search_sn >= 0)
-            {
-                mac_to_string(item->mac, mac_str);
-                addr_to_string(item->addr, addr_str);
-                sprintf(line, "SEARCH_DEV,%s,%s,%u\n", mac_str, addr_str, item->valid);
-								printf("%s\r\n",line);
-                send((uint8_t)g_search_sn, (uint8_t*)line, strlen(line));
-            }
-        }
-
-        g_search_pending_tail = (g_search_pending_tail + 1) % SEARCH_PENDING_MAX;
+        return;  /* 没有活跃的TCP连接 */
     }
+
+    mac_to_string(mac, mac_str);
+    addr_to_string(addr, addr_str);
+    sprintf(line, "SEARCH_DEV,%s,%s,%u\n", mac_str, addr_str, valid);
+    send((uint8_t)g_search_sn, (uint8_t*)line, strlen(line));
+}
+
+void tcp_send_search_done(void)
+{
+    if (g_search_sn < 0)
+    {
+        return;
+    }
+
+    send((uint8_t)g_search_sn, (uint8_t*)"SEARCH_DONE\n", strlen("SEARCH_DONE\n"));
+    g_search_sn = -1;
 }
 
 /**

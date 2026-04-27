@@ -3,6 +3,7 @@
 
 #include "main.h"
 #include <stdint.h>
+#include "lvgl.h"
 
 typedef enum
 {
@@ -32,4 +33,5 @@ typedef enum
  */
 key_event_t KEY_Scan(key_id_t *key_id);
 uint8_t KEY_IsPressedStable(key_id_t id);
+void screen_user_list_item_event_handler(lv_event_t *e);
 #endif

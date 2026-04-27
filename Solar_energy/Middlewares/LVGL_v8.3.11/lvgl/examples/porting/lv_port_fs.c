@@ -148,7 +148,7 @@ static void * fs_open(lv_fs_drv_t * drv, const char * path, lv_fs_mode_t mode)
   lv_fs_res_t res = LV_FS_RES_NOT_IMP;
 	BYTE fatfs_mode = 0;
 	/*把LVGL的打开文件的模式和FatFs一一对应好*/
-	//FA_OPEN_ALWAYS 如果文件存在，则打开；否则，创建一个新文件。
+	//FA_OPEN_ALWAYS 如果文件存在，则打开；否则，创建一个新文件。FA_OPEN_ALWAYS并没有读写权限
 	if(mode == LV_FS_MODE_WR) fatfs_mode = FA_WRITE | FA_OPEN_ALWAYS;
 	else if(mode == LV_FS_MODE_RD) fatfs_mode = FA_READ | FA_OPEN_ALWAYS;
 	else if(mode == (LV_FS_MODE_WR | LV_FS_MODE_RD)) fatfs_mode = FA_READ | FA_WRITE | FA_OPEN_ALWAYS;

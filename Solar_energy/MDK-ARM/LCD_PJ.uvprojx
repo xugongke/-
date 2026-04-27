@@ -400,16 +400,6 @@
               <FilePath>..\Core\Src\key.c</FilePath>
             </File>
             <File>
-              <FileName>sdcard.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Core\Src\sdcard.c</FilePath>
-            </File>
-            <File>
-              <FileName>user_status.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Core\Src\user_status.c</FilePath>
-            </File>
-            <File>
               <FileName>ili9488.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Core\Src\ili9488.c</FilePath>
@@ -448,6 +438,11 @@
               <FileName>rs485_usart.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Core\Src\rs485_usart.c</FilePath>
+            </File>
+            <File>
+              <FileName>user_data_manager.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\user_data_manager.c</FilePath>
             </File>
             <File>
               <FileName>main.c</FileName>

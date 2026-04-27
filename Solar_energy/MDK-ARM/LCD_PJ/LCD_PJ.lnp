@@ -1,8 +1,6 @@
 --cpu=Cortex-M4.fp.sp
 "lcd_pj\startup_stm32f429xx.o"
 "lcd_pj\key.o"
-"lcd_pj\sdcard.o"
-"lcd_pj\user_status.o"
 "lcd_pj\ili9488.o"
 "lcd_pj\rx8025t.o"
 "lcd_pj\rx8025t_example.o"
@@ -11,6 +9,7 @@
 "lcd_pj\logo_shunpu.o"
 "lcd_pj\device_manager.o"
 "lcd_pj\rs485_usart.o"
+"lcd_pj\user_data_manager.o"
 "lcd_pj\main.o"
 "lcd_pj\gpio.o"
 "lcd_pj\freertos.o"

@@ -2,9 +2,11 @@
 #include "wiz_platform.h"
 #include "wizchip_conf.h"
 #include "dhcp.h"
+#include "cmsis_os.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "gui_guider.h"           // Gui Guider 生成的界面和控件的声明
 
 #define W5500_VERSION 0x04
 
@@ -116,15 +118,14 @@ void wiz_timer_handler(void)
 }
 
 /**
- * @brief Delay function in milliseconds
+ * @brief Delay function in milliseconds (RTOS-friendly)
  * @param nms :Delay Time
+ * @note  Uses osDelay to yield CPU to other RTOS tasks during the delay.
+ *        Must only be called from task context, NOT from ISR.
  */
 void wiz_user_delay_ms(uint32_t nms)
 {
-    wiz_delay_ms_count = 0;
-    while (wiz_delay_ms_count < nms)
-    {
-    }
+    osDelay(nms);
 }
 
 /**
@@ -176,12 +177,11 @@ void wiz_phy_link_check(void)
         ctlwizchip(CW_GET_PHYLINK, (void *)&phy_link_status);
         if (phy_link_status == PHY_LINK_ON)
         {
-            printf("PHY link\r\n");
             wiz_print_phy_info();
         }
         else
         {
-            printf("PHY no link\r\n");
+
         }
     } while (phy_link_status == PHY_LINK_OFF);
 }
@@ -214,6 +214,8 @@ void wizchip_initialize(void)
  * @param   none
  * @return  none
  */
+char ip_buf[20];
+char port_buf[20];
 void print_network_information(void)
 {
     wiz_NetInfo net_info;
@@ -229,13 +231,21 @@ void print_network_information(void)
         printf("====================================================================================================\r\n");
         printf(" %s network configuration : static\r\n\r\n", _WIZCHIP_ID_);
     }
-
-    printf(" MAC         : %02X:%02X:%02X:%02X:%02X:%02X\r\n", net_info.mac[0], net_info.mac[1], net_info.mac[2], net_info.mac[3], net_info.mac[4], net_info.mac[5]);
-    printf(" IP          : %d.%d.%d.%d\r\n", net_info.ip[0], net_info.ip[1], net_info.ip[2], net_info.ip[3]);
-    printf(" Subnet Mask : %d.%d.%d.%d\r\n", net_info.sn[0], net_info.sn[1], net_info.sn[2], net_info.sn[3]);
-    printf(" Gateway     : %d.%d.%d.%d\r\n", net_info.gw[0], net_info.gw[1], net_info.gw[2], net_info.gw[3]);
-    printf(" DNS         : %d.%d.%d.%d\r\n", net_info.dns[0], net_info.dns[1], net_info.dns[2], net_info.dns[3]);
-    printf("====================================================================================================\r\n\r\n");
+//    printf(" MAC         : %02X:%02X:%02X:%02X:%02X:%02X\r\n", net_info.mac[0], net_info.mac[1], net_info.mac[2], net_info.mac[3], net_info.mac[4], net_info.mac[5]);
+//    printf(" IP          : %d.%d.%d.%d\r\n", net_info.ip[0], net_info.ip[1], net_info.ip[2], net_info.ip[3]);
+//    printf(" Subnet Mask : %d.%d.%d.%d\r\n", net_info.sn[0], net_info.sn[1], net_info.sn[2], net_info.sn[3]);
+//    printf(" Gateway     : %d.%d.%d.%d\r\n", net_info.gw[0], net_info.gw[1], net_info.gw[2], net_info.gw[3]);
+//    printf(" DNS         : %d.%d.%d.%d\r\n", net_info.dns[0], net_info.dns[1], net_info.dns[2], net_info.dns[3]);
+//    printf("====================================================================================================\r\n\r\n");
+		
+    lv_snprintf(ip_buf, sizeof(ip_buf), "%d.%d.%d.%d ",net_info.ip[0], net_info.ip[1], net_info.ip[2], net_info.ip[3]);
+		lv_snprintf(port_buf, sizeof(port_buf), "%d ",8080);
+		
+		if(lv_obj_is_valid(guider_ui.screen_user_home_label_ip))
+		{
+			lv_label_set_text(guider_ui.screen_user_home_label_ip, ip_buf);
+			lv_label_set_text(guider_ui.screen_user_home_label_port, port_buf);
+		}
 }
 
 /**

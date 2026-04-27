@@ -6,7 +6,7 @@
 
 // ================== 配置参数 ==================
 #define MAX_DEVICES 256      // 最大设备数量
-#define DEVICE_FILE "0:/LOG/devices.bin"   // 存储文件名
+#define DEVICE_FILE "0:/devices.bin"   // 存储文件名
 
 // ================== 设备结构体 ==================
 typedef struct

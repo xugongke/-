@@ -15,8 +15,9 @@
 #include "freemaster_client.h"
 #endif
 
-#include "sdcard.h"
-#include "user_status.h"
+#include "wiz_interface.h"
+#include "user_data_manager.h"
+#include "key.h"
 #include "device_manager.h"
 extern lv_indev_t * indev_keypad;
 lv_group_t * g_keypad_group;//创建全局group(可被焦点选中的对象集合)指针，在lv_init后分配空间
@@ -34,6 +35,9 @@ static void screen_user_home_event_handler (lv_event_t *e)
         lv_indev_set_group(indev_keypad, g_keypad_group);
         //设置初始焦点
         lv_group_focus_obj(guider_ui.screen_user_home_user_list_btn);
+        //显示IP地址和端口号
+        lv_label_set_text(guider_ui.screen_user_home_label_ip, ip_buf);
+        lv_label_set_text(guider_ui.screen_user_home_label_port, port_buf);
         break;
     }
     default:
@@ -71,6 +75,10 @@ static void screen_user_list_event_handler (lv_event_t *e)
         lv_group_remove_all_objs(g_keypad_group);//清空group中的所有组件
         /* 如果 GUI-Guider 已经往 list 里塞了东西，先清空 */
         lv_obj_clean(guider_ui.screen_user_list_list_1);
+
+        lv_group_add_obj(g_keypad_group, guider_ui.screen_user_list_list_1);//将用户列表添加进焦点组
+        /* 再给 用户列表 绑定按键操作回调函数 */
+        lv_obj_add_event_cb(guider_ui.screen_user_list_list_1, screen_user_list_item_event_handler, LV_EVENT_KEY,NULL);
 
         //给group添加新组件
         for(uint32_t i = 0; i < device_count; i++)

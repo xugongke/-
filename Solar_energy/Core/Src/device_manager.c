@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "es1642.h"
 #include "es1642_usage_guide.h"
+#include "user_data_manager.h"
 // ================== 全局变量 ==================
 device_t device_list[MAX_DEVICES];
 uint16_t device_count = 0;
@@ -85,6 +86,8 @@ int update_device(uint8_t *mac, uint8_t *addr)
 							printf("从机修改通信地址成功, 响应长度=%d\r\n", response.data_len);
 							memcpy(device_list[index].addr, addr, 6); // 通信地址修改成功，更新设备表
 							device_changed = 1;
+							/* 为新的通信地址创建数据文件,这里后面要加一个重复绑定判断 */
+							ensure_user_data_file(device_list[index].addr, device_list[index].mac);
 						}
 						else
 						{
@@ -107,7 +110,7 @@ int update_device(uint8_t *mac, uint8_t *addr)
 				}
 		}
 		
-		if(device_list[index].valid == 0)//如果是没入网，那就进行入网，入网了才能正常通信
+		if(device_list[index].valid == 0)//如果是没入网，那就进行入网，入网了才能正常通信,只要模块入网了，就算修改了通信地址也还是入网
 		{
 				ret = ES1642_SetPsk(device_list[index].addr, new_psk);
 				if (ret == 0)
@@ -134,6 +137,7 @@ int update_device(uint8_t *mac, uint8_t *addr)
 		}
 		return 0;
 }
+
 
 
 // ================== 清空设备表 ==================
@@ -179,11 +183,11 @@ FRESULT load_devices(void)
     static FIL file;
     FRESULT res;
     UINT br;
-
-    res = f_open(&file, DEVICE_FILE, FA_READ);
+	//如果文件存在就打开，如果文件不存在就创建，但是并没有读写权限，需要加上
+    res = f_open(&file, DEVICE_FILE, FA_OPEN_ALWAYS | FA_READ);
     if (res != FR_OK)
     {
-        printf("设备文件不存在\r\n");
+        printf("设备表文件打开失败\r\n");
         device_count = 0;
         return FR_NO_FILE;
     }

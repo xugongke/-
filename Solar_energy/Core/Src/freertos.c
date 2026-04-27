@@ -37,8 +37,6 @@
 #include "sdio.h"
 #include "fatfs.h"
 #include "custom.h"
-#include "sdcard.h"
-#include "user_status.h"
 #include "a7680c.h"
 #include "a7680c_at.h"
 #include "a7680c_mqtt.h"
@@ -97,62 +95,57 @@ void SDCardInfo(void)
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
   .name = "defaultTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow7,
+  .stack_size = 256 * 4,
+  .priority = (osPriority_t) osPriorityBelowNormal3,
 };
 /* Definitions for LVGLTask */
 osThreadId_t LVGLTaskHandle;
 const osThreadAttr_t LVGLTask_attributes = {
   .name = "LVGLTask",
   .stack_size = 1024 * 4,
-  .priority = (osPriority_t) osPriorityHigh7,
+  .priority = (osPriority_t) osPriorityAboveNormal3,
 };
 /* Definitions for A7680CTask */
 osThreadId_t A7680CTaskHandle;
 const osThreadAttr_t A7680CTask_attributes = {
   .name = "A7680CTask",
   .stack_size = 512 * 4,
-  .priority = (osPriority_t) osPriorityLow4,
+  .priority = (osPriority_t) osPriorityNormal3,
 };
 /* Definitions for W5500Task */
 osThreadId_t W5500TaskHandle;
 const osThreadAttr_t W5500Task_attributes = {
   .name = "W5500Task",
   .stack_size = 512 * 4,
-  .priority = (osPriority_t) osPriorityLow,
+  .priority = (osPriority_t) osPriorityBelowNormal1,
 };
 /* Definitions for ES1642Task */
 osThreadId_t ES1642TaskHandle;
 const osThreadAttr_t ES1642Task_attributes = {
   .name = "ES1642Task",
   .stack_size = 512 * 4,
-  .priority = (osPriority_t) osPriorityLow5,
+  .priority = (osPriority_t) osPriorityNormal5,
 };
 /* Definitions for RTCTask */
 osThreadId_t RTCTaskHandle;
 const osThreadAttr_t RTCTask_attributes = {
   .name = "RTCTask",
   .stack_size = 512 * 4,
-  .priority = (osPriority_t) osPriorityLow3,
+  .priority = (osPriority_t) osPriorityBelowNormal7,
 };
 /* Definitions for WeatherTask */
 osThreadId_t WeatherTaskHandle;
 const osThreadAttr_t WeatherTask_attributes = {
   .name = "WeatherTask",
   .stack_size = 512 * 4,
-  .priority = (osPriority_t) osPriorityLow2,
+  .priority = (osPriority_t) osPriorityLow5,
 };
 /* Definitions for RS485UARTProces */
 osThreadId_t RS485UARTProcesHandle;
 const osThreadAttr_t RS485UARTProces_attributes = {
   .name = "RS485UARTProces",
   .stack_size = 256 * 4,
-  .priority = (osPriority_t) osPriorityLow,
-};
-/* Definitions for ES1642_Rece */
-osMessageQueueId_t ES1642_ReceHandle;
-const osMessageQueueAttr_t ES1642_Rece_attributes = {
-  .name = "ES1642_Rece"
+  .priority = (osPriority_t) osPriorityAboveNormal5,
 };
 /* Definitions for weatherTimer */
 osTimerId_t weatherTimerHandle;
@@ -250,10 +243,6 @@ void MX_FREERTOS_Init(void) {
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
 
-  /* Create the queue(s) */
-  /* creation of ES1642_Rece */
-  ES1642_ReceHandle = osMessageQueueNew (16, sizeof(uint8_t), &ES1642_Rece_attributes);
-
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
 	uart2Message = xMessageBufferCreate(ES1642_RX_BUF_SIZE);
@@ -301,7 +290,7 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
-//	osTimerStart(weatherTimerHandle, 7000);//每15分钟调用一次获取天气函数
+	osTimerStart(weatherTimerHandle, 7000);//每15分钟调用一次获取天气函数
   /* USER CODE END RTOS_EVENTS */
 
 }
@@ -331,59 +320,59 @@ void StartDefaultTask(void *argument)
 			}
 		}
 		//只有跳转到home界面创建了信号线段组件才开始设置图形显示
-//		if(lv_obj_is_valid(guider_ui.screen_user_home_line_1) && lv_obj_is_valid(guider_ui.screen_user_home_line_3) && lv_obj_is_valid(guider_ui.screen_user_home_label_3))
-//		{
-//			//不管在哪个页面都不停的检测sim卡是否正常插入，是否正常通信
-//			if(A7680C_SendAT_CPIN() == AT_RESULT_OK)//检测SIM卡是否插好	
-//			{
-//				card_flag = 1;
-//				uint8_t Signal_buff[32];
-//				if(A7680C_SendAT_CSQ(Signal_buff) == AT_RESULT_OK)//如果查询信号强度成功
-//				{
-//					//隐藏标签
-//					lv_obj_add_flag(guider_ui.screen_user_home_label_3, LV_OBJ_FLAG_HIDDEN);
-//					A7680C_ParseCSQ(Signal_buff,&rssi,&ber);//解析读取到的信号强度
-//					if(rssi >= 10 && rssi < 17)
-//					{
-//						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_1, lv_color_hex(0x00ff86), LV_PART_MAIN|LV_STATE_DEFAULT);
-//						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_2, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
-//						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_3, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
-//					}
-//					else if(rssi >= 17 && rssi < 24)
-//					{
-//						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_1, lv_color_hex(0x00ff86), LV_PART_MAIN|LV_STATE_DEFAULT);
-//						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_2, lv_color_hex(0x00ff86), LV_PART_MAIN|LV_STATE_DEFAULT);
-//						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_3, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
-//					}
-//					else if(rssi >= 24 && rssi <= 31)
-//					{
-//						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_1, lv_color_hex(0x00ff86), LV_PART_MAIN|LV_STATE_DEFAULT);
-//						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_2, lv_color_hex(0x00ff86), LV_PART_MAIN|LV_STATE_DEFAULT);
-//						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_3, lv_color_hex(0x00ff86), LV_PART_MAIN|LV_STATE_DEFAULT);
-//					}
-//					else if(rssi == 99)
-//					{
-//						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_1, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
-//						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_2, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
-//						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_3, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
-//					}
-//				}
-//			}
-//			else//检测不到sim卡
-//			{
-//				card_flag = 0;
-//				lv_obj_set_style_line_color(guider_ui.screen_user_home_line_1, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
-//				lv_obj_set_style_line_color(guider_ui.screen_user_home_line_2, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
-//				lv_obj_set_style_line_color(guider_ui.screen_user_home_line_3, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
-//				//显示标签
-//				lv_obj_clear_flag(guider_ui.screen_user_home_label_3, LV_OBJ_FLAG_HIDDEN);
-//				i++;
-//				if(i == 10)
-//				{
-//					A7680C_SendAT_CFUN();//重启模块
-//				}
-//			}
-//		}
+		if(lv_obj_is_valid(guider_ui.screen_user_home_line_1) && lv_obj_is_valid(guider_ui.screen_user_home_line_3) && lv_obj_is_valid(guider_ui.screen_user_home_label_3))
+		{
+			//不管在哪个页面都不停的检测sim卡是否正常插入，是否正常通信
+			if(A7680C_SendAT_CPIN() == AT_RESULT_OK)//检测SIM卡是否插好	
+			{
+				card_flag = 1;
+				uint8_t Signal_buff[32];
+				if(A7680C_SendAT_CSQ(Signal_buff) == AT_RESULT_OK)//如果查询信号强度成功
+				{
+					//隐藏标签
+					lv_obj_add_flag(guider_ui.screen_user_home_label_3, LV_OBJ_FLAG_HIDDEN);
+					A7680C_ParseCSQ(Signal_buff,&rssi,&ber);//解析读取到的信号强度
+					if(rssi >= 10 && rssi < 17)
+					{
+						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_1, lv_color_hex(0x00ff86), LV_PART_MAIN|LV_STATE_DEFAULT);
+						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_2, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
+						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_3, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
+					}
+					else if(rssi >= 17 && rssi < 24)
+					{
+						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_1, lv_color_hex(0x00ff86), LV_PART_MAIN|LV_STATE_DEFAULT);
+						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_2, lv_color_hex(0x00ff86), LV_PART_MAIN|LV_STATE_DEFAULT);
+						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_3, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
+					}
+					else if(rssi >= 24 && rssi <= 31)
+					{
+						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_1, lv_color_hex(0x00ff86), LV_PART_MAIN|LV_STATE_DEFAULT);
+						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_2, lv_color_hex(0x00ff86), LV_PART_MAIN|LV_STATE_DEFAULT);
+						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_3, lv_color_hex(0x00ff86), LV_PART_MAIN|LV_STATE_DEFAULT);
+					}
+					else if(rssi == 99)
+					{
+						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_1, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
+						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_2, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
+						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_3, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
+					}
+				}
+			}
+			else//检测不到sim卡
+			{
+				card_flag = 0;
+				lv_obj_set_style_line_color(guider_ui.screen_user_home_line_1, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
+				lv_obj_set_style_line_color(guider_ui.screen_user_home_line_2, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
+				lv_obj_set_style_line_color(guider_ui.screen_user_home_line_3, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
+				//显示标签
+				lv_obj_clear_flag(guider_ui.screen_user_home_label_3, LV_OBJ_FLAG_HIDDEN);
+				i++;
+				if(i == 10)
+				{
+					A7680C_SendAT_CFUN();//重启模块
+				}
+			}
+		}
     osDelay(1000);
   }
   /* USER CODE END StartDefaultTask */
@@ -489,11 +478,6 @@ void ES1642_Task(void *argument)
   {
 		//等待消息缓冲区有消息包，然后读取一包数据,xMessageBufferReceive会释放cpu,只要消息缓冲区有消息就会解除阻塞向下执行
 		size_t n = xMessageBufferReceive(uart2Message, buf, sizeof(buf), portMAX_DELAY);
-//		for(int i = 0;i < n;i++)
-//		{
-//			printf("%#x ",buf[i]);
-//		}
-//		printf("\r\n");
 		if(n)
 		{
 				ES1642_ProcessCompleteFrame(&g_es1642_handle,buf,n);
@@ -567,11 +551,15 @@ void Weather_Task(void *argument)
     osThreadFlagsWait(0x01, osFlagsWaitAny, osWaitForever);
 		if(card_flag == 1)
 		{
-			A7680C_SendAT("AT+CLBS=1\r\n", "CLBS", 5000,jwd_buff);//读取经纬度
+			A7680C_SendAT("AT+CLBS=1\r\n", "+CLBS: 0", 5000,jwd_buff);//读取经纬度
+			printf("%s",jwd_buff);
 			pos = A7680C_ParseCLBS((char*)jwd_buff);//解析经纬度
+			
+//			printf("经度:%f,纬度:%f\r\n",pos.latitude,pos.longitude);
 		
 			A7680C_HTTP_GetWeatherData(pos.latitude,pos.longitude,&weather_data);//读取天气代码
 			const char* Weather_buff = Weather_GetShortDesc(weather_data.weather_code);//将天气代码翻译成中文
+			printf("当前天气:%s\r\n",Weather_buff);
 			if(lv_obj_is_valid(guider_ui.screen_user_home_label_1) && lv_obj_is_valid(guider_ui.screen_user_home_label_2))
 			{
 					lv_label_set_text(guider_ui.screen_user_home_label_1, Weather_buff);

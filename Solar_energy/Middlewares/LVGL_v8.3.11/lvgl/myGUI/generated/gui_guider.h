@@ -37,6 +37,11 @@ typedef struct
 	lv_obj_t *screen_user_home_line_2;
 	lv_obj_t *screen_user_home_line_3;
 	lv_obj_t *screen_user_home_label_3;
+	lv_obj_t *screen_user_home_cont_3;
+	lv_obj_t *screen_user_home_label_8;
+	lv_obj_t *screen_user_home_label_ip;
+	lv_obj_t *screen_user_home_label_10;
+	lv_obj_t *screen_user_home_label_port;
 	lv_obj_t *screen_user_list;
 	bool screen_user_list_del;
 	lv_obj_t *screen_user_list_label_1;
@@ -45,6 +50,9 @@ typedef struct
 	bool screen_user_detail_del;
 	lv_obj_t *screen_user_detail_label_user;
 	lv_obj_t *screen_user_detail_table_1;
+	lv_obj_t *screen_user_detail_cont_1;
+	lv_obj_t *screen_user_detail_label_4;
+	lv_obj_t *screen_user_detail_label_time;
 }lv_ui;
 
 typedef void (*ui_setup_scr_t)(lv_ui * ui);

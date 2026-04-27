@@ -289,6 +289,7 @@ void es1642_on_frame_received(es1642_handle_t *handle,
 							{
 								/* 添加更新设备表到RAM中 */
 								add_device((uint8_t*)result.attribute, result.dev_addr, result.net_state);
+								
 								/* 实时推送搜索到的设备到PC上位机 */
 								tcp_send_search_device((uint8_t*)result.attribute, result.dev_addr, result.net_state);
 							}
@@ -649,7 +650,9 @@ int ES1642_SendUserData(const uint8_t dst_addr[ES1642_ADDR_LEN],
     }
     else
     {
-        printf("从机地址为%02X响应超时\r\n", dst_addr[0]);
+				char addr[30];
+				snprintf(addr, sizeof(addr), "%#x:%#x:%#x:%#x:%#x:%#x ",dst_addr[0], dst_addr[1], dst_addr[2], dst_addr[3],dst_addr[4],dst_addr[5]);
+        printf("从机地址为%s响应超时\r\n", addr);
         g_es1642_wait_type = ES1642_WAIT_NONE;
         Current_addr = NULL;
         osSemaphoreRelease(ES1642_mutexHandle);

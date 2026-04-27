@@ -3,6 +3,9 @@
 
 #include "wizchip_conf.h"
 
+extern char ip_buf[20];
+extern char port_buf[20];
+
 /**
  * @brief Add a new timer node to the timer chain table
  * @param func Callback function pointer, called when the timer time is reached
