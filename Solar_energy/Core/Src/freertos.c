@@ -144,7 +144,7 @@ const osThreadAttr_t WeatherTask_attributes = {
 osThreadId_t RS485UARTProcesHandle;
 const osThreadAttr_t RS485UARTProces_attributes = {
   .name = "RS485UARTProces",
-  .stack_size = 256 * 4,
+  .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityAboveNormal5,
 };
 /* Definitions for weatherTimer */
@@ -477,10 +477,22 @@ void ES1642_Task(void *argument)
   for(;;)
   {
 		//等待消息缓冲区有消息包，然后读取一包数据,xMessageBufferReceive会释放cpu,只要消息缓冲区有消息就会解除阻塞向下执行
-		size_t n = xMessageBufferReceive(uart2Message, buf, sizeof(buf), portMAX_DELAY);
+		size_t n = xMessageBufferReceive(uart2Message, buf, sizeof(buf), pdMS_TO_TICKS(5000));
 		if(n)
 		{
 				ES1642_ProcessCompleteFrame(&g_es1642_handle,buf,n);
+		}
+		else
+		{
+				// 超时，检查UART是否还活着
+				if (huart2.RxState != HAL_UART_STATE_BUSY_RX)
+				{
+						printf("huart2DMA已死，重启DMA");
+						// DMA接收已死，重新启动
+						HAL_UARTEx_ReceiveToIdle_DMA(&huart2, g_es1642_rx_buf, sizeof(g_es1642_rx_buf));
+						__HAL_DMA_DISABLE_IT(huart2.hdmarx, DMA_IT_HT);
+				}
+				continue;
 		}
   }
   /* USER CODE END ES1642_Task */
@@ -508,7 +520,6 @@ void RTC_Task(void *argument)
 	//更新网络时间
 	osDelay(4000);
 	at_result_t ret = A7680C_GetNetworkTime_Debug(&step);
-	A7680C_HTTP_Init();//初始化HTTP
 	if (ret == AT_RESULT_OK)
 	{
 			printf("更新网络时间到RTC芯片成功\r\n");
@@ -525,7 +536,7 @@ void RTC_Task(void *argument)
   for(;;)
   {
 		RX8025T_Task();
-    osDelay(10);
+    osDelay(100);
   }
   /* USER CODE END RTC_Task */
 }
@@ -551,11 +562,9 @@ void Weather_Task(void *argument)
     osThreadFlagsWait(0x01, osFlagsWaitAny, osWaitForever);
 		if(card_flag == 1)
 		{
+			A7680C_HTTP_Init();//初始化HTTP
 			A7680C_SendAT("AT+CLBS=1\r\n", "+CLBS: 0", 5000,jwd_buff);//读取经纬度
-			printf("%s",jwd_buff);
 			pos = A7680C_ParseCLBS((char*)jwd_buff);//解析经纬度
-			
-//			printf("经度:%f,纬度:%f\r\n",pos.latitude,pos.longitude);
 		
 			A7680C_HTTP_GetWeatherData(pos.latitude,pos.longitude,&weather_data);//读取天气代码
 			const char* Weather_buff = Weather_GetShortDesc(weather_data.weather_code);//将天气代码翻译成中文

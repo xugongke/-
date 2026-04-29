@@ -6,6 +6,7 @@
 #include "main.h"
 #include "device_manager.h"
 #include "es1642_usage_guide.h"
+#include "host_comm.h"
 
 #define ETHERNET_BUF_MAX_SIZE (1024 * 2) // Send and receive cache size
 #define INTERRUPT_DEBUG
@@ -22,8 +23,6 @@ enum SN_STATUS
 static uint8_t I_STATUS[_WIZCHIP_SOCK_NUM_];
 static uint8_t ch_status[_WIZCHIP_SOCK_NUM_] = {0};
 
-/* 搜索设备时保存当前TCP连接的socket编号，用于实时推送搜索结果 */
-static int8_t g_search_sn = -1;
 /**
  * @brief   确定中断类型并将值存储在 I_STATUS 中
  * @param   none
@@ -51,159 +50,6 @@ void wizchip_ISR(void)
         }
         setSIMR(0xff);
     }
-}
-//MAC地址转换成字符串
-static void mac_to_string(const uint8_t mac[6], char *out)
-{
-    sprintf(out, "%02X:%02X:%02X:%02X:%02X:%02X",
-            mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-}
-//通信地址转换成字符串
-static void addr_to_string(const uint8_t addr[6], char *out)
-{
-    sprintf(out, "%02X:%02X:%02X:%02X:%02X:%02X",
-            addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
-}
-//解析MAC字符串
-static int parse_mac_string(const char *str, uint8_t mac[6])
-{
-    unsigned int tmp[6];
-    if (sscanf(str, "%2x:%2x:%2x:%2x:%2x:%2x",
-               &tmp[0], &tmp[1], &tmp[2], &tmp[3], &tmp[4], &tmp[5]) != 6)
-    {
-        return -1;
-    }
-    for (int i = 0; i < 6; i++)
-    {
-        mac[i] = (uint8_t)tmp[i];
-    }
-    return 0;
-}
-//把设备列表发送到app
-void tcp_send_device_list(uint8_t sn)
-{
-    char line[128];
-    char mac_str[32];
-    char addr_str[32];
-
-    sprintf(line, "COUNT,%u\n", device_count);
-		send(sn, (uint8_t*)line, strlen(line));
-
-    for (uint16_t i = 0; i < device_count; i++)
-    {
-        mac_to_string(device_list[i].mac, mac_str);
-        addr_to_string(device_list[i].addr, addr_str);
-        sprintf(line, "DEV,%s,%s,%u\n", mac_str, addr_str, device_list[i].valid);
-        send(sn, (uint8_t*)line, strlen(line));
-    }
-		send(sn, (uint8_t*)"END\n", sizeof("END\n"));
-}
-//把用户住址转换成通信地址,并给从机发送修改通信地址命令，绑定到设备列表
-void tcp_handle_bind_cmd(uint8_t sn,const char *cmd)
-{
-    // 命令格式: BIND,AA:BB:CC:DD:EE:FF,2,1,301
-    char mac_str[32] = {0};
-    int building = 0;
-    int unit = 0;
-    int room = 0;
-    uint8_t mac[6];
-    uint8_t addr[6];
-
-    if (sscanf(cmd, "BIND,%31[^,],%d,%d,%d", mac_str, &building, &unit, &room) != 4)
-    {
-				send(sn, (uint8_t*)"ERR,命令格式错误\n", sizeof("ERR,命令格式错误\n"));
-        return;
-    }
-
-    if (parse_mac_string(mac_str, mac) != 0)
-    {
-				send(sn, (uint8_t*)"ERR,MAC格式错误\n", sizeof("ERR,MAC格式错误\n"));
-        return;
-    }
-		//将用户住址转换成通信地址
-    make_addr(addr, (uint8_t)building, (uint8_t)unit, (uint16_t)room);
-		//判断通信地址是否改变，并设置通信地址后入网
-    int ret = update_device(mac, addr);
-    switch (ret)
-    {
-        case 1:
-        {
-						send(sn, (uint8_t*)"设备列表中没有该设备，请重新搜索设备\r\n", sizeof("设备列表中没有该设备，请重新搜索设备\r\n"));
-            break;
-        }
-        case 2:
-        {
-						send(sn, (uint8_t*)"从机es1642模块损坏，请更换模块\r\n", sizeof("从机es1642模块损坏，请更换模块\r\n"));
-            break;
-        }
-        case 3:
-        {
-						send(sn, (uint8_t*)"从机修改通信地址超时，请检查从机状态\r\n", sizeof("从机修改通信地址超时，请检查从机状态\r\n"));
-            break;
-        }
-        case 4:
-        {
-						send(sn, (uint8_t*)"发送修改通信地址命令失败\r\n", sizeof("发送修改通信地址命令失败\r\n"));
-            break;
-        }
-        case 5:
-        {
-						send(sn, (uint8_t*)"从机入网响应超时\r\n", sizeof("从机入网响应超时\r\n"));
-            break;
-        }
-        case 6:
-        {
-						send(sn, (uint8_t*)"从机入网失败\r\n", sizeof("从机入网失败\r\n"));
-            break;
-        }
-        case 7:
-        {
-						send(sn, (uint8_t*)"发送入网命令失败\r\n", sizeof("发送入网命令失败\r\n"));
-            break;
-        }
-		}
-    save_devices();
-		send(sn, (uint8_t*)"OK\r\n", sizeof("OK\r\n"));
-}
-
-/* ==================== 搜索设备相关函数 ==================== */
-
-void tcp_set_search_socket(uint8_t sn)
-{
-    g_search_sn = (int8_t)sn;
-}
-
-void tcp_clear_search_socket(void)
-{
-    g_search_sn = -1;
-}
-
-void tcp_send_search_device(const uint8_t mac[6], const uint8_t addr[6], uint8_t valid)
-{
-    char line[128];
-    char mac_str[32];
-    char addr_str[32];
-
-    if (g_search_sn < 0)
-    {
-        return;  /* 没有活跃的TCP连接 */
-    }
-
-    mac_to_string(mac, mac_str);
-    addr_to_string(addr, addr_str);
-    sprintf(line, "SEARCH_DEV,%s,%s,%u\n", mac_str, addr_str, valid);
-    send((uint8_t)g_search_sn, (uint8_t*)line, strlen(line));
-}
-
-void tcp_send_search_done(void)
-{
-    if (g_search_sn < 0)
-    {
-        return;
-    }
-
-    send((uint8_t)g_search_sn, (uint8_t*)"SEARCH_DONE\n", strlen("SEARCH_DONE\n"));
-    g_search_sn = -1;
 }
 
 /**
@@ -318,14 +164,22 @@ void loopback_tcps_interrupt(uint8_t sn, uint8_t *buf, uint16_t port)
 						if (strncmp((char*)buf, "SEARCH_START", 12) == 0)//启动设备搜索
 						{
 								tcp_set_search_socket(sn);
-								ES1642_StartSearch(0, ES1642_SEARCH_RULE_ALL);  /* depth=0(自动), rule=搜索所有设备 */
-								send(sn, (uint8_t*)"OK\r\n", strlen("OK\r\n"));
+								int ret = ES1642_StartSearch(0, ES1642_SEARCH_RULE_ALL);  /* depth=0(自动), rule=搜索所有设备 */
+								if(ret != 0)
+								{
+									send(sn, (uint8_t *)"给模块发送启动搜索命令失败\n", sizeof("给模块发送启动搜索命令失败\n"));
+								}
+								/* OK在es1642_on_frame_received中收到ES1642响应后发送 */
 								return;
 						}
 						if (strncmp((char*)buf, "SEARCH_STOP", 11) == 0)//停止设备搜索
 						{
-								ES1642_StopSearch();
-								tcp_send_search_done();  /* 发送SEARCH_DONE作为搜索结束标志 */
+								int ret = ES1642_StopSearch();
+								if(ret != 0)
+								{
+									send(sn, (uint8_t *)"给模块发送停止搜索命令失败\n", sizeof("给模块发送停止搜索命令失败\n"));
+								}
+								/* SEARCH_DONE在es1642_on_frame_received中收到ES1642响应后发送 */
 								return;
 						}
 						

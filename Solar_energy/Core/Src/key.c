@@ -119,13 +119,12 @@ void screen_user_list_item_event_handler(lv_event_t *e)
         uint32_t key = lv_event_get_key(e);
         if(key == LV_KEY_LEFT)//左键，用户离线
         {	
-					int ret;
-					const uint8_t new_psk[ES1642_SET_PSK_LEN] = {0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18};//统一网络口令
-					uint8_t addr[6] = {0x11,0x12,0x13,0x14,0x15,0x16};
-					ret = ES1642_SetPsk(addr, new_psk);
-					if(ret != 0)
+					FRESULT f_res;
+					static uint8_t aMountBuffer[4096];
+					f_res = f_mkfs("0:",2, 0, aMountBuffer, sizeof(aMountBuffer)); 
+					if (f_res == FR_OK)
 					{
-						printf("给指定设备入网失败,ret:%d\r\n",ret);
+							printf("SD卡格式化：成功 \r\n");
 					}
         }
 				

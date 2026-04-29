@@ -1,10 +1,12 @@
 #include "rs485_usart.h"
 #include "main.h"
 #include "usart.h"
-#include <stdio.h>  // 用于printf打印日志
+#include <stdio.h>
+#include <string.h>
 
 #include "cmsis_os.h"
-#include "main.h"
+#include "host_comm.h"
+#include "es1642_usage_guide.h"
 
 /* ===================== 接收缓冲区定义 ===================== */
 __attribute__((section("RW_IRAM1")))// 放到普通 SRAM（0x20000000）
@@ -154,7 +156,7 @@ void RS485_UART8_Init(void)
 
 
 
-/* ===================== 数据处理示例函数 ===================== */
+/* ===================== 数据处理函数 ===================== */
 void Process_USART1_Data(uint8_t *data, uint16_t len)
 {
     printf("========== USART1 收到数据 (长度: %d) ==========\r\n", len);
@@ -174,15 +176,49 @@ void Process_USART1_Data(uint8_t *data, uint16_t len)
 void Process_USART6_Data(uint8_t *data, uint16_t len)
 {
     printf("========== USART6 收到数据 (长度: %d) ==========\r\n", len);
-    
-    for (uint16_t i = 0; i < len; i++)
+    /* 命令解析 - 与TCP命令格式保持一致 */
+
+    if (strncmp((char *)data, "LIST", 4) == 0)
     {
-        printf("%02X ", data[i]);
-        if ((i + 1) % 16 == 0) printf("\r\n");
+        /* 读取设备列表 */
+        rs485_send_device_list();
+        return;
     }
-    printf("\r\n");
-    
-    // TODO: 在这里添加USART6的数据解析逻辑
+
+    if (strncmp((char *)data, "BIND,", 5) == 0)
+    {
+        /* 修改通信地址并入网 */
+        rs485_handle_bind_cmd((const char *)data);
+        return;
+    }
+
+    if (strncmp((char *)data, "SEARCH_START", 12) == 0)
+    {
+        /* 启动设备搜索 */
+        rs485_set_search_active();
+        int ret = ES1642_StartSearch(0, ES1642_SEARCH_RULE_ALL);  /* depth=0(自动), rule=搜索所有设备 */
+				if(ret != 0)
+				{
+					rs485_usart6_send((const uint8_t *)"给模块发送启动搜索命令失败\n", strlen("给模块发送启动搜索命令失败\n"));
+				}
+        /* OK在es1642_on_frame_received中收到ES1642响应后发送 */
+        return;
+    }
+
+    if (strncmp((char *)data, "SEARCH_STOP", 11) == 0)
+    {
+        /* 停止设备搜索 */
+        int ret = ES1642_StopSearch();
+				if(ret != 0)
+				{
+					rs485_usart6_send((const uint8_t *)"给模块发送停止搜索命令失败\n", strlen("给模块发送停止搜索命令失败\n"));
+				}
+        /* SEARCH_DONE在es1642_on_frame_received中收到ES1642响应后发送 */
+        return;
+    }
+
+    /* 未知命令 */
+    rs485_usart6_send((const uint8_t *)"ERR,未知命令\n", strlen("ERR,未知命令\n"));
 }
 
 void Process_UART4_Data(uint8_t *data, uint16_t len)
@@ -269,4 +305,3 @@ void RS485_UART_ProcessTask(void *pvParameters)
         }
     }
 }
-

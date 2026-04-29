@@ -10,6 +10,7 @@
 "lcd_pj\device_manager.o"
 "lcd_pj\rs485_usart.o"
 "lcd_pj\user_data_manager.o"
+"lcd_pj\host_comm.o"
 "lcd_pj\main.o"
 "lcd_pj\gpio.o"
 "lcd_pj\freertos.o"

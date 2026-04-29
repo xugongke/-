@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include "ff.h"
 #include "device_manager.h"
-#include "interrupt.h"
+#include "host_comm.h"
 
 /* ========================= 使用说明 ========================= */
 
@@ -250,6 +250,9 @@ void es1642_on_frame_received(es1642_handle_t *handle,
             if (status == ES1642_STATUS_OK)
             {
                 printf("启动搜索: OK\r\n");
+                /* ES1642确认启动搜索成功，通知上位机 */
+                tcp_send_search_ok();
+                rs485_send_search_ok();
             }
             break;
         }
@@ -269,6 +272,9 @@ void es1642_on_frame_received(es1642_handle_t *handle,
 								{
 									device_manager_init();//重新读取SD卡中的记录并加载到RAM中
 								}
+                /* ES1642确认停止搜索成功，通知上位机搜索完成 */
+                tcp_send_search_done();
+                rs485_send_search_done();
             }
             break;
         }
@@ -285,17 +291,27 @@ void es1642_on_frame_received(es1642_handle_t *handle,
                        result.dev_addr[2], result.dev_addr[3],
                        result.dev_addr[4], result.dev_addr[5],
                        result.net_state);
-							if(result.attribute_len == 6)
+							if(find_device_by_mac((uint8_t *)result.attribute) == -1)//判断一下列表中有无重复MAC
 							{
-								/* 添加更新设备表到RAM中 */
-								add_device((uint8_t*)result.attribute, result.dev_addr, result.net_state);
-								
-								/* 实时推送搜索到的设备到PC上位机 */
-								tcp_send_search_device((uint8_t*)result.attribute, result.dev_addr, result.net_state);
+								if(result.attribute_len == 6)
+								{
+									/* 添加更新设备表到RAM中 */
+									add_device((uint8_t*)result.attribute, result.dev_addr, result.net_state);
+									
+									/* 实时推送搜索到的设备到TCP上位机 */
+									tcp_send_search_device((uint8_t*)result.attribute, result.dev_addr, result.net_state);
+									
+									/* 实时推送搜索到的设备到RS485上位机（USART6） */
+									rs485_send_search_device((uint8_t*)result.attribute, result.dev_addr, result.net_state);
+								}
+								else
+								{
+									printf("MAC地址获取失败,result.attribute_len:%d\r\n",result.attribute_len);
+								}
 							}
 							else
 							{
-								printf("MAC地址获取失败,result.attribute_len:%d\r\n",result.attribute_len);
+								printf("设备重复搜索到\r\n");
 							}
             }
             break;
@@ -716,7 +732,7 @@ int ES1642_StopSearch(void)
     
     if (status != ES1642_STATUS_OK)
     {
-        printf("停止搜索失败: %s\r\n", ES1642_StatusString(status));
+        printf("发送停止搜索命令失败: %s\r\n", ES1642_StatusString(status));
         return -1;
     }
     

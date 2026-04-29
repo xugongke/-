@@ -445,6 +445,11 @@
               <FilePath>..\Core\Src\user_data_manager.c</FilePath>
             </File>
             <File>
+              <FileName>host_comm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\host_comm.c</FilePath>
+            </File>
+            <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Core/Src/main.c</FilePath>

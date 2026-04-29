@@ -920,4 +920,43 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
     }
 		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
+/*串口错误回调函数
+- __ES1642 断电__ → UART2 的 RX 线 (PA3) 变为浮空状态（GPIO 配置为 `GPIO_NOPULL`，无上拉/下拉）
+- __浮空的 RX 线__ → 电磁噪声导致 UART 外设检测到 __帧错误 (Framing Error)__ 或 __噪声错误 (Noise Error)__
+*/
+
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
+{
+    if (huart->Instance == USART2)
+    {
+			printf("UART2错误,重启DMA\r\n");
+        // 清除错误标志
+        __HAL_UART_CLEAR_OREFLAG(huart);
+        
+        // UART错误后RxState会变成READY，需要重新启动DMA接收
+        if (huart->RxState == HAL_UART_STATE_READY)
+        {
+            if (HAL_UARTEx_ReceiveToIdle_DMA(huart, g_es1642_rx_buf, sizeof(g_es1642_rx_buf)) != HAL_OK)
+            {
+                printf("UART2错误后重启DMA接收失败\r\n");
+            }
+            __HAL_DMA_DISABLE_IT(huart->hdmarx, DMA_IT_HT);
+        }
+    }
+    
+    // 如果其他UART也有同样问题，可以类似处理
+    if (huart->Instance == USART3)
+    {
+			printf("UART3错误,重启DMA\r\n");
+        __HAL_UART_CLEAR_OREFLAG(huart);
+        if (huart->RxState == HAL_UART_STATE_READY)
+        {
+            if (HAL_UARTEx_ReceiveToIdle_DMA(huart, a7680c_rx_buf, sizeof(a7680c_rx_buf)) != HAL_OK)
+            {
+                printf("UART3错误后重启DMA接收失败\r\n");
+            }
+            __HAL_DMA_DISABLE_IT(huart->hdmarx, DMA_IT_HT);
+        }
+    }
+}
 /* USER CODE END 1 */
