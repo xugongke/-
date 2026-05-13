@@ -290,7 +290,6 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
-	osTimerStart(weatherTimerHandle, 7000);//每15分钟调用一次获取天气函数
   /* USER CODE END RTOS_EVENTS */
 
 }
@@ -301,7 +300,7 @@ void MX_FREERTOS_Init(void) {
   * @param  argument: Not used
   * @retval None
   */
-uint8_t card_flag = 0;
+uint8_t card_flag = 1;
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void *argument)
 {
@@ -522,20 +521,49 @@ void RTC_Task(void *argument)
 	{
 		printf("外部RTC时钟通信失败\r\n");
 	}
-	//更新网络时间
-	osDelay(4000);
-	at_result_t ret = A7680C_GetNetworkTime_Debug(&step);
-	if (ret == AT_RESULT_OK)
+	/* 轮询等待A7680C模块就绪（替代固定的osDelay） */
+	/* 通过AT+CPIN?检测SIM卡是否就绪来判断模块是否启动完成 */
+	uint8_t module_ready = 0;
+	for (uint8_t i = 0; i < 30; i++)
 	{
-			printf("更新网络时间到RTC芯片成功\r\n");
-			//更新完成网络时间后再跳转到home界面
-			ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_home, guider_ui.screen_user_home_del, &guider_ui.screen_user_list_del, setup_scr_screen_user_home, LV_SCR_LOAD_ANIM_NONE, 10, 10, true, true);
+			osDelay(1000);
+			if (A7680C_SendAT_CPIN() == AT_RESULT_OK)
+			{
+					module_ready = 1;
+					printf("A7680C模块已就绪(耗时%ds)\r\n", i + 1);
+					break;
+			}
+			printf("等待A7680C就绪...(%d/30)\r\n", i + 1);
+	}
+
+	if (module_ready)
+	{
+			/* 模块就绪，获取网络时间并同步到RTC芯片 */
+			at_result_t ret = A7680C_GetNetworkTime_Debug(&step);
+			if (ret == AT_RESULT_OK)
+			{
+					printf("更新网络时间到RTC芯片成功\r\n");
+			}
+			else
+			{
+					printf("获取网络时间失败, step:%d\r\n", step);
+			}
 	}
 	else
 	{
-			printf("step:%d出现错误\r\n",step);
-			//更新网络时间错误也要跳转
-			ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_home, guider_ui.screen_user_home_del, &guider_ui.screen_user_list_del, setup_scr_screen_user_home, LV_SCR_LOAD_ANIM_NONE, 10, 10, true, true);
+			printf("A7680C模块30s内未就绪,跳过网络时间同步\r\n");
+	}
+
+	/* 无论是否成功同步时间，都跳转到home界面 */
+	ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_home,
+			guider_ui.screen_user_home_del, &guider_ui.screen_user_list_del,
+			setup_scr_screen_user_home, LV_SCR_LOAD_ANIM_NONE, 10, 10, true, true);
+
+	/* 模块就绪后延迟触发天气获取（等待home界面创建完毕） */
+	if (module_ready)
+	{
+			osDelay(2000);
+			osThreadFlagsSet(WeatherTaskHandle, 0x01);
 	}
   /* Infinite loop */
   for(;;)
@@ -586,6 +614,8 @@ void Weather_Task(void *argument)
 						lv_label_set_text(guider_ui.screen_user_home_label_2,"黑天 ");
 					}
 			}
+			/* 启动周期性天气更新定时器（15分钟后再次触发） */
+			osTimerStart(weatherTimerHandle, 900000);
 		}
   }
   /* USER CODE END Weather_Task */
@@ -611,4 +641,3 @@ void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
     for(;;);
 }
 /* USER CODE END Application */
-

@@ -120,20 +120,20 @@ void screen_user_list_item_event_handler(lv_event_t *e)
         uint32_t key = lv_event_get_key(e);
         if(key == LV_KEY_LEFT)//左键，用户离线
         {	
-//					FRESULT f_res;
-//					static uint8_t aMountBuffer[4096];
-//					f_res = f_mkfs("0:",2, 0, aMountBuffer, sizeof(aMountBuffer)); 
-//					if (f_res == FR_OK)
-//					{
-//							printf("SD卡格式化：成功 \r\n");
-//					}
+					FRESULT f_res;
+					static uint8_t aMountBuffer[4096];
+					f_res = f_mkfs("0:",2, 0, aMountBuffer, sizeof(aMountBuffer)); 
+					if (f_res == FR_OK)
+					{
+							printf("SD卡格式化：成功 \r\n");
+					}
 					
-//					//让设备退网
-//					const uint8_t new_psk[2] = {0x01,0x02};
-//					ES1642_SendSetPsk(&g_es1642_handle, device_list[0].addr, new_psk, 0x01);
+					//让设备退网
+					const uint8_t new_psk[2] = {0x01,0x02};
+					ES1642_SendSetPsk(&g_es1642_handle, device_list[0].addr, new_psk, 0x01);
 					
-					//启动加热
-					device_ctrl_heater(device_list[0].addr,1);
+//					//启动加热
+//					device_ctrl_heater(device_list[0].addr,1);
         }
 				
         if(key == LV_KEY_RIGHT)//右键，用户上线

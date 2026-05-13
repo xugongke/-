@@ -344,6 +344,7 @@ CLBS_PosTypeDef A7680C_ParseCLBS(char *buf)
  */
 at_result_t A7680C_GetNetworkTime_Debug(uint8_t *step)
 {
+		RX8025T_DateTimeCompact DateTim;
     at_result_t ret;
 
     if (step == NULL)
@@ -386,14 +387,12 @@ at_result_t A7680C_GetNetworkTime_Debug(uint8_t *step)
     *step = 10;
 		uint8_t time_buff[128];
     ret = A7680C_SendAT_CCLK(time_buff);
-    if (ret != AT_RESULT_OK)
+		if((A7680C_ParseCCLK(time_buff,&DateTim) == 0) || (ret != AT_RESULT_OK))//解析获取网络时间
 		{
 			return ret;
 		}
 		else
 		{
-			RX8025T_DateTimeCompact DateTim;
-			A7680C_ParseCCLK(time_buff,&DateTim);//解析获取网络时间
 			if(RX8025T_SetDateTime(&DateTim) != HAL_OK)//把解析获得的网络时间更新到RTC芯片中
 			{
 				return AT_RESULT_ERROR;

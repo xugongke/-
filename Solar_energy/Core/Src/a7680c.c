@@ -53,6 +53,7 @@ void A7680C_Send(char *data)
  * @param  cmd AT指令
  * @param  ack 期望返回字符串
  * @param  timeout 超时时间 ms
+ * @param  data 输出接收到的数据
  * @retval 1 成功
  *         0 失败/超时
  */
