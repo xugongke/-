@@ -13,6 +13,7 @@
 #undef KEY_DEBOUNCE_TICKS
 #define KEY_DEBOUNCE_TICKS 1
 #endif
+extern osThreadId_t WeatherTaskHandle;
 
 /* ====== 按键“是否按下”的硬件判定（按你的原理图） ====== */
 static inline uint8_t KEY_HW_IsPressed(key_id_t id)
@@ -119,37 +120,44 @@ void screen_user_list_item_event_handler(lv_event_t *e)
         uint32_t key = lv_event_get_key(e);
         if(key == LV_KEY_LEFT)//左键，用户离线
         {	
-					FRESULT f_res;
-					static uint8_t aMountBuffer[4096];
-					f_res = f_mkfs("0:",2, 0, aMountBuffer, sizeof(aMountBuffer)); 
-					if (f_res == FR_OK)
-					{
-							printf("SD卡格式化：成功 \r\n");
-					}
+//					FRESULT f_res;
+//					static uint8_t aMountBuffer[4096];
+//					f_res = f_mkfs("0:",2, 0, aMountBuffer, sizeof(aMountBuffer)); 
+//					if (f_res == FR_OK)
+//					{
+//							printf("SD卡格式化：成功 \r\n");
+//					}
+					
+//					//让设备退网
+//					const uint8_t new_psk[2] = {0x01,0x02};
+//					ES1642_SendSetPsk(&g_es1642_handle, device_list[0].addr, new_psk, 0x01);
+					
+					//启动加热
+					device_ctrl_heater(device_list[0].addr,1);
         }
 				
         if(key == LV_KEY_RIGHT)//右键，用户上线
         {
-					char dataa[3] = {0x11,0x22,0x33};
-					es1642_response_t response; // 用于接收从机响应数据
+//					//让设备退网
+//					const uint8_t new_psk[2] = {0x01,0x02};
+//					ES1642_SendSetPsk(&g_es1642_handle, device_list[1].addr, new_psk, 0x01);
 					
-					ES1642_SendUserData(device_list[0].addr, (const uint8_t *)dataa, 3, 0, &response);
-						if(response.data[0] == 0xcc)
-						{
-							printf("接收到从机给我发送的数据:%#x\r\n",response.data[0]);
-						}
+					//停止加热
+					device_ctrl_heater(device_list[0].addr,0);
+					
         }
 				
         if(key == LV_KEY_UP)
         {
-					printf("开始搜索全部设备\r\n");
-					ES1642_StartSearch(0,ES1642_SEARCH_RULE_ALL);
+//					printf("开始搜索全部设备\r\n");
+//					ES1642_StartSearch(0,ES1642_SEARCH_RULE_ALL);
+						osThreadFlagsSet(WeatherTaskHandle, 0x01);
         }
 				
         if(key == LV_KEY_DOWN)
         {
-					printf("停止设备搜索\r\n");
-					ES1642_StopSearch();
+//					printf("停止设备搜索\r\n");
+//					ES1642_StopSearch();
         }
 				
         if(key == LV_KEY_ESC)//ESC键，返回首页

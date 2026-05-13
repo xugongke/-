@@ -929,7 +929,6 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
     if (huart->Instance == USART2)
     {
-			printf("UART2错误,重启DMA\r\n");
         // 清除错误标志
         __HAL_UART_CLEAR_OREFLAG(huart);
         

@@ -480,6 +480,11 @@ void ES1642_Task(void *argument)
 		size_t n = xMessageBufferReceive(uart2Message, buf, sizeof(buf), pdMS_TO_TICKS(5000));
 		if(n)
 		{
+//			for(int i = 0;i < n;i++)
+//			{
+//				printf("%#x ",buf[i]);
+//			}
+//			printf("\r\n");
 				ES1642_ProcessCompleteFrame(&g_es1642_handle,buf,n);
 		}
 		else

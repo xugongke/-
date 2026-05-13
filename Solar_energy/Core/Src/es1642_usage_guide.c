@@ -327,7 +327,7 @@ void es1642_on_frame_received(es1642_handle_t *handle,
                        notify.src_addr[0], notify.src_addr[1], notify.src_addr[2],
                        notify.src_addr[3], notify.src_addr[4], notify.src_addr[5],
                        notify.task_id, notify.attribute_len);
-											 ES1642_SendSearch(notify.src_addr,notify.task_id,1,NULL,0);//响应搜索
+								ES1642_SendSearch(notify.src_addr,notify.task_id,0,NULL,0);//响应搜索，不参与
             }
             break;
         }
@@ -591,6 +591,7 @@ int ES1642_ReadAddr(void)
  * @param  data: 要发送的数据
  * @param  len: 数据长度
  * @param  relay_depth: 中继深度（0表示自动）
+ * @param  response: 中继深度（0表示自动）
  * @retval 0: 成功, -1: 失败
  */
 int ES1642_SendUserData(const uint8_t dst_addr[ES1642_ADDR_LEN], 
@@ -634,13 +635,13 @@ int ES1642_SendUserData(const uint8_t dst_addr[ES1642_ADDR_LEN],
     printf("正在发送数据到设备...\r\n");
 
     /* prm=false表示发送请求（非响应） */
-    status = ES1642_SendData(&g_es1642_handle, dst_addr, data, len, relay_depth, false);
+    status = ES1642_SendData(&g_es1642_handle, dst_addr, data, len, relay_depth, true);
 
     if (status != ES1642_STATUS_OK)
     {
         printf("发送数据失败: %s\r\n", ES1642_StatusString(status));
         Current_addr = NULL;
-        osSemaphoreRelease(ES1642_mutexHandle);
+        osSemaphoreRelease(ES1642_mutexHandle);//解锁
         return -1;
     }
 
@@ -661,7 +662,7 @@ int ES1642_SendUserData(const uint8_t dst_addr[ES1642_ADDR_LEN],
 
         g_es1642_wait_type = ES1642_WAIT_NONE;
         Current_addr = NULL;
-        osSemaphoreRelease(ES1642_mutexHandle);
+        osSemaphoreRelease(ES1642_mutexHandle);//解锁
         return 0;  /* 成功：发送成功且收到响应 */
     }
     else
@@ -671,7 +672,7 @@ int ES1642_SendUserData(const uint8_t dst_addr[ES1642_ADDR_LEN],
         printf("从机地址为%s响应超时\r\n", addr);
         g_es1642_wait_type = ES1642_WAIT_NONE;
         Current_addr = NULL;
-        osSemaphoreRelease(ES1642_mutexHandle);
+        osSemaphoreRelease(ES1642_mutexHandle);//解锁
         return -2; /* 响应超时 */
     }
 }
@@ -943,7 +944,6 @@ int ES1642_SetPsk(const uint8_t dst_addr[ES1642_ADDR_LEN],
 
         if (g_es1642_psk_result.state == 0x01)
         {
-            printf("从机入网成功\r\n");
             g_es1642_wait_type = ES1642_WAIT_NONE;
             Current_addr = NULL;
             osSemaphoreRelease(ES1642_mutexHandle);
@@ -951,7 +951,6 @@ int ES1642_SetPsk(const uint8_t dst_addr[ES1642_ADDR_LEN],
         }
         else
         {
-            printf("从机入网失败, state=%d\r\n", g_es1642_psk_result.state);
             g_es1642_wait_type = ES1642_WAIT_NONE;
             Current_addr = NULL;
             osSemaphoreRelease(ES1642_mutexHandle);

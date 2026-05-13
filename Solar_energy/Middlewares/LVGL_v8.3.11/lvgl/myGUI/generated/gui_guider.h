@@ -53,6 +53,10 @@ typedef struct
 	lv_obj_t *screen_user_detail_cont_1;
 	lv_obj_t *screen_user_detail_label_4;
 	lv_obj_t *screen_user_detail_label_time;
+	lv_obj_t *screen_user_detail_btn_1;
+	lv_obj_t *screen_user_detail_btn_1_label;
+	lv_obj_t *screen_user_detail_btn_2;
+	lv_obj_t *screen_user_detail_btn_2_label;
 }lv_ui;
 
 typedef void (*ui_setup_scr_t)(lv_ui * ui);

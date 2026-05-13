@@ -4,6 +4,17 @@
 #include "es1642.h"
 #include "es1642_usage_guide.h"
 #include "user_data_manager.h"
+
+// ================== 从机命令定义 ==================
+#define SLAVE_CMD_SET_ADDR    0x01  // 修改通信地址命令
+#define SLAVE_CMD_HEATER_ON   0x02  // 启动加热
+#define SLAVE_CMD_HEATER_OFF  0x03  // 停止加热
+#define SLAVE_CMD_READ_STATUS 0x04  // 读取从机状态(温度+电压+状态)
+
+// ================== 从机响应结果码 ==================
+#define SLAVE_RESULT_OK       0x01  // 操作成功
+#define SLAVE_RESULT_FAIL     0x00  // 操作失败
+
 // ================== 全局变量 ==================
 device_t device_list[MAX_DEVICES];
 uint16_t device_count = 0;
@@ -68,49 +79,8 @@ int update_device(uint8_t *mac, uint8_t *addr)
 		int ret;
 		
     if (index < 0) {return 1;}//设备列表不存在，请重新搜索设备
-
-		// MAC已存在 → 判断通信地址是否变化，如果通信地址发生变化，就给从机发送设置通信地址命令
-		if (memcmp(device_list[index].addr, addr, 6) != 0)//通信地址发生变化就更新一下列表,并给从机发送修改通信地址命令
-		{
-				/* 给从机发送新通信地址，从机修改成功后会回复响应数据
-				 * 注意：这里用 ES1642_ADDR_LEN(6) 而不是 sizeof(addr)，因为 addr 是指针，sizeof 指针为 4
-				 */
-				ret = ES1642_SendUserData(device_list[index].addr, addr, ES1642_ADDR_LEN, 0, &response);
-
-				if (ret == 0)
-				{
-						/* 成功收到从机响应，可以在这里根据 response.data 判断从机是否修改成功 */
-						/* 例如：从机回复 response.data[0] == 0x01 表示修改成功 */
-					  if (memcmp(addr, response.src_addr, ES1642_ADDR_LEN) == 0 && response.data[0] == 0xaa)
-						{
-							printf("从机修改通信地址成功, 响应长度=%d\r\n", response.data_len);
-							memcpy(device_list[index].addr, addr, 6); // 通信地址修改成功，更新设备表
-							device_changed = 1;
-							/* 为新的通信地址创建数据文件,这里后面要加一个重复绑定判断 */
-							ensure_user_data_file(device_list[index].addr, device_list[index].mac);
-						}
-						else
-						{
-							printf("从机es1642模块损坏，请更换模块\r\n");
-							return 2;
-						}
-
-				}
-				else if (ret == -2)
-				{
-						/* 从机响应超时，通信地址可能没有修改成功 */
-						printf("从机修改通信地址超时，请检查从机状态\r\n");
-						return 3; // 从机响应超时
-				}
-				else
-				{
-						/* 发送失败 */
-						printf("发送修改通信地址命令失败\r\n");
-						return 4;
-				}
-		}
 		
-		if(device_list[index].valid == 0)//如果是没入网，那就进行入网，入网了才能正常通信,只要模块入网了，就算修改了通信地址也还是入网
+		if(device_list[index].valid == 0)//如果是没入网，那就进行入网，入网了才能正常通信,下面的发送修改通信地址命令从机才能接收到
 		{
 				ret = ES1642_SetPsk(device_list[index].addr, new_psk);
 				if (ret == 0)
@@ -133,6 +103,57 @@ int update_device(uint8_t *mac, uint8_t *addr)
 				{
 						printf("发送入网命令失败\r\n");
 						return 7;
+				}
+		}
+
+		// MAC已存在 → 判断通信地址是否变化，如果通信地址发生变化，就给从机发送设置通信地址命令
+		if (memcmp(device_list[index].addr, addr, 6) != 0)//通信地址发生变化就更新一下列表,并给从机发送修改通信地址命令
+		{
+				/* 给从机发送命令：[cmd][data_len][data...]
+				 * cmd = 0x01 (修改通信地址), data_len = 6, data = 6字节新通信地址
+				 * 注意：这里用 ES1642_ADDR_LEN(6) 而不是 sizeof(addr)，因为 addr 是指针，sizeof 指针为 4
+				 */
+				uint8_t cmd_buf[2 + ES1642_ADDR_LEN]; // cmd(1) + len(1) + data(6) = 8字节
+				cmd_buf[0] = SLAVE_CMD_SET_ADDR;       // 命令: 修改通信地址
+				cmd_buf[1] = ES1642_ADDR_LEN;           // 数据长度: 6
+				memcpy(&cmd_buf[2], addr, ES1642_ADDR_LEN); // 数据: 新通信地址
+				ret = ES1642_SendUserData(device_list[index].addr, cmd_buf, sizeof(cmd_buf), 0, &response);
+
+				if (ret == 0)
+				{
+						/* 从机响应格式: [cmd][data_len][data]
+						 * cmd=0x01(修改地址), data_len=0x01, data=0x01(成功)/0x00(失败)
+						 * 总共3字节
+						 */
+					  if (response.data_len >= 3 &&
+								response.data[0] == SLAVE_CMD_SET_ADDR &&
+								response.data[1] == 0x01 &&
+								response.data[2] == SLAVE_RESULT_OK)
+						{
+							printf("从机修改通信地址成功, 响应长度=%d\r\n", response.data_len);
+							memcpy(device_list[index].addr, addr, 6); // 通信地址修改成功，更新设备表
+							device_changed = 1;
+							/* 为新的通信地址创建数据文件,这里后面要加一个重复绑定判断 */
+							ensure_user_data_file(device_list[index].addr, device_list[index].mac);
+						}
+						else
+						{
+							printf("从机修改通信地址失败\r\n");
+							return 2;
+						}
+
+				}
+				else if (ret == -2)
+				{
+						/* 从机响应超时，通信地址可能没有修改成功 */
+						printf("从机修改通信地址超时，请检查从机状态\r\n");
+						return 3; // 从机响应超时
+				}
+				else
+				{
+						/* 发送失败 */
+						printf("发送修改通信地址命令失败\r\n");
+						return 4;
 				}
 		}
 		return 0;
@@ -242,6 +263,147 @@ void make_addr(uint8_t *addr,
 
     addr[4] = 0x00; // 预留
     addr[5] = 0x00; // 预留
+}
+
+// ================== 控制从机加热 ==================
+
+/**
+ * @brief 控制从机启动/停止加热
+ * @param addr   从机通信地址 (6字节)
+ * @param heater_on  1=启动加热, 0=停止加热
+ * @return 0=成功, -1=参数错误, -2=从机超时, -3=从机拒绝, -4=发送失败
+ *
+ * 发送格式: [cmd][data_len][data]
+ *   启动加热: cmd=0x02, data_len=0x01, data=0x01
+ *   停止加热: cmd=0x03, data_len=0x01, data=0x00
+ *
+ * 从机响应: [cmd][data_len][result]
+ *   result: 0x01=成功, 0x00=失败
+ */
+int device_ctrl_heater(uint8_t *addr, uint8_t heater_on)
+{
+    es1642_response_t response;
+    uint8_t cmd_buf[3];  /* [cmd][data_len][data] */
+    int ret;
+
+    if (addr == NULL) { return -1; }
+
+    /* 组装命令帧 */
+    if (heater_on)
+    {
+        cmd_buf[0] = SLAVE_CMD_HEATER_ON;   /* 命令字: 启动加热 */
+        cmd_buf[1] = 0x01;                   /* 数据长度: 1字节 */
+        cmd_buf[2] = 0x01;                   /* 数据: 1=启动 */
+    }
+    else
+    {
+        cmd_buf[0] = SLAVE_CMD_HEATER_OFF;  /* 命令字: 停止加热 */
+        cmd_buf[1] = 0x01;                   /* 数据长度: 1字节 */
+        cmd_buf[2] = 0x00;                   /* 数据: 0=停止 */
+    }
+
+    /* 通过ES1642载波发送给从机 */
+    ret = ES1642_SendUserData(addr, cmd_buf, sizeof(cmd_buf), 0, &response);
+
+    if (ret == 0)
+    {
+        /* 检查从机响应: [cmd][len][result] */
+        uint8_t expected_cmd = heater_on ? SLAVE_CMD_HEATER_ON : SLAVE_CMD_HEATER_OFF;
+
+        if (response.data_len >= 3 &&
+            response.data[0] == expected_cmd &&
+            response.data[1] == 0x01 &&
+            response.data[2] == SLAVE_RESULT_OK)
+        {
+            printf("从机加热控制成功: %s\r\n", heater_on ? "启动加热" : "停止加热");
+            return 0;
+        }
+        else
+        {
+            printf("从机加热控制失败, 响应异常\r\n");
+            return -3;  /* 从机拒绝或响应异常 */
+        }
+    }
+    else if (ret == -2)
+    {
+        printf("从机加热控制超时\r\n");
+        return -2;  /* 从机响应超时 */
+    }
+    else
+    {
+        printf("发送加热控制命令失败\r\n");
+        return -4;  /* 发送失败 */
+    }
+}
+
+// ================== 读取从机状态(扩展版,返回解析数据) ==================
+
+/**
+ * @brief 读取从机状态并通过结构体返回解析后的数据
+ * @param addr   从机通信地址 (6字节)
+ * @param status 输出: 解析后的状态数据
+ * @return 0=成功, -1=参数错误, -2=从机超时, -3=响应异常, -4=发送失败
+ *
+ * 从机响应: [cmd=0x04][data_len=0x04][temp][vol_lo][vol_hi][state]
+ *   temp:  温度 (int8_t, 单位℃)
+ *   vol:   电压 (uint16_t小端, 单位V)
+ *   state: 状态字 (bit1=直流加热, bit7=电源反接)
+ */
+int device_read_status_ex(uint8_t *addr, device_status_t *status)
+{
+    es1642_response_t response;
+    uint8_t cmd_buf[2];  /* [cmd][data_len] */
+    int ret;
+
+    if (addr == NULL || status == NULL) { return -1; }
+
+    /* 初始化输出结构体 */
+    memset(status, 0, sizeof(device_status_t));
+
+    /* 组装读取命令: 命令字+数据长度(0) */
+    cmd_buf[0] = SLAVE_CMD_READ_STATUS;
+    cmd_buf[1] = 0x00;  /* 无附加数据 */
+
+    /* 发送 */
+    ret = ES1642_SendUserData(addr, cmd_buf, sizeof(cmd_buf), 0, &response);
+
+    if (ret == 0)
+    {
+        /* 检查响应: [cmd=0x04][len=0x04][temp][vol_lo][vol_hi][state] */
+        if (response.data_len >= 6 &&
+            response.data[0] == SLAVE_CMD_READ_STATUS &&
+            response.data[1] == 0x04)
+        {
+            status->temperature  = (int8_t)response.data[2];
+            status->input_voltage = (uint16_t)response.data[3] | ((uint16_t)response.data[4] << 8);
+            uint8_t state_byte   = response.data[5];
+
+            /* bit1 = 直流加热, bit7 = 电源反接 */
+            status->dc_heating    = (state_byte & 0x02) ? 1 : 0;
+            status->power_reverse = (state_byte & 0x80) ? 1 : 0;
+
+            printf("从机状态: 温度=%d℃, 电压=%dV, 直流加热=%s, 电源反接=%s\r\n",
+                   status->temperature, status->input_voltage,
+                   status->dc_heating ? "是 " : "否 ",
+                   status->power_reverse ? "是 " : "否 ");
+            return 0;
+        }
+        else
+        {
+            printf("从机状态读取失败, 响应异常\r\n");
+            return -3;
+        }
+    }
+    else if (ret == -2)
+    {
+        printf("从机状态读取超时\r\n");
+        return -2;
+    }
+    else
+    {
+        printf("发送读取状态命令失败\r\n");
+        return -4;
+    }
 }
 
 // ================== 打印设备列表 ==================

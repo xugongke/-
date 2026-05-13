@@ -76,5 +76,33 @@ void make_addr(uint8_t *addr,
                uint8_t building,
                uint8_t unit,
                uint16_t room);
-#endif
 
+/**
+ * @brief 控制从机启动/停止加热
+ * @param addr      从机通信地址 (6字节)
+ * @param heater_on 1=启动加热, 0=停止加热
+ * @return 0=成功, -1=参数错误, -2=从机超时, -3=从机拒绝, -4=发送失败
+ */
+int device_ctrl_heater(uint8_t *addr, uint8_t heater_on);
+
+
+/**
+ * @brief 从机状态数据结构体
+ */
+typedef struct
+{
+    int8_t   temperature;   /**< 温度 (℃) */
+    uint16_t input_voltage; /**< 输入电压 (V) */
+    uint8_t  dc_heating;    /**< 直流加热: 1=是, 0=否 (state bit1) */
+    uint8_t  power_reverse; /**< 电源反接: 1=是, 0=否 (state bit7) */
+} device_status_t;
+
+/**
+ * @brief 读取从机状态并通过结构体返回解析后的数据
+ * @param addr   从机通信地址 (6字节)
+ * @param status 输出: 解析后的状态数据
+ * @return 0=成功, -1=参数错误, -2=从机超时, -3=响应异常, -4=发送失败
+ */
+int device_read_status_ex(uint8_t *addr, device_status_t *status);
+
+#endif
