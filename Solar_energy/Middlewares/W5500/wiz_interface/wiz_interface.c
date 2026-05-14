@@ -2,11 +2,11 @@
 #include "wiz_platform.h"
 #include "wizchip_conf.h"
 #include "dhcp.h"
-#include "cmsis_os.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "gui_guider.h"           // Gui Guider 生成的界面和控件的声明
+#include "cmsis_os.h"
 
 #define W5500_VERSION 0x04
 
@@ -221,16 +221,16 @@ void print_network_information(void)
     wiz_NetInfo net_info;
     wizchip_getnetinfo(&net_info); // Get chip configuration information
 
-    if (net_info.dhcp == NETINFO_DHCP)
-    {
-        printf("====================================================================================================\r\n");
-        printf(" %s network configuration : DHCP\r\n\r\n", _WIZCHIP_ID_);
-    }
-    else
-    {
-        printf("====================================================================================================\r\n");
-        printf(" %s network configuration : static\r\n\r\n", _WIZCHIP_ID_);
-    }
+//    if (net_info.dhcp == NETINFO_DHCP)
+//    {
+//        printf("====================================================================================================\r\n");
+//        printf(" %s network configuration : DHCP\r\n\r\n", _WIZCHIP_ID_);
+//    }
+//    else
+//    {
+//        printf("====================================================================================================\r\n");
+//        printf(" %s network configuration : static\r\n\r\n", _WIZCHIP_ID_);
+//    }
 //    printf(" MAC         : %02X:%02X:%02X:%02X:%02X:%02X\r\n", net_info.mac[0], net_info.mac[1], net_info.mac[2], net_info.mac[3], net_info.mac[4], net_info.mac[5]);
 //    printf(" IP          : %d.%d.%d.%d\r\n", net_info.ip[0], net_info.ip[1], net_info.ip[2], net_info.ip[3]);
 //    printf(" Subnet Mask : %d.%d.%d.%d\r\n", net_info.sn[0], net_info.sn[1], net_info.sn[2], net_info.sn[3]);

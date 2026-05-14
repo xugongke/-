@@ -25,6 +25,7 @@ extern UART_HandleTypeDef huart3;
 extern uint8_t a7680c_rx_buf[UART_RX_DMA_SIZE];
 
 extern uint16_t at_index;//记录缓冲区下标
+extern uint8_t at_parse_buf[AT_PARSE_BUFFER_SIZE];//流式拼接缓冲区
 
 extern osSemaphoreId_t at_semHandle;//构建完整帧后释放这个信号量
 
@@ -38,6 +39,7 @@ typedef enum {
 } at_result_t;
 
 extern at_result_t at_result;
+extern char *keyword;
 /*=============================
 函数声明
 =============================*/

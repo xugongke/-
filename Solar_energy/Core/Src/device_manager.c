@@ -4,6 +4,7 @@
 #include "es1642.h"
 #include "es1642_usage_guide.h"
 #include "user_data_manager.h"
+#include "a7680c_mqtt.h"
 
 // ================== 从机命令定义 ==================
 #define SLAVE_CMD_SET_ADDR    0x01  // 修改通信地址命令
@@ -404,6 +405,70 @@ int device_read_status_ex(uint8_t *addr, device_status_t *status)
         printf("发送读取状态命令失败\r\n");
         return -4;
     }
+}
+
+// ================== 轮询所有从机状态并通过MQTT上报 ==================
+
+/**
+ * @brief 轮询所有有效设备的状态并通过MQTT上报
+ * @note  每个设备单独发布一条MQTT消息，topic格式: solar/status/楼栋_单元_房间
+ *        JSON payload: {"t":25,"v":220,"dc":0,"pr":0}
+ *        读取失败的设备也会上报（带ok字段标识）
+ */
+void device_poll_all_status(void)
+{
+    if (device_count == 0) return;
+
+    char topic[48];
+    char payload[128];
+    house_info_t house;
+    device_status_t status;
+
+    printf("开始轮询%d个设备状态...\r\n", device_count);
+
+    for (uint16_t i = 0; i < device_count; i++)
+    {
+        /* 跳过未入网的设备 */
+        if (device_list[i].valid != 1) continue;
+
+        /* 解析通信地址 */
+        parse_addr(device_list[i].addr, &house);
+
+        /* 构建MQTT topic: solar/status/楼栋_单元_房间号 */
+        snprintf(topic, sizeof(topic), "solar/status/%d_%d_%04d",
+                 house.building, house.unit, house.room);
+
+        /* 读取从机状态 */
+        int ret = device_read_status_ex(device_list[i].addr, &status);
+
+        if (ret == 0)
+        {
+            /* 读取成功 */
+            snprintf(payload, sizeof(payload),
+                     "{\"t\":%d,\"v\":%d,\"dc\":%d,\"pr\":%d,\"ok\":1}",
+                     status.temperature, status.input_voltage,
+                     status.dc_heating, status.power_reverse);
+        }
+        else
+        {
+            /* 读取失败 */
+            snprintf(payload, sizeof(payload),
+                     "{\"t\":0,\"v\":0,\"dc\":0,\"pr\":0,\"ok\":0,\"err\":%d}",
+                     -ret);
+        }
+
+        /* 发布MQTT消息 */
+        uint8_t mqtt_ret = A7680C_MQTT_Publish(topic, payload);
+        if (mqtt_ret != AT_RESULT_OK)
+        {
+            printf("MQTT发布失败: %s\r\n", topic);
+        }
+
+        /* 设备间间隔200ms，避免载波通信冲突 */
+        osDelay(200);
+    }
+
+    printf("设备轮询完成\r\n");
 }
 
 // ================== 打印设备列表 ==================

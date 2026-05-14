@@ -92,7 +92,7 @@ uint8_t A7680C_SendAT(char *cmd, char *ack, uint32_t timeout,uint8_t* data)
         ret = at_result;
 				if(ret == AT_RESULT_ERROR)
 				{
-					printf("%s",at_parse_buf);
+					printf("%s%s",cmd,at_parse_buf);
 				}
 				else
 				{
@@ -104,7 +104,8 @@ uint8_t A7680C_SendAT(char *cmd, char *ack, uint32_t timeout,uint8_t* data)
     }
     else
     {
-        printf("超时未接收到响应\r\n");
+        printf("在指定时间里没找到目标字符串：%s",cmd);
+				printf("模块响应的字符串为:%s",at_parse_buf);
         ret = AT_RESULT_TIMEOUT;
     }
 
@@ -140,18 +141,17 @@ void at_process_data(uint8_t *data, uint16_t len)
     at_index += len;
     at_parse_buf[at_index] = '\0';
 
-    // 判断响应
-    if (at_find(keyword))
+    // 判断响应（keyword为NULL说明没有等待中的AT命令，跳过匹配）
+    if (keyword != NULL && at_find(keyword))
     {
 				a7680c_rx_len = at_index;
         at_notify_result(AT_RESULT_OK);
         at_index = 0;
     }
-    else if (at_find("ERROR"))
+    else if (keyword != NULL && at_find("ERROR"))
     {
 				a7680c_rx_len = at_index;
 				at_notify_result(AT_RESULT_ERROR);
-				at_index = 0;
+        at_index = 0;
     }
 }
-

@@ -105,4 +105,9 @@ typedef struct
  */
 int device_read_status_ex(uint8_t *addr, device_status_t *status);
 
+/**
+ * @brief 轮询所有有效设备状态并通过MQTT上报
+ */
+void device_poll_all_status(void);
+
 #endif

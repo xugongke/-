@@ -102,7 +102,7 @@ WeatherCurrent_t Weather_ParseCurrent(const char *json)
 		}
 		else
 		{
-			printf("纬度解析失败\r\n");
+			printf("网页读取到的JSON纬度解析失败\r\n");
 			w.is_day = 1;
 			return w;
 		}
@@ -115,7 +115,7 @@ WeatherCurrent_t Weather_ParseCurrent(const char *json)
 		}
 		else
 		{
-			printf("经度解析失败\r\n");
+			printf("网页读取到的JSON经度解析失败\r\n");
 			return w;
 		}
 
@@ -123,7 +123,7 @@ WeatherCurrent_t Weather_ParseCurrent(const char *json)
     char *current = strstr(json, "\"current\":{");
 		if (!current)
 		{
-				printf("current字段不存在\r\n");
+				printf("网页读取到的JSONcurrent字段不存在\r\n");
 				return w;
 		}
 
@@ -135,7 +135,7 @@ WeatherCurrent_t Weather_ParseCurrent(const char *json)
     }
 		else
 		{
-			printf("天气解析失败\r\n");
+			printf("网页读取到的JSON天气解析失败\r\n");
 			return w;
 		}
 		
@@ -146,7 +146,7 @@ WeatherCurrent_t Weather_ParseCurrent(const char *json)
 		}
 		else
 		{
-			printf("是否白天解析失败\r\n");
+			printf("网页读取到的JSON是否白天解析失败\r\n");
 			return w;
 		}
 

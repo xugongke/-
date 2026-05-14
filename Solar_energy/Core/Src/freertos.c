@@ -48,6 +48,7 @@
 #include "rs485_usart.h"
 lv_ui  guider_ui;                     // 定义 界面对象
 extern lv_group_t * g_keypad_group;		//声明全局group
+WeatherCurrent_t weather_data = {0};//存储天气代码的结构体
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -147,6 +148,13 @@ const osThreadAttr_t RS485UARTProces_attributes = {
   .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityAboveNormal5,
 };
+/* Definitions for DevicePollTask */
+osThreadId_t DevicePollTaskHandle;
+const osThreadAttr_t DevicePollTask_attributes = {
+  .name = "DevicePollTask",
+  .stack_size = 512 * 4,
+  .priority = (osPriority_t) osPriorityBelowNormal5,
+};
 /* Definitions for weatherTimer */
 osTimerId_t weatherTimerHandle;
 const osTimerAttr_t weatherTimer_attributes = {
@@ -186,6 +194,7 @@ void ES1642_Task(void *argument);
 void RTC_Task(void *argument);
 void Weather_Task(void *argument);
 extern void RS485_UART_ProcessTask(void *argument);
+void DevicePoll_Task(void *argument);
 void Callback01(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -215,7 +224,6 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */
-  /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
 
   /* Create the semaphores(s) */
@@ -284,6 +292,9 @@ void MX_FREERTOS_Init(void) {
   /* creation of RS485UARTProces */
   RS485UARTProcesHandle = osThreadNew(RS485_UART_ProcessTask, NULL, &RS485UARTProces_attributes);
 
+  /* creation of DevicePollTask */
+  DevicePollTaskHandle = osThreadNew(DevicePoll_Task, NULL, &DevicePollTask_attributes);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
@@ -318,19 +329,29 @@ void StartDefaultTask(void *argument)
 				i = 0;
 			}
 		}
-		//只有跳转到home界面创建了信号线段组件才开始设置图形显示
-		if(lv_obj_is_valid(guider_ui.screen_user_home_line_1) && lv_obj_is_valid(guider_ui.screen_user_home_line_3) && lv_obj_is_valid(guider_ui.screen_user_home_label_3))
+		uint8_t ui_ready = lv_obj_is_valid(guider_ui.screen_user_home_line_1) &&
+		                   lv_obj_is_valid(guider_ui.screen_user_home_line_3) &&
+		                   lv_obj_is_valid(guider_ui.screen_user_home_label_3);
+
+		if(ui_ready)
 		{
-			//不管在哪个页面都不停的检测sim卡是否正常插入，是否正常通信
-			if(A7680C_SendAT_CPIN() == AT_RESULT_OK)//检测SIM卡是否插好	
+			/* AT指令操作（不持有互斥锁，避免阻塞LVGL渲染） */
+			uint8_t sim_ok = A7680C_SendAT_CPIN();  // 检测SIM卡是否插好
+			uint8_t sig_ok = 0;
+			uint8_t Signal_buff[32];
+			if(sim_ok == AT_RESULT_OK)
 			{
 				card_flag = 1;
-				uint8_t Signal_buff[32];
-				if(A7680C_SendAT_CSQ(Signal_buff) == AT_RESULT_OK)//如果查询信号强度成功
+				sig_ok = A7680C_SendAT_CSQ(Signal_buff);
+			}
+
+			/* LVGL操作（在互斥锁保护下执行） */
+			if(sim_ok == AT_RESULT_OK)
+			{
+				if(sig_ok == AT_RESULT_OK)
 				{
-					//隐藏标签
 					lv_obj_add_flag(guider_ui.screen_user_home_label_3, LV_OBJ_FLAG_HIDDEN);
-					A7680C_ParseCSQ(Signal_buff,&rssi,&ber);//解析读取到的信号强度
+					A7680C_ParseCSQ(Signal_buff,&rssi,&ber);
 					if(rssi >= 10 && rssi < 17)
 					{
 						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_1, lv_color_hex(0x00ff86), LV_PART_MAIN|LV_STATE_DEFAULT);
@@ -357,20 +378,34 @@ void StartDefaultTask(void *argument)
 					}
 				}
 			}
-			else//检测不到sim卡
+			else
 			{
 				card_flag = 0;
 				lv_obj_set_style_line_color(guider_ui.screen_user_home_line_1, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
 				lv_obj_set_style_line_color(guider_ui.screen_user_home_line_2, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
 				lv_obj_set_style_line_color(guider_ui.screen_user_home_line_3, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
-				//显示标签
 				lv_obj_clear_flag(guider_ui.screen_user_home_label_3, LV_OBJ_FLAG_HIDDEN);
 				i++;
 				if(i == 10)
 				{
-					A7680C_SendAT_CFUN();//重启模块
+					A7680C_SendAT_CFUN();  // 重启模块（不持有互斥锁）
 				}
+				osDelay(1000);
+				continue;
 			}
+		}
+		const char* Weather_buff = Weather_GetShortDesc(weather_data.weather_code);//将天气代码翻译成中文
+		if(lv_obj_is_valid(guider_ui.screen_user_home_label_1) && lv_obj_is_valid(guider_ui.screen_user_home_label_2))
+		{
+				lv_label_set_text(guider_ui.screen_user_home_label_1, Weather_buff);
+				if(weather_data.is_day == 1)
+				{
+					lv_label_set_text(guider_ui.screen_user_home_label_2,"白天 ");
+				}
+				else
+				{
+					lv_label_set_text(guider_ui.screen_user_home_label_2,"黑天 ");
+				}
 		}
     osDelay(1000);
   }
@@ -394,25 +429,6 @@ void lvgl_task(void *argument)
 	lv_port_fs_init();   		/* lvgl文件系统接口初始化,放在lv_init()的后面 */	
 //	SDCardInfo();//读取SD卡基本信息,在挂载之后执行
 	printf("LVGL Version: %d.%d.%d\r\n", LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH);
-//	if(f_mkdir("0:/SYS") == FR_OK)
-//	{
-//		printf("SYS创建成功\r\n");
-//	}
-//	if(f_mkdir("0:/LOG") == FR_OK)
-//	{
-//		printf("LOG创建成功\r\n");
-//	}
-//	if(f_mkdir("0:/USER") == FR_OK)
-//	{
-//		printf("USER创建成功\r\n");
-//	}
-//	for(uint32_t i = 0;i < 50;i++)
-//	{
-//		Create_der(i);
-//		Write_temperature(i);
-//		Write_power(i);
-//		Write_yongpower(i);
-//	}
 	
 	/* USER CODE END 2 */
 	//自己设计的图形窗口
@@ -439,7 +455,6 @@ void A7680C_Task(void *argument)
 {
   /* USER CODE BEGIN A7680C_Task */
 	uint8_t recv_buf[256];
-	A7680C_SendATE0();//关闭回显
 	A7680C_Init();
   /* Infinite loop */
   for(;;)
@@ -531,6 +546,7 @@ void RTC_Task(void *argument)
 			{
 					module_ready = 1;
 					printf("A7680C模块已就绪(耗时%ds)\r\n", i + 1);
+					A7680C_SendATE0();//关闭回显
 					break;
 			}
 			printf("等待A7680C就绪...(%d/30)\r\n", i + 1);
@@ -543,6 +559,7 @@ void RTC_Task(void *argument)
 			if (ret == AT_RESULT_OK)
 			{
 					printf("更新网络时间到RTC芯片成功\r\n");
+					A7680C_HTTP_Init();//初始化HTTP
 			}
 			else
 			{
@@ -562,8 +579,8 @@ void RTC_Task(void *argument)
 	/* 模块就绪后延迟触发天气获取（等待home界面创建完毕） */
 	if (module_ready)
 	{
-			osDelay(2000);
-			osThreadFlagsSet(WeatherTaskHandle, 0x01);
+			osDelay(1000);
+			osTimerStart(weatherTimerHandle,1000);
 	}
   /* Infinite loop */
   for(;;)
@@ -586,7 +603,6 @@ void Weather_Task(void *argument)
   /* USER CODE BEGIN Weather_Task */
 	uint8_t jwd_buff[64];//存储经纬度字符串
 	CLBS_PosTypeDef pos;
-	WeatherCurrent_t weather_data = {0};//存储天气代码的结构体
 	
   /* Infinite loop */
   for(;;)
@@ -595,30 +611,58 @@ void Weather_Task(void *argument)
     osThreadFlagsWait(0x01, osFlagsWaitAny, osWaitForever);
 		if(card_flag == 1)
 		{
-			A7680C_HTTP_Init();//初始化HTTP
 			A7680C_SendAT("AT+CLBS=1\r\n", "+CLBS: 0", 5000,jwd_buff);//读取经纬度
 			pos = A7680C_ParseCLBS((char*)jwd_buff);//解析经纬度
 		
 			A7680C_HTTP_GetWeatherData(pos.latitude,pos.longitude,&weather_data);//读取天气代码
-			const char* Weather_buff = Weather_GetShortDesc(weather_data.weather_code);//将天气代码翻译成中文
-			printf("当前天气:%s\r\n",Weather_buff);
-			if(lv_obj_is_valid(guider_ui.screen_user_home_label_1) && lv_obj_is_valid(guider_ui.screen_user_home_label_2))
-			{
-					lv_label_set_text(guider_ui.screen_user_home_label_1, Weather_buff);
-					if(weather_data.is_day == 1)
-					{
-						lv_label_set_text(guider_ui.screen_user_home_label_2,"白天 ");
-					}
-					else
-					{
-						lv_label_set_text(guider_ui.screen_user_home_label_2,"黑天 ");
-					}
-			}
-			/* 启动周期性天气更新定时器（15分钟后再次触发） */
-			osTimerStart(weatherTimerHandle, 900000);
 		}
   }
   /* USER CODE END Weather_Task */
+}
+
+/* USER CODE BEGIN Header_DevicePoll_Task */
+/**
+* @brief Function implementing the DevicePollTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_DevicePoll_Task */
+void DevicePoll_Task(void *argument)
+{
+  /* USER CODE BEGIN DevicePoll_Task */
+	/* 等待系统初始化完成（设备表加载、A7680C模块就绪等） */
+	osDelay(30000);
+
+	/* 初始化MQTT EX连接 */
+	printf("开始初始化MQTT连接...\r\n");
+
+	if (A7680C_MQTT_Start() != AT_RESULT_OK)
+	{
+		printf("MQTT START失败, 5秒后重试\r\n");
+		osDelay(5000);
+		if (A7680C_MQTT_Start() != AT_RESULT_OK)
+		{
+			printf("MQTT START二次失败\r\n");
+		}
+	}
+
+	if (A7680C_MQTT_Connect(MQTT_CLIENT_ID, NULL, NULL) != AT_RESULT_OK)
+	{
+		printf("MQTT CONNECT失败, 10秒后重试\r\n");
+		osDelay(10000);
+		if (A7680C_MQTT_Connect(MQTT_CLIENT_ID, NULL, NULL) != AT_RESULT_OK)
+		{
+			printf("MQTT CONNECT二次失败\r\n");
+		}
+	}
+
+  /* Infinite loop */
+  for(;;)
+  {
+    device_poll_all_status();
+    osDelay(30000);  /* 每30秒轮询一次 */
+  }
+  /* USER CODE END DevicePoll_Task */
 }
 
 /* Callback01 function */

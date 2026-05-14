@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "gui_guider.h"           // Gui Guider 生成的界面和控件的声明
+#include "cmsis_os.h"
 
 /* LCD显示位置定义 */
 #define TIME_LABEL_X        50
@@ -158,10 +159,13 @@ HAL_StatusTypeDef RX8025T_Task(void)
 //    lv_obj_t *current_scr = lv_scr_act();
 	
     /* 只有当秒数变化并且两个标签都有效的时候才更新时间 */
-    if (current_time.seconds != last_second && lv_obj_is_valid(guider_ui.screen_user_home_label_Date) && lv_obj_is_valid(guider_ui.screen_user_home_label_Time)) 
+    if (current_time.seconds != last_second)
 		{
-        last_second = current_time.seconds;
-        status = RX8025T_UpdateTimeDisplay();
+        if(lv_obj_is_valid(guider_ui.screen_user_home_label_Date) && lv_obj_is_valid(guider_ui.screen_user_home_label_Time))
+        {
+            last_second = current_time.seconds;
+            status = RX8025T_UpdateTimeDisplay();
+        }
     }
     
     return status;
