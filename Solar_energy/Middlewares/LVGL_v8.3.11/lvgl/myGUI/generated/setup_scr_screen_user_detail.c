@@ -52,24 +52,16 @@ void setup_scr_screen_user_detail(lv_ui *ui)
     //Write codes screen_user_detail_table_1
     ui->screen_user_detail_table_1 = lv_table_create(ui->screen_user_detail);
     lv_table_set_col_cnt(ui->screen_user_detail_table_1,2);
-    lv_table_set_row_cnt(ui->screen_user_detail_table_1,8);
+    lv_table_set_row_cnt(ui->screen_user_detail_table_1,4);
     lv_table_set_cell_value(ui->screen_user_detail_table_1,0,0,"Name ");
     lv_table_set_cell_value(ui->screen_user_detail_table_1,1,0,"日用电量 ");
     lv_table_set_cell_value(ui->screen_user_detail_table_1,2,0,"月用电量 ");
     lv_table_set_cell_value(ui->screen_user_detail_table_1,3,0,"年用电量 ");
-    lv_table_set_cell_value(ui->screen_user_detail_table_1,4,0,"当前温度 ");
-    lv_table_set_cell_value(ui->screen_user_detail_table_1,5,0,"光伏电压 ");
-    lv_table_set_cell_value(ui->screen_user_detail_table_1,6,0,"直流加热 ");
-    lv_table_set_cell_value(ui->screen_user_detail_table_1,7,0,"电源反接 ");
     lv_table_set_cell_value(ui->screen_user_detail_table_1,0,1,"Value");
     lv_table_set_cell_value(ui->screen_user_detail_table_1,1,1,"10w ");
     lv_table_set_cell_value(ui->screen_user_detail_table_1,2,1,"100w ");
     lv_table_set_cell_value(ui->screen_user_detail_table_1,3,1,"100kWh ");
-    lv_table_set_cell_value(ui->screen_user_detail_table_1,4,1,"38℃ ");
-    lv_table_set_cell_value(ui->screen_user_detail_table_1,5,1,"50v ");
-    lv_table_set_cell_value(ui->screen_user_detail_table_1,6,1,"是/否 ");
-    lv_table_set_cell_value(ui->screen_user_detail_table_1,7,1,"是/否 ");
-    lv_obj_set_pos(ui->screen_user_detail_table_1, 114, 50);
+    lv_obj_set_pos(ui->screen_user_detail_table_1, 110, 31);
     lv_obj_set_scrollbar_mode(ui->screen_user_detail_table_1, LV_SCROLLBAR_MODE_OFF);
 
     //Write style for screen_user_detail_table_1, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
@@ -94,8 +86,8 @@ void setup_scr_screen_user_detail(lv_ui *ui)
     lv_obj_set_style_border_opa(ui->screen_user_detail_table_1, 255, LV_PART_ITEMS|LV_STATE_DEFAULT);
     lv_obj_set_style_border_color(ui->screen_user_detail_table_1, lv_color_hex(0xd5dee6), LV_PART_ITEMS|LV_STATE_DEFAULT);
     lv_obj_set_style_border_side(ui->screen_user_detail_table_1, LV_BORDER_SIDE_FULL, LV_PART_ITEMS|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_top(ui->screen_user_detail_table_1, 3, LV_PART_ITEMS|LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_bottom(ui->screen_user_detail_table_1, 8, LV_PART_ITEMS|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(ui->screen_user_detail_table_1, 10, LV_PART_ITEMS|LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(ui->screen_user_detail_table_1, 10, LV_PART_ITEMS|LV_STATE_DEFAULT);
     lv_obj_set_style_pad_left(ui->screen_user_detail_table_1, 10, LV_PART_ITEMS|LV_STATE_DEFAULT);
     lv_obj_set_style_pad_right(ui->screen_user_detail_table_1, 10, LV_PART_ITEMS|LV_STATE_DEFAULT);
 
@@ -172,7 +164,7 @@ void setup_scr_screen_user_detail(lv_ui *ui)
     lv_obj_align(ui->screen_user_detail_btn_1_label, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_style_pad_all(ui->screen_user_detail_btn_1, 0, LV_STATE_DEFAULT);
     lv_obj_set_width(ui->screen_user_detail_btn_1_label, LV_PCT(100));
-    lv_obj_set_pos(ui->screen_user_detail_btn_1, 6, 124);
+    lv_obj_set_pos(ui->screen_user_detail_btn_1, 128, 218);
     lv_obj_set_size(ui->screen_user_detail_btn_1, 100, 50);
 
     //Write style for screen_user_detail_btn_1, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
@@ -195,7 +187,7 @@ void setup_scr_screen_user_detail(lv_ui *ui)
     lv_obj_align(ui->screen_user_detail_btn_2_label, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_style_pad_all(ui->screen_user_detail_btn_2, 0, LV_STATE_DEFAULT);
     lv_obj_set_width(ui->screen_user_detail_btn_2_label, LV_PCT(100));
-    lv_obj_set_pos(ui->screen_user_detail_btn_2, 376, 124);
+    lv_obj_set_pos(ui->screen_user_detail_btn_2, 259, 218);
     lv_obj_set_size(ui->screen_user_detail_btn_2, 100, 50);
 
     //Write style for screen_user_detail_btn_2, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.

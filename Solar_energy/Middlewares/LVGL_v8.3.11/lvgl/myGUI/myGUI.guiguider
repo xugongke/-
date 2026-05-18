@@ -2263,8 +2263,8 @@
 					"name": "btn_2",
 					"id": "obj1y2wj",
 					"type": "btn",
-					"left": 376,
-					"top": 124,
+					"left": 259,
+					"top": 218,
 					"visible": true,
 					"isLock": false,
 					"flag": [],
@@ -2447,8 +2447,8 @@
 					"name": "btn_1",
 					"id": "ljshf2u8",
 					"type": "btn",
-					"left": 6,
-					"top": 124,
+					"left": 128,
+					"top": 218,
 					"visible": true,
 					"isLock": false,
 					"flag": [],
@@ -2625,7 +2625,10 @@
 							"text_opa": 255,
 							"text_color": "#000000"
 						}
-					]
+					],
+					"event": {
+						"widget": {}
+					}
 				},
 				{
 					"name": "cont_1",
@@ -2882,8 +2885,8 @@
 					"name": "table_1",
 					"id": "coro6zon",
 					"type": "table",
-					"left": 114,
-					"top": 50,
+					"left": 110,
+					"top": 31,
 					"visible": true,
 					"isLock": false,
 					"flag": [],
@@ -2900,18 +2903,6 @@
 						},
 						{
 							"text": "年用电量 ,100kWh "
-						},
-						{
-							"text": "当前温度 ,38℃ "
-						},
-						{
-							"text": "光伏电压 ,50v "
-						},
-						{
-							"text": "直流加热 ,是/否 "
-						},
-						{
-							"text": "电源反接 ,是/否 "
 						}
 					],
 					"columns_str": "Name ,Value",
@@ -3025,8 +3016,8 @@
 							"border_width": 3,
 							"border_color": "#d5dee6",
 							"border_opa": 255,
-							"padding_top": 3,
-							"padding_bottom": 8,
+							"padding_top": 10,
+							"padding_bottom": 10,
 							"padding_left": 10,
 							"padding_right": 10
 						},
@@ -3215,7 +3206,7 @@
 								"actionList": {
 									"custom_code": {
 										"inc_c": "",
-										"code_c": "        lv_group_remove_all_objs(g_keypad_group);//清空group中的所有组件\r\n        //给group添加新组件\r\n        lv_group_add_obj(g_keypad_group, guider_ui.screen_user_detail);\r\n        //将按键添加进焦点组\r\n        lv_indev_set_group(indev_keypad, g_keypad_group);\r\n        //设置初始焦点\r\n        lv_group_focus_obj(guider_ui.screen_user_detail);",
+										"code_c": "        lv_group_remove_all_objs(g_keypad_group);//清空group中的所有组件\r\n        //给group添加新组件\r\n        lv_group_add_obj(g_keypad_group, guider_ui.screen_user_detail);\r\n        lv_group_add_obj(g_keypad_group, guider_ui.screen_user_detail_btn_1);\r\n        lv_group_add_obj(g_keypad_group, guider_ui.screen_user_detail_btn_2);\r\n        //将按键添加进焦点组\r\n        lv_indev_set_group(indev_keypad, g_keypad_group);\r\n        //设置初始焦点\r\n        lv_group_focus_obj(guider_ui.screen_user_detail);",
 										"inc_py": "",
 										"code_py": ""
 									}
@@ -5730,7 +5721,7 @@
 									"actionList": {
 										"custom_code": {
 											"inc_c": "",
-											"code_c": "        lv_group_remove_all_objs(g_keypad_group);//清空group中的所有组件\r\n        //给group添加新组件\r\n        lv_group_add_obj(g_keypad_group, guider_ui.screen_user_detail);\r\n        //将按键添加进焦点组\r\n        lv_indev_set_group(indev_keypad, g_keypad_group);\r\n        //设置初始焦点\r\n        lv_group_focus_obj(guider_ui.screen_user_detail);",
+											"code_c": "        lv_group_remove_all_objs(g_keypad_group);//清空group中的所有组件\r\n        //给group添加新组件\r\n        lv_group_add_obj(g_keypad_group, guider_ui.screen_user_detail);\r\n        lv_group_add_obj(g_keypad_group, guider_ui.screen_user_detail_btn_1);\r\n        lv_group_add_obj(g_keypad_group, guider_ui.screen_user_detail_btn_2);\r\n        //将按键添加进焦点组\r\n        lv_indev_set_group(indev_keypad, g_keypad_group);\r\n        //设置初始焦点\r\n        lv_group_focus_obj(guider_ui.screen_user_detail);",
 											"inc_py": "",
 											"code_py": ""
 										}
@@ -5874,8 +5865,8 @@
 						"scrollbar_mode": "OFF",
 						"flag": [],
 						"pos": [
-							114,
-							50
+							110,
+							31
 						],
 						"size": [
 							null,
@@ -5992,8 +5983,8 @@
 								"border_width": 3,
 								"border_color": "#d5dee6",
 								"border_opa": 255,
-								"padding_top": 3,
-								"padding_bottom": 8,
+								"padding_top": 10,
+								"padding_bottom": 10,
 								"padding_left": 10,
 								"padding_right": 10
 							},
@@ -6053,7 +6044,7 @@
 							}
 						],
 						"columns": 2,
-						"row": 8,
+						"row": 4,
 						"table_header": [
 							"Name ",
 							"Value"
@@ -6062,17 +6053,9 @@
 							"日用电量 ",
 							"月用电量 ",
 							"年用电量 ",
-							"当前温度 ",
-							"光伏电压 ",
-							"直流加热 ",
-							"电源反接 ",
 							"10w ",
 							"100w ",
-							"100kWh ",
-							"38℃ ",
-							"50v ",
-							"是/否 ",
-							"是/否 "
+							"100kWh "
 						]
 					},
 					{
@@ -6342,14 +6325,17 @@
 						"visible": true,
 						"flag": [],
 						"pos": [
-							6,
-							124
+							128,
+							218
 						],
 						"size": [
 							100,
 							50
 						],
 						"default_style": false,
+						"event": {
+							"widget": {}
+						},
 						"text_align": "center",
 						"style": [
 							{
@@ -6530,8 +6516,8 @@
 						"visible": true,
 						"flag": [],
 						"pos": [
-							376,
-							124
+							259,
+							218
 						],
 						"size": [
 							100,

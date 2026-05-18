@@ -85,6 +85,9 @@ es1642_response_t g_es1642_response;
 /* 当前等待的响应类型，用于区分信号量是由 RECV_DATA 还是 REPORT_PSK_RESULT 释放 */
 es1642_wait_type_t g_es1642_wait_type = ES1642_WAIT_NONE;
 
+/* 搜索状态标志: 1=正在搜索设备, 0=空闲 */
+volatile uint8_t g_es1642_searching = 0;
+
 /* PSK设置结果缓冲区 */
 es1642_psk_result_response_t g_es1642_psk_result;
 
@@ -250,6 +253,7 @@ void es1642_on_frame_received(es1642_handle_t *handle,
             if (status == ES1642_STATUS_OK)
             {
                 printf("启动搜索: OK\r\n");
+                g_es1642_searching = 1;  /* 标记搜索中，阻止其他命令 */
                 /* ES1642确认启动搜索成功，通知上位机 */
                 tcp_send_search_ok();
                 rs485_send_search_ok();
@@ -263,6 +267,7 @@ void es1642_on_frame_received(es1642_handle_t *handle,
             if (status == ES1642_STATUS_OK)
             {
                 printf("停止搜索: OK\r\n");
+                g_es1642_searching = 0;  /* 清除搜索标志，允许其他命令 */
 								if(device_count > 0)
 								{
 									save_devices();//保存RAM中的设备表到SD卡中
@@ -608,6 +613,13 @@ int ES1642_SendUserData(const uint8_t dst_addr[ES1642_ADDR_LEN],
         return -1;
     }
 
+    /* 搜索期间不允许发送其他命令 */
+    if (g_es1642_searching)
+    {
+        printf("正在搜索设备，禁止发送数据命令\r\n");
+        return -1;
+    }
+
     /* ==============================================
     【第一步：互斥锁 —— 保证同一时刻主机只和一个从机通信，避免总线冲突】
     ==============================================*/
@@ -650,7 +662,7 @@ int ES1642_SendUserData(const uint8_t dst_addr[ES1642_ADDR_LEN],
     ==============================================*/
     printf("数据发送成功,等待从机响应\r\n");
 
-    if (osSemaphoreAcquire(ES1642_sendHandle, pdMS_TO_TICKS(2000)) == osOK)
+    if (osSemaphoreAcquire(ES1642_sendHandle, pdMS_TO_TICKS(20000)) == osOK)
     {
         printf("成功接收到从机的响应\r\n");
 
@@ -891,6 +903,13 @@ int ES1642_SetPsk(const uint8_t dst_addr[ES1642_ADDR_LEN],
         return -1;
     }
 
+    /* 搜索期间不允许发送其他命令 */
+    if (g_es1642_searching)
+    {
+        printf("正在搜索设备，禁止设置PSK\r\n");
+        return -1;
+    }
+
     /* ==============================================
     【第一步：互斥锁 —— 保证同一时刻只有一个任务操作ES1642模块】
     ==============================================*/
@@ -934,7 +953,7 @@ int ES1642_SetPsk(const uint8_t dst_addr[ES1642_ADDR_LEN],
     ==============================================*/
     printf("设置PSK命令已发送,等待从机入网结果...\r\n");
 
-    if (osSemaphoreAcquire(ES1642_sendHandle, pdMS_TO_TICKS(5000)) == osOK)
+    if (osSemaphoreAcquire(ES1642_sendHandle, pdMS_TO_TICKS(10000)) == osOK)
     {
         printf("收到PSK设置结果: 地址=%02X:%02X:%02X:%02X:%02X:%02X, state=%d\r\n",
                g_es1642_psk_result.src_addr[0], g_es1642_psk_result.src_addr[1],

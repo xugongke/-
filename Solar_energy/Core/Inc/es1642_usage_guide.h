@@ -64,6 +64,9 @@ typedef struct {
 
 extern es1642_psk_result_response_t g_es1642_psk_result;
 
+/* 搜索状态标志: 1=正在搜索设备, 0=空闲 */
+extern volatile uint8_t g_es1642_searching;
+
 /* ======== 步骤2：实现串口发送回调函数 ======== */
 
 /**

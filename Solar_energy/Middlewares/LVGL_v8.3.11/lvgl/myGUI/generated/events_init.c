@@ -162,6 +162,8 @@ static void screen_user_detail_event_handler (lv_event_t *e)
         lv_group_remove_all_objs(g_keypad_group);//清空group中的所有组件
         //给group添加新组件
         lv_group_add_obj(g_keypad_group, guider_ui.screen_user_detail);
+        lv_group_add_obj(g_keypad_group, guider_ui.screen_user_detail_btn_1);
+        lv_group_add_obj(g_keypad_group, guider_ui.screen_user_detail_btn_2);
         //将按键添加进焦点组
         lv_indev_set_group(indev_keypad, g_keypad_group);
         //设置初始焦点

@@ -5,6 +5,7 @@
 #include "es1642_usage_guide.h"
 #include "user_data_manager.h"
 #include "a7680c_mqtt.h"
+#include "cmsis_os.h"
 
 // ================== 从机命令定义 ==================
 #define SLAVE_CMD_SET_ADDR    0x01  // 修改通信地址命令
@@ -22,6 +23,9 @@ uint16_t device_count = 0;
 
 // 标志：设备是否有变化（用于减少SD写入）
 static uint8_t device_changed = 0;
+
+// 上位机忙碌标志: 1=上位机正在操作, 轮询暂停
+volatile uint8_t g_host_busy = 0;
 
 // ================== 初始化 ==================
 void device_manager_init(void)
@@ -382,11 +386,15 @@ int device_read_status_ex(uint8_t *addr, device_status_t *status)
             /* bit1 = 直流加热, bit7 = 电源反接 */
             status->dc_heating    = (state_byte & 0x02) ? 1 : 0;
             status->power_reverse = (state_byte & 0x80) ? 1 : 0;
+            status->dry_burn_err  = (state_byte & 0x40) ? 1 : 0;
+            status->relay_err     = (state_byte & 0x20) ? 1 : 0;
 
-            printf("从机状态: 温度=%d℃, 电压=%dV, 直流加热=%s, 电源反接=%s\r\n",
+            printf("从机状态: 温度=%d℃, 电压=%dV, 直流加热=%s, 电源反接=%s，干烧错误=%s，继电器控制错误=%s\r\n",
                    status->temperature, status->input_voltage,
                    status->dc_heating ? "是 " : "否 ",
-                   status->power_reverse ? "是 " : "否 ");
+                   status->power_reverse ? "是 " : "否 ",
+                   status->dry_burn_err ? "是 " : "否 ",
+                   status->relay_err ? "是 " : "否 ");
             return 0;
         }
         else
@@ -418,6 +426,20 @@ int device_read_status_ex(uint8_t *addr, device_status_t *status)
 void device_poll_all_status(void)
 {
     if (device_count == 0) return;
+
+    /* 搜索设备期间不进行轮询，避免干扰搜索 */
+    if (g_es1642_searching)
+    {
+        printf("正在搜索设备，跳过本次轮询\r\n");
+        return;
+    }
+
+    /* 上位机正在操作时暂停轮询，避免干扰入网等操作 */
+    if (g_host_busy)
+    {
+        printf("上位机正在操作，跳过本次轮询\r\n");
+        return;
+    }
 
     char topic[48];
     char payload[128];

@@ -94,6 +94,8 @@ typedef struct
     int8_t   temperature;   /**< 温度 (℃) */
     uint16_t input_voltage; /**< 输入电压 (V) */
     uint8_t  dc_heating;    /**< 直流加热: 1=是, 0=否 (state bit1) */
+    uint8_t  relay_err;     /**< 继电器控制失败: 1=是, 0=否 (state bit5) */
+    uint8_t  dry_burn_err;  /**< 温度大于75，或者小于-10: 1=是, 0=否 (state bit6) */
     uint8_t  power_reverse; /**< 电源反接: 1=是, 0=否 (state bit7) */
 } device_status_t;
 
@@ -109,5 +111,8 @@ int device_read_status_ex(uint8_t *addr, device_status_t *status);
  * @brief 轮询所有有效设备状态并通过MQTT上报
  */
 void device_poll_all_status(void);
+
+/* 上位机忙碌标志: 1=上位机正在操作(TCP已连接/RS485绑定中), 轮询暂停 */
+extern volatile uint8_t g_host_busy;
 
 #endif

@@ -268,6 +268,16 @@ int write_user_data(const uint8_t *dev_addr, user_data_file_t *data)
 
     return 0;
 }
+void user_detail_btn_1_event_handler(lv_event_t *e)
+{
+    uint32_t idx = (uint32_t)(uintptr_t)lv_event_get_user_data(e);
+    device_ctrl_heater(device_list[idx].addr,1);
+}
+void user_detail_btn_2_event_handler(lv_event_t *e)
+{
+    uint32_t idx = (uint32_t)(uintptr_t)lv_event_get_user_data(e);
+    device_ctrl_heater(device_list[idx].addr,0);
+}
 
 /* ================== UI回调函数实现 ================== */
 
@@ -332,31 +342,7 @@ void user_list_item_event_handler(lv_event_t *e)
         lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 2, 1, "-- kWh ");
         lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 3, 1, "-- kWh ");
     }
-		
-		//和从机通信并获取从机状态并显示在LCD屏上
-		device_status_t dev_status;
-		int status_ret = device_read_status_ex(device_list[idx].addr, &dev_status);
 
-		if (status_ret == 0)
-		{
-				/* 读取成功，显示温度、电压、直流加热、电源反接 */
-				snprintf(buf, sizeof(buf), "%d℃ ", dev_status.temperature);
-				lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 4, 1, buf);
-
-				snprintf(buf, sizeof(buf), "%dV ", dev_status.input_voltage);
-				lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 5, 1, buf);
-
-				lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 6, 1,
-								dev_status.dc_heating ? "是 " : "否 ");
-				lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 7, 1,
-								dev_status.power_reverse ? "是 " : "否 ");
-		}
-		else
-		{
-				/* 读取失败，显示默认错误信息 */
-				lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 4, 1, "--℃ ");
-				lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 5, 1, "--V ");
-				lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 6, 1, "-- ");
-				lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 7, 1, "-- ");
-		}
+    lv_obj_add_event_cb(guider_ui.screen_user_detail_btn_1, user_detail_btn_1_event_handler, LV_EVENT_CLICKED, (void*)(uintptr_t)idx);
+    lv_obj_add_event_cb(guider_ui.screen_user_detail_btn_2, user_detail_btn_2_event_handler, LV_EVENT_CLICKED, (void*)(uintptr_t)idx);	
 }

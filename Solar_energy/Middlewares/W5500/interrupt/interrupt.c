@@ -98,12 +98,14 @@ void loopback_tcps_interrupt(uint8_t sn, uint8_t *buf, uint16_t port)
 
 #endif
         ch_status[sn] = connected_status;
+        g_host_busy = 1;  /* TCP上位机已连接，暂停轮询 */
         I_STATUS[sn] &= ~(Sn_IR_CON);
     }
 
     if (I_STATUS[sn] & Sn_IR_DISCON)
     {
         printf("%d:套接字已断开\r\n", sn);
+        g_host_busy = 0;  /* TCP上位机断开，恢复轮询 */
         tcp_clear_search_socket();  /* 断开时清除搜索socket */
         if ((getSn_RX_RSR(sn)) > 0)
         {
