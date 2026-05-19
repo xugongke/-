@@ -19,6 +19,7 @@
 #include "user_data_manager.h"
 #include "key.h"
 #include "device_manager.h"
+#include "battery.h"
 extern lv_indev_t * indev_keypad;
 lv_group_t * g_keypad_group;//创建全局group(可被焦点选中的对象集合)指针，在lv_init后分配空间
 
@@ -38,6 +39,8 @@ static void screen_user_home_event_handler (lv_event_t *e)
         //显示IP地址和端口号
         lv_label_set_text(guider_ui.screen_user_home_label_ip, ip_buf);
         lv_label_set_text(guider_ui.screen_user_home_label_port, port_buf);
+        //初始化/刷新电池电量指示器组件
+        Battery_Widget_Init(guider_ui.screen_user_home);
         break;
     }
     default:
@@ -162,8 +165,6 @@ static void screen_user_detail_event_handler (lv_event_t *e)
         lv_group_remove_all_objs(g_keypad_group);//清空group中的所有组件
         //给group添加新组件
         lv_group_add_obj(g_keypad_group, guider_ui.screen_user_detail);
-        lv_group_add_obj(g_keypad_group, guider_ui.screen_user_detail_btn_1);
-        lv_group_add_obj(g_keypad_group, guider_ui.screen_user_detail_btn_2);
         //将按键添加进焦点组
         lv_indev_set_group(indev_keypad, g_keypad_group);
         //设置初始焦点

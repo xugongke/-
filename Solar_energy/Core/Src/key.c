@@ -4,6 +4,7 @@
 #include "es1642_usage_guide.h"
 #include "user_data_manager.h"
 #include "device_manager.h"
+#include "battery.h"
 
 /* ====== 用户可调参数 ====== */
 #define KEY_SCAN_PERIOD_MS     10u
@@ -146,9 +147,9 @@ void screen_user_list_item_event_handler(lv_event_t *e)
 				
         if(key == LV_KEY_UP)
         {
-					GPIO_PinState pin = HAL_GPIO_ReadPin(STDBY_GPIO_Port,STDBY_Pin);//低电平代表充电完成
-					GPIO_PinState pin2 = HAL_GPIO_ReadPin(CHRG_GPIO_Port,CHRG_Pin);//低电平代表充电中
-					printf("STDBY:%d,CHRG:%d\r\n",pin,pin2);
+					Battery_Info_t info;
+					Battery_GetInfo(&info);
+					printf("电池电压:%f,电量百分比:%d,充电状态:%d,ADC原始值:%d\r\n",info.voltage,info.percentage,info.is_charging,info.adc_raw);
         }
 				
         if(key == LV_KEY_DOWN)

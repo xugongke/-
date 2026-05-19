@@ -268,16 +268,6 @@ int write_user_data(const uint8_t *dev_addr, user_data_file_t *data)
 
     return 0;
 }
-void user_detail_btn_1_event_handler(lv_event_t *e)
-{
-    uint32_t idx = (uint32_t)(uintptr_t)lv_event_get_user_data(e);
-    device_ctrl_heater(device_list[idx].addr,1);
-}
-void user_detail_btn_2_event_handler(lv_event_t *e)
-{
-    uint32_t idx = (uint32_t)(uintptr_t)lv_event_get_user_data(e);
-    device_ctrl_heater(device_list[idx].addr,0);
-}
 
 /* ================== UI回调函数实现 ================== */
 
@@ -342,7 +332,4 @@ void user_list_item_event_handler(lv_event_t *e)
         lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 2, 1, "-- kWh ");
         lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 3, 1, "-- kWh ");
     }
-
-    lv_obj_add_event_cb(guider_ui.screen_user_detail_btn_1, user_detail_btn_1_event_handler, LV_EVENT_CLICKED, (void*)(uintptr_t)idx);
-    lv_obj_add_event_cb(guider_ui.screen_user_detail_btn_2, user_detail_btn_2_event_handler, LV_EVENT_CLICKED, (void*)(uintptr_t)idx);	
 }

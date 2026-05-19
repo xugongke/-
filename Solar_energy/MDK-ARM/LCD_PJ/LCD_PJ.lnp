@@ -25,6 +25,7 @@
 "lcd_pj\stm32f4xx_it.o"
 "lcd_pj\stm32f4xx_hal_msp.o"
 "lcd_pj\stm32f4xx_hal_timebase_tim.o"
+"lcd_pj\battery.o"
 "lcd_pj\stm32f4xx_hal_tim.o"
 "lcd_pj\stm32f4xx_hal_tim_ex.o"
 "lcd_pj\stm32f4xx_hal_adc.o"

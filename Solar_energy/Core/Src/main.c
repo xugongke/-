@@ -37,6 +37,7 @@
 #include "wiz_interface.h"
 #include "lv_port_disp.h"
 #include "rs485_usart.h"
+#include "battery.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -110,14 +111,15 @@ int main(void)
   MX_TIM2_Init();
   MX_USART3_UART_Init();
   MX_I2C2_Init();
-  MX_ADC1_Init();
   MX_USART2_UART_Init();
   MX_TIM3_Init();
   MX_UART4_Init();
   MX_UART7_Init();
   MX_UART8_Init();
   MX_USART6_UART_Init();
+  MX_ADC3_Init();
   /* USER CODE BEGIN 2 */
+	Battery_Init();
 	RS485_USART_Init_All();
 	//注册搬运图像数据完成回调函数
 	HAL_DMA_RegisterCallback(&hdma_memtomem_dma2_stream4, HAL_DMA_XFER_CPLT_CB_ID, LVGL_LCD_FSMC_DMA_pCallback);
