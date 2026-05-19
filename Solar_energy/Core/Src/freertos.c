@@ -96,7 +96,7 @@ void SDCardInfo(void)
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
   .name = "defaultTask",
-  .stack_size = 256 * 4,
+  .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityBelowNormal3,
 };
 /* Definitions for LVGLTask */
@@ -207,8 +207,7 @@ __weak void vApplicationTickHook( void )
 {
    /* This function will be called by each tick interrupt if
    configUSE_TICK_HOOK is set to 1 in FreeRTOSConfig.h. User code can be
-   added here, but the tick hook is called from an interrupt context, so
-   code must not attempt to block, and only the interrupt safe FreeRTOS API
+   added here, but the code must not attempt to block, and only the interrupt safe FreeRTOS API
    functions can be used (those that end in FromISR()). */
 }
 /* USER CODE END 3 */
@@ -307,48 +306,172 @@ void MX_FREERTOS_Init(void) {
 
 /* USER CODE BEGIN Header_StartDefaultTask */
 /**
-  * @brief  Function implementing the defaultTask thread.
+  * @brief  A7680C模块管理任务（统一管理网络初始化、健康监控、信号显示）
   * @param  argument: Not used
   * @retval None
+  *
+  * 职责:
+  * 1. 首次上电: 依次执行 ATE0→CheckNetworkReady→GetNetworkTime→HTTP_Init→MQTT连接
+  * 2. 运行中: 每秒检测 CPIN+CGATT，网络异常累计10次则重启模块并重新初始化
+  * 3. 更新UI信号强度条和天气文字
   */
-uint8_t card_flag = 1;
+/* 网络就绪标志（供Weather_Task和DevicePoll_Task使用） */
+uint8_t simcard_ready = 0;
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
-	int32_t rssi,ber,i = 0;
+	int32_t rssi,ber;
+	uint8_t Signal_buff[32];
+	int32_t fail_count = 0;
+	uint8_t need_init = 1;  /* 首次上电需要全量初始化 */
+	uint16_t online_check_count = 0;  /* 上网能力周期检查计数器 */
+
   /* Infinite loop */
   for(;;)
   {
 		HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
 		HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
-		if(i >= 10)//如果重启过模块,就要重新关闭回显
+
+		/*======================================================
+		 * 全量初始化（首次上电 或 模块重启后触发）
+		 * 依次执行: ATE0 → 等待网络就绪 → 同步时间 → HTTP → MQTT
+		 *======================================================*/
+		if (need_init)
 		{
-			if(A7680C_SendATE0() == AT_RESULT_OK)
+			simcard_ready = 0;
+			fail_count = 0;
+			printf("========== A7680C全量初始化开始 ==========\r\n");
+
+			/* 关闭回显（必须确保成功，否则回显会干扰后续AT指令解析）
+			 * 模块刚上电时可能还未就绪，需要轮询等待 */
+			uint8_t ate0_ok = 0;
+			for (uint8_t ate_retry = 0; ate_retry < 30; ate_retry++)
 			{
-				i = 0;
+				if (A7680C_SendATE0() == AT_RESULT_OK)
+				{
+					ate0_ok = 1;
+					printf("回显已关闭(第%d次尝试)\r\n", ate_retry + 1);
+					break;
+				}
+				osDelay(1000);
+			}
+			if (!ate0_ok)
+			{
+				printf("警告: 30s内未能关闭回显\r\n");
+			}
+
+			/* 轮询等待网络就绪（最多60秒）
+			 * CheckNetworkReady依次执行: CPIN→CGATT=1→CGATT?→CGDCONT
+			 * 四步全部通过才说明模块可以正常上网 */
+			uint8_t net_ok = 0;
+			for (uint8_t retry = 0; retry < 60; retry++)
+			{
+				if (A7680C_CheckNetworkReady() == AT_RESULT_OK)
+				{
+					net_ok = 1;
+					printf("网络就绪(第%d次尝试)\r\n", retry + 1);
+					break;
+				}
+				printf("等待网络就绪...(%d/60)\r\n", retry + 1);
+				osDelay(1000);
+			}
+
+			if (net_ok)
+			{
+				/* 同步网络时间到RTC芯片 */
+				uint8_t step;
+				if (A7680C_GetNetworkTime_Debug(&step) == AT_RESULT_OK)
+				{
+					printf("网络时间同步成功\r\n");
+				}
+				else
+				{
+					printf("网络时间同步失败, step:%d\r\n", step);
+				}
+
+				/* 初始化HTTP（用于天气获取） */
+				A7680C_HTTP_Init();
+
+				/* 初始化MQTT连接 */
+				printf("初始化MQTT连接...\r\n");
+				if (A7680C_MQTT_Start() != AT_RESULT_OK)
+				{
+					printf("MQTT START失败, 5秒后重试\r\n");
+					osDelay(5000);
+					A7680C_MQTT_Start();
+				}
+				if (A7680C_MQTT_Connect(MQTT_CLIENT_ID, NULL, NULL) != AT_RESULT_OK)
+				{
+					printf("MQTT CONNECT失败, 10秒后重试\r\n");
+					osDelay(10000);
+					A7680C_MQTT_Connect(MQTT_CLIENT_ID, NULL, NULL);
+				}
+
+				simcard_ready = 1;
+				need_init = 0;
+				
+				osTimerStart(weatherTimerHandle, 1000);//从网络获取一次天气
+				printf("========== A7680C全量初始化完成 ==========\r\n");
+			}
+			else
+			{
+				printf("60s内网络未就绪,稍后重试\r\n");
+				simcard_ready = 0;
+				need_init = 1;  /* 保持init标志，下次循环继续尝试 */
+				A7680C_SendAT_CFUN();  /* 重启模块 */
+				osDelay(5000);
+				continue;
 			}
 		}
+
+		/*======================================================
+		 * UI就绪检测 + 信号强度显示 + 网络健康检查
+		 *======================================================*/
 		uint8_t ui_ready = lv_obj_is_valid(guider_ui.screen_user_home_line_1) &&
 		                   lv_obj_is_valid(guider_ui.screen_user_home_line_3) &&
 		                   lv_obj_is_valid(guider_ui.screen_user_home_label_3);
 
 		if(ui_ready)
 		{
-			/* AT指令操作（不持有互斥锁，避免阻塞LVGL渲染） */
-			uint8_t sim_ok = A7680C_SendAT_CPIN();  // 检测SIM卡是否插好
-			uint8_t sig_ok = 0;
-			uint8_t Signal_buff[32];
+			/* 检测SIM卡 + 网络附着状态 */
+			uint8_t sim_ok = A7680C_SendAT_CPIN();
+			uint8_t net_ok = 0;
+
 			if(sim_ok == AT_RESULT_OK)
 			{
-				card_flag = 1;
-				sig_ok = A7680C_SendAT_CSQ(Signal_buff);
+				net_ok = A7680C_SendAT("AT+CGATT?\r\n", "+CGATT: 1", 2000, NULL);
 			}
 
-			/* LVGL操作（在互斥锁保护下执行） */
-			if(sim_ok == AT_RESULT_OK)
+			if(sim_ok == AT_RESULT_OK && net_ok == AT_RESULT_OK)
 			{
-				if(sig_ok == AT_RESULT_OK)
+				/* 网络基本正常：更新信号强度显示 */
+				fail_count = 0;
+
+				/* 周期性验证上网能力（每30秒用CLBS检查一次）
+				 * CPIN+CGATT在欠费卡下也能通过，但CLBS需要真正的数据通道
+				 * CLBS失败说明SIM卡无法上网（欠费等），将simcard_ready置0 */
+				online_check_count++;
+				if(online_check_count >= 30)
+				{
+					online_check_count = 0;
+					if(A7680C_SendAT("AT+CLBS=1\r\n", "+CLBS: 0", 5000, NULL) != AT_RESULT_OK)
+					{
+						printf("CLBS失败,SIM卡可能欠费无法上网\r\n");
+						simcard_ready = 0;
+						/* 不重启模块，只标记上网不可用，等下次CLBS成功再恢复 */
+					}
+					else
+					{
+						if(simcard_ready == 0)
+						{
+							printf("CLBS成功,上网能力恢复\r\n");
+							simcard_ready = 1;
+						}
+					}
+				}
+
+				if(A7680C_SendAT_CSQ(Signal_buff) == AT_RESULT_OK)
 				{
 					lv_obj_add_flag(guider_ui.screen_user_home_label_3, LV_OBJ_FLAG_HIDDEN);
 					A7680C_ParseCSQ(Signal_buff,&rssi,&ber);
@@ -380,21 +503,29 @@ void StartDefaultTask(void *argument)
 			}
 			else
 			{
-				card_flag = 0;
+				/* 网络异常：累计失败次数 */
+				fail_count++;
+				printf("网络异常(SIM=%d,CGATT=%d, fail=%d/10)\r\n", sim_ok, net_ok, fail_count);
+
 				lv_obj_set_style_line_color(guider_ui.screen_user_home_line_1, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
 				lv_obj_set_style_line_color(guider_ui.screen_user_home_line_2, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
 				lv_obj_set_style_line_color(guider_ui.screen_user_home_line_3, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
 				lv_obj_clear_flag(guider_ui.screen_user_home_label_3, LV_OBJ_FLAG_HIDDEN);
-				i++;
-				if(i == 10)
+
+				if(fail_count >= 10)
 				{
-					A7680C_SendAT_CFUN();  // 重启模块（不持有互斥锁）
+					printf("网络连续10次异常,重启模块并重新初始化\r\n");
+					simcard_ready = 0;
+					A7680C_SendAT_CFUN();  /* 重启模块 */
+					need_init = 1;         /* 触发全量重新初始化 */
+					osDelay(5000);         /* 等待模块重启 */
+					continue;
 				}
-				osDelay(1000);
-				continue;
 			}
 		}
-		const char* Weather_buff = Weather_GetShortDesc(weather_data.weather_code);//将天气代码翻译成中文
+
+		/* 天气文字更新 */
+		const char* Weather_buff = Weather_GetShortDesc(weather_data.weather_code);
 		if(lv_obj_is_valid(guider_ui.screen_user_home_label_1) && lv_obj_is_valid(guider_ui.screen_user_home_label_2))
 		{
 				lv_label_set_text(guider_ui.screen_user_home_label_1, Weather_buff);
@@ -435,6 +566,11 @@ void lvgl_task(void *argument)
 	setup_ui(&guider_ui);           // 初始化 UI
 	events_init(&guider_ui);       // 初始化 事件
 	custom_init(&guider_ui);			// 你自己的逻辑
+
+	/* UI初始化完成，通知RTC_Task可以操作LVGL了 */
+	osThreadFlagsSet(RTCTaskHandle, 0x02);
+	printf("LVGL UI初始化完成\r\n");
+
   /* Infinite loop */
   for(;;)
   {
@@ -494,11 +630,6 @@ void ES1642_Task(void *argument)
 		size_t n = xMessageBufferReceive(uart2Message, buf, sizeof(buf), pdMS_TO_TICKS(5000));
 		if(n)
 		{
-//			for(int i = 0;i < n;i++)
-//			{
-//				printf("%#x ",buf[i]);
-//			}
-//			printf("\r\n");
 				ES1642_ProcessCompleteFrame(&g_es1642_handle,buf,n);
 		}
 		else
@@ -522,12 +653,17 @@ void ES1642_Task(void *argument)
 * @brief Function implementing the RTCTask thread.
 * @param argument: Not used
 * @retval None
+*
+* 职责（精简版，AT模块管理已移至StartDefaultTask）:
+* 1. 初始化外部RTC芯片RX8025T
+* 2. 跳转到home界面
+* 3. 启动天气定时器
+* 4. 循环更新RTC时间显示
 */
 /* USER CODE END Header_RTC_Task */
 void RTC_Task(void *argument)
 {
   /* USER CODE BEGIN RTC_Task */
-	uint8_t step;
 	if (RX8025T_InitAndDisplay() == HAL_OK) 
 	{
 //		printf("外部RTC时钟通信成功\r\n");
@@ -536,52 +672,17 @@ void RTC_Task(void *argument)
 	{
 		printf("外部RTC时钟通信失败\r\n");
 	}
-	/* 轮询等待A7680C模块就绪（替代固定的osDelay） */
-	/* 通过AT+CPIN?检测SIM卡是否就绪来判断模块是否启动完成 */
-	uint8_t module_ready = 0;
-	for (uint8_t i = 0; i < 30; i++)
-	{
-			osDelay(1000);
-			if (A7680C_SendAT_CPIN() == AT_RESULT_OK)
-			{
-					module_ready = 1;
-					printf("A7680C模块已就绪(耗时%ds)\r\n", i + 1);
-					A7680C_SendATE0();//关闭回显
-					break;
-			}
-			printf("等待A7680C就绪...(%d/30)\r\n", i + 1);
-	}
 
-	if (module_ready)
-	{
-			/* 模块就绪，获取网络时间并同步到RTC芯片 */
-			at_result_t ret = A7680C_GetNetworkTime_Debug(&step);
-			if (ret == AT_RESULT_OK)
-			{
-					printf("更新网络时间到RTC芯片成功\r\n");
-					A7680C_HTTP_Init();//初始化HTTP
-			}
-			else
-			{
-					printf("获取网络时间失败, step:%d\r\n", step);
-			}
-	}
-	else
-	{
-			printf("A7680C模块30s内未就绪,跳过网络时间同步\r\n");
-	}
+	/* 等待LVGL UI初始化完成（由lvgl_task发送0x02标志） */
+	osThreadFlagsWait(0x02, osFlagsWaitAny, osWaitForever);
+	printf("RTCTask: LVGL UI已就绪\r\n");
+	osDelay(1500);
 
-	/* 无论是否成功同步时间，都跳转到home界面 */
+	/* 跳转到home界面 */
 	ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_home,
 			guider_ui.screen_user_home_del, &guider_ui.screen_user_list_del,
 			setup_scr_screen_user_home, LV_SCR_LOAD_ANIM_NONE, 10, 10, true, true);
 
-	/* 模块就绪后延迟触发天气获取（等待home界面创建完毕） */
-	if (module_ready)
-	{
-			osDelay(1000);
-			osTimerStart(weatherTimerHandle,1000);
-	}
   /* Infinite loop */
   for(;;)
   {
@@ -609,7 +710,7 @@ void Weather_Task(void *argument)
   {
 		//等待 0x01 标志位，阻塞等待
     osThreadFlagsWait(0x01, osFlagsWaitAny, osWaitForever);
-		if(card_flag == 1)
+		if(simcard_ready == 1)
 		{
 			A7680C_SendAT("AT+CLBS=1\r\n", "+CLBS: 0", 5000,jwd_buff);//读取经纬度
 			pos = A7680C_ParseCLBS((char*)jwd_buff);//解析经纬度
@@ -625,41 +726,21 @@ void Weather_Task(void *argument)
 * @brief Function implementing the DevicePollTask thread.
 * @param argument: Not used
 * @retval None
+*
+* 职责（精简版，MQTT初始化已移至StartDefaultTask）:
+* 仅在simcard_ready=1时轮询设备状态并上报
 */
 /* USER CODE END Header_DevicePoll_Task */
 void DevicePoll_Task(void *argument)
 {
   /* USER CODE BEGIN DevicePoll_Task */
-	/* 等待系统初始化完成（设备表加载、A7680C模块就绪等） */
-	osDelay(30000);
-
-	/* 初始化MQTT EX连接 */
-	printf("开始初始化MQTT连接...\r\n");
-
-	if (A7680C_MQTT_Start() != AT_RESULT_OK)
-	{
-		printf("MQTT START失败, 5秒后重试\r\n");
-		osDelay(5000);
-		if (A7680C_MQTT_Start() != AT_RESULT_OK)
-		{
-			printf("MQTT START二次失败\r\n");
-		}
-	}
-
-	if (A7680C_MQTT_Connect(MQTT_CLIENT_ID, NULL, NULL) != AT_RESULT_OK)
-	{
-		printf("MQTT CONNECT失败, 10秒后重试\r\n");
-		osDelay(10000);
-		if (A7680C_MQTT_Connect(MQTT_CLIENT_ID, NULL, NULL) != AT_RESULT_OK)
-		{
-			printf("MQTT CONNECT二次失败\r\n");
-		}
-	}
-
   /* Infinite loop */
   for(;;)
   {
-    device_poll_all_status();
+    if(simcard_ready == 1)
+    {
+      device_poll_all_status();
+    }
     osDelay(30000);  /* 每30秒轮询一次 */
   }
   /* USER CODE END DevicePoll_Task */
@@ -685,3 +766,4 @@ void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
     for(;;);
 }
 /* USER CODE END Application */
+

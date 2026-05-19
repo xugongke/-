@@ -367,11 +367,75 @@
 			"flag": [],
 			"list": [
 				{
+					"name": "bar_1",
+					"id": "fxf0836j",
+					"type": "bar",
+					"left": 9,
+					"top": 11,
+					"visible": true,
+					"isLock": false,
+					"flag": [],
+					"width": 56,
+					"height": 16,
+					"default_style": false,
+					"animtime": 1000,
+					"bar_value": 1,
+					"bar_start_value": 30,
+					"range_s": 0,
+					"range_e": 100,
+					"anim": false,
+					"mode": "LV_BAR_MODE_NORMAL",
+					"attribute_type": "freemaster",
+					"custom_attribute": [],
+					"style": [
+						{
+							"part": "LV_PART_MAIN",
+							"state": "LV_STATE_DEFAULT",
+							"disable": false,
+							"bg_color": "#000000",
+							"bg_grad_color": "#2195f6",
+							"bg_grad_dir": "LV_GRAD_DIR_NONE",
+							"bg_dither_mode": "LV_DITHER_NONE",
+							"bg_main_stop": 0,
+							"bg_grad_stop": 255,
+							"bg_opa": 15,
+							"radius": 10,
+							"shadow_color": "#00ff1d",
+							"shadow_opa": 255,
+							"shadow_width": 0,
+							"shadow_spread": 0,
+							"shadow_ofs_x": 0,
+							"shadow_ofs_y": 0,
+							"bg_img_src": "",
+							"bg_img_opa": 255,
+							"bg_img_recolor": "#00ff24",
+							"bg_img_recolor_opa": 0
+						},
+						{
+							"part": "LV_PART_INDICATOR",
+							"state": "LV_STATE_DEFAULT",
+							"disable": false,
+							"bg_color": "#00ff8c",
+							"bg_grad_color": "#2195f6",
+							"bg_grad_dir": "LV_GRAD_DIR_NONE",
+							"bg_dither_mode": "LV_DITHER_NONE",
+							"bg_main_stop": 0,
+							"bg_grad_stop": 255,
+							"bg_opa": 255,
+							"radius": 10,
+							"bg_img_src": "",
+							"bg_img_opa": 255,
+							"bg_img_recolor": "#ffffff",
+							"bg_img_recolor_opa": 0
+						}
+					]
+				},
+				{
 					"name": "cont_3",
 					"id": "dpoyq8q0",
 					"type": "cont",
-					"left": 57,
-					"top": 0,
+					"left": 70,
+					"top": 5,
 					"visible": true,
 					"isLock": false,
 					"flag": [],
@@ -2263,13 +2327,13 @@
 					"name": "btn_2",
 					"id": "obj1y2wj",
 					"type": "btn",
-					"left": 259,
-					"top": 218,
+					"left": 393,
+					"top": 118,
 					"visible": true,
 					"isLock": false,
 					"flag": [],
-					"width": 100,
-					"height": 50,
+					"width": 78,
+					"height": 38,
 					"default_style": false,
 					"long_mode": "LV_LABEL_LONG_WRAP",
 					"text": "停止加热 ",
@@ -2447,13 +2511,13 @@
 					"name": "btn_1",
 					"id": "ljshf2u8",
 					"type": "btn",
-					"left": 128,
-					"top": 218,
+					"left": 9,
+					"top": 114,
 					"visible": true,
 					"isLock": false,
 					"flag": [],
-					"width": 100,
-					"height": 50,
+					"width": 78,
+					"height": 38,
 					"default_style": false,
 					"long_mode": "LV_LABEL_LONG_WRAP",
 					"text": "启动加热 ",
@@ -2635,7 +2699,7 @@
 					"id": "3pad1m53",
 					"type": "cont",
 					"left": 77,
-					"top": 288,
+					"top": 276,
 					"visible": true,
 					"isLock": false,
 					"flag": [],
@@ -2885,8 +2949,8 @@
 					"name": "table_1",
 					"id": "coro6zon",
 					"type": "table",
-					"left": 110,
-					"top": 31,
+					"left": 107,
+					"top": 74,
 					"visible": true,
 					"isLock": false,
 					"flag": [],
@@ -4817,8 +4881,8 @@
 						"scrollbar_mode": "OFF",
 						"flag": [],
 						"pos": [
-							57,
-							0
+							70,
+							5
 						],
 						"size": [
 							351,
@@ -5272,6 +5336,79 @@
 								"shadow_spread": 0,
 								"shadow_ofs_x": 0,
 								"shadow_ofs_y": 0
+							}
+						]
+					},
+					{
+						"name": "screen_user_home_bar_1",
+						"id": "fxf0836j",
+						"type": "bar",
+						"visible": true,
+						"flag": [],
+						"pos": [
+							9,
+							11
+						],
+						"size": [
+							56,
+							16
+						],
+						"default_style": false,
+						"attribute_type": "freemaster",
+						"custom_attribute": [],
+						"mode": "LV_BAR_MODE_NORMAL",
+						"range": [
+							0,
+							100
+						],
+						"bar_start_value": 30,
+						"animtime": 1000,
+						"animValue": [
+							{
+								"bar_value": 1,
+								"anim": "LV_ANIM_OFF"
+							}
+						],
+						"style": [
+							{
+								"part": "LV_PART_MAIN",
+								"state": "LV_STATE_DEFAULT",
+								"disable": false,
+								"bg_color": "#000000",
+								"bg_grad_color": "#2195f6",
+								"bg_grad_dir": "LV_GRAD_DIR_NONE",
+								"bg_dither_mode": "LV_DITHER_NONE",
+								"bg_main_stop": 0,
+								"bg_grad_stop": 255,
+								"bg_opa": 15,
+								"radius": 10,
+								"shadow_color": "#00ff1d",
+								"shadow_opa": 255,
+								"shadow_width": 0,
+								"shadow_spread": 0,
+								"shadow_ofs_x": 0,
+								"shadow_ofs_y": 0,
+								"bg_img_src": "",
+								"bg_img_opa": 255,
+								"bg_img_recolor": "#00ff24",
+								"bg_img_recolor_opa": 0
+							},
+							{
+								"part": "LV_PART_INDICATOR",
+								"state": "LV_STATE_DEFAULT",
+								"disable": false,
+								"bg_color": "#00ff8c",
+								"bg_grad_color": "#2195f6",
+								"bg_grad_dir": "LV_GRAD_DIR_NONE",
+								"bg_dither_mode": "LV_DITHER_NONE",
+								"bg_main_stop": 0,
+								"bg_grad_stop": 255,
+								"bg_opa": 255,
+								"radius": 10,
+								"bg_img_src": "",
+								"bg_img_opa": 255,
+								"bg_img_recolor": "#ffffff",
+								"bg_img_recolor_opa": 0
 							}
 						]
 					}
@@ -5865,8 +6002,8 @@
 						"scrollbar_mode": "OFF",
 						"flag": [],
 						"pos": [
-							110,
-							31
+							107,
+							74
 						],
 						"size": [
 							null,
@@ -6067,7 +6204,7 @@
 						"flag": [],
 						"pos": [
 							77,
-							288
+							276
 						],
 						"size": [
 							398,
@@ -6325,12 +6462,12 @@
 						"visible": true,
 						"flag": [],
 						"pos": [
-							128,
-							218
+							9,
+							114
 						],
 						"size": [
-							100,
-							50
+							78,
+							38
 						],
 						"default_style": false,
 						"event": {
@@ -6516,12 +6653,12 @@
 						"visible": true,
 						"flag": [],
 						"pos": [
-							259,
-							218
+							393,
+							118
 						],
 						"size": [
-							100,
-							50
+							78,
+							38
 						],
 						"default_style": false,
 						"text_align": "center",

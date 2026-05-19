@@ -121,7 +121,7 @@ void MX_GPIO_Init(void)
   /*Configure GPIO pins : CHRG_Pin STDBY_Pin */
   GPIO_InitStruct.Pin = CHRG_Pin|STDBY_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
 
   /*Configure GPIO pin : W5500_CS_Pin */

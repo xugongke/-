@@ -42,6 +42,7 @@ typedef struct
 	lv_obj_t *screen_user_home_label_ip;
 	lv_obj_t *screen_user_home_label_10;
 	lv_obj_t *screen_user_home_label_port;
+	lv_obj_t *screen_user_home_bar_1;
 	lv_obj_t *screen_user_list;
 	bool screen_user_list_del;
 	lv_obj_t *screen_user_list_label_1;

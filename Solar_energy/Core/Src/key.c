@@ -120,20 +120,17 @@ void screen_user_list_item_event_handler(lv_event_t *e)
         uint32_t key = lv_event_get_key(e);
         if(key == LV_KEY_LEFT)//左键，用户离线
         {	
-					FRESULT f_res;
-					static uint8_t aMountBuffer[4096];
-					f_res = f_mkfs("0:",2, 0, aMountBuffer, sizeof(aMountBuffer)); 
-					if (f_res == FR_OK)
-					{
-							printf("SD卡格式化：成功 \r\n");
-					}
-					
-					//让设备退网
-					const uint8_t new_psk[2] = {0x01,0x02};
-					ES1642_SendSetPsk(&g_es1642_handle, device_list[0].addr, new_psk, 0x01);
-					
-//					//启动加热
-//					device_ctrl_heater(device_list[0].addr,1);
+//					FRESULT f_res;
+//					static uint8_t aMountBuffer[4096];
+//					f_res = f_mkfs("0:",2, 0, aMountBuffer, sizeof(aMountBuffer)); 
+//					if (f_res == FR_OK)
+//					{
+//							printf("SD卡格式化：成功 \r\n");
+//					}
+//					
+//					//让设备退网
+//					const uint8_t new_psk[2] = {0x01,0x02};
+//					ES1642_SendSetPsk(&g_es1642_handle, device_list[0].addr, new_psk, 0x01);
         }
 				
         if(key == LV_KEY_RIGHT)//右键，用户上线
@@ -141,23 +138,22 @@ void screen_user_list_item_event_handler(lv_event_t *e)
 //					//让设备退网
 //					const uint8_t new_psk[2] = {0x01,0x02};
 //					ES1642_SendSetPsk(&g_es1642_handle, device_list[1].addr, new_psk, 0x01);
-					
-					//停止加热
-					device_ctrl_heater(device_list[0].addr,0);
-					
+//					
+//					//停止加热
+//					device_ctrl_heater(device_list[0].addr,0);
+//					
         }
 				
         if(key == LV_KEY_UP)
         {
-//					printf("开始搜索全部设备\r\n");
-//					ES1642_StartSearch(0,ES1642_SEARCH_RULE_ALL);
-						osThreadFlagsSet(WeatherTaskHandle, 0x01);
+					GPIO_PinState pin = HAL_GPIO_ReadPin(STDBY_GPIO_Port,STDBY_Pin);//低电平代表充电完成
+					GPIO_PinState pin2 = HAL_GPIO_ReadPin(CHRG_GPIO_Port,CHRG_Pin);//低电平代表充电中
+					printf("STDBY:%d,CHRG:%d\r\n",pin,pin2);
         }
 				
         if(key == LV_KEY_DOWN)
         {
-//					printf("停止设备搜索\r\n");
-//					ES1642_StopSearch();
+
         }
 				
         if(key == LV_KEY_ESC)//ESC键，返回首页

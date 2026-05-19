@@ -22,8 +22,8 @@ uint8_t A7680C_CheckSIM(void);
 /* 查询信号强度 */
 uint8_t A7680C_CheckSignal(void);
 
-/* 网络附着 */
-uint8_t A7680C_CheckNetwork(void);
+/* 网络状态综合检测（检测SIM卡、欠费、网络注册、能否上网） */
+at_result_t A7680C_CheckNetworkReady(void);
 
 uint8_t A7680C_SendCmdWaitAck(uint8_t* data_buff);
 uint8_t A7680C_SendATE1(void);

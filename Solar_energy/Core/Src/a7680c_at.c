@@ -98,7 +98,7 @@ uint8_t A7680C_SendAT_CGATT_SET(void)
  */
 uint8_t A7680C_SendAT_CGATT_READ(void)
 {
-    return A7680C_SendAT("AT+CGATT?\r\n", "OK", 500,NULL);
+    return A7680C_SendAT("AT+CGATT?\r\n", "+CGATT: 1", 500,NULL);
 }
 
 /*
@@ -339,6 +339,43 @@ CLBS_PosTypeDef A7680C_ParseCLBS(char *buf)
 }
 
 /*
+ * 检查网络是否就绪（SIM卡识别 + 网络附着 + PDP配置 + 上网验证）
+ * 依次执行: AT+CPIN? → AT+CGATT=1 → AT+CGATT? → AT+CGDCONT → AT+CLBS=1
+ * 五步全部通过才返回OK
+ *
+ * 前4步(CPIN/CGATT/CGDCONT)验证模块层面的基本网络状态
+ * 第5步AT+CLBS=1（基站定位）验证能否真正上网
+ * CLBS需要模块与基站进行数据交互，欠费卡无法完成此操作
+ * 只有CLBS返回+CLBS: 0才说明数据通道真正可用
+ */
+at_result_t A7680C_CheckNetworkReady(void)
+{
+    at_result_t ret;
+
+    /* 第1步：检查SIM卡是否插入并解锁 */
+    ret = A7680C_SendAT_CPIN();
+    if (ret != AT_RESULT_OK) return ret;
+
+    /* 第2步：附着分组数据网络 */
+    ret = A7680C_SendAT_CGATT_SET();
+    if (ret != AT_RESULT_OK) return ret;
+
+    /* 第3步：查询附着状态，必须返回 +CGATT: 1 */
+    ret = A7680C_SendAT("AT+CGATT?\r\n", "+CGATT: 1", 500, NULL);
+    if (ret != AT_RESULT_OK) return ret;
+
+    /* 第4步：配置PDP上下文（APN） */
+    ret = A7680C_SendAT_CGDCONT();
+    if (ret != AT_RESULT_OK) return ret;
+	
+		ret = A7680C_SendAT("AT+CLBS=1\r\n", "+CLBS: 0", 500,NULL);//读取经纬度
+		if (ret != AT_RESULT_OK) return ret;
+
+    printf("网络基本就绪(SIM卡已识别,已附着网络)\r\n");
+    return AT_RESULT_OK;
+}
+
+/*
  * 获取网络时间，并返回失败发生在哪一步
  * 适合调试阶段使用
  */
@@ -353,38 +390,22 @@ at_result_t A7680C_GetNetworkTime_Debug(uint8_t *step)
     }
 
     *step = 1;
-    ret = A7680C_SendAT_CPIN();
-    if (ret != AT_RESULT_OK) return ret;
-
-    *step = 3;
-    ret = A7680C_SendAT_CGATT_SET();
-    if (ret != AT_RESULT_OK) return ret;
-
-    *step = 4;
-    ret = A7680C_SendAT_CGATT_READ();
-    if (ret != AT_RESULT_OK) return ret;
-
-    *step = 5;
-    ret = A7680C_SendAT_CGDCONT();
-    if (ret != AT_RESULT_OK) return ret;
-
-    *step = 6;
     ret = A7680C_SendAT_CTzu();
     if (ret != AT_RESULT_OK) return ret;
 
-    *step = 7;
+    *step = 2;
     ret = A7680C_SendAT_CNTPCFG();
     if (ret != AT_RESULT_OK) return ret;
 
-    *step = 8;
+    *step = 3;
     ret = A7680C_SendAT_CNTP_SERVER();
     if (ret != AT_RESULT_OK) return ret;
 
-    *step = 9;
+    *step = 4;
     ret = A7680C_SendAT_CNTP();
     if (ret != AT_RESULT_OK) return ret;
 
-    *step = 10;
+    *step = 5;
 		uint8_t time_buff[128];
     ret = A7680C_SendAT_CCLK(time_buff);
 		if((A7680C_ParseCCLK(time_buff,&DateTim) == 0) || (ret != AT_RESULT_OK))//解析获取网络时间
@@ -401,4 +422,3 @@ at_result_t A7680C_GetNetworkTime_Debug(uint8_t *step)
     *step = 0;
     return AT_RESULT_OK;
 }
-

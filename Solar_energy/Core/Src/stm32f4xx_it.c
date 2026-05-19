@@ -23,6 +23,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "a7680c.h"
+#include "FreeRTOS.h"
+#include "task.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -52,6 +54,79 @@
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+/* HardFault详细诊断函数 - 从汇编调用，传入PSP/MSP */
+void HardFault_Dump(uint32_t *stack, uint32_t lr_value)
+{
+	/* 故障状态寄存器 */
+	printf("\r\n======== HardFault 诊断信息 ========\r\n");
+
+	/* BusFault状态 */
+	uint32_t bfsr = (SCB->CFSR >> 8) & 0xFF;
+	/* UsageFault状态 */
+	uint32_t ufsr = (SCB->CFSR >> 16) & 0xFFFF;
+	/* MemManage状态 */
+	uint32_t mmfsr = SCB->CFSR & 0xFF;
+
+	printf("CFSR=0x%08lX (UFSR=0x%04X BFSR=0x%02X MMFSR=0x%02X)\r\n",
+		SCB->CFSR, ufsr, bfsr, mmfsr);
+	printf("HFSR=0x%08lX\r\n", SCB->HFSR);
+	printf("MMFAR=0x%08lX BFAR=0x%08lX\r\n", SCB->MMFAR, SCB->BFAR);
+
+	/* 解析HFSR */
+	if (SCB->HFSR & (1UL << 30))
+		printf("  [HFSR] FORCED: 总线/内存/用法fault升级为HardFault\r\n");
+	if (SCB->HFSR & (1UL << 31))
+		printf("  [HFSR] DEBUG_EVT: 调试事件触发\r\n");
+	if (SCB->HFSR & (1UL << 1))
+		printf("  [HFSR] VECTTBL: 向量表读取失败\r\n");
+
+	/* 解析UsageFault */
+	if (ufsr & (1 << 0)) printf("  [UFSR] UNDEFINSTR: 执行了未定义指令\r\n");
+	if (ufsr & (1 << 1)) printf("  [UFSR] INVSTATE: 无效EPSR状态(Thumb位)\r\n");
+	if (ufsr & (1 << 2)) printf("  [UFSR] INVPC: 无效PC加载\r\n");
+	if (ufsr & (1 << 3)) printf("  [UFSR] NOCP: 无协处理器指令\r\n");
+	if (ufsr & (1 << 8)) printf("  [UFSR] UNALIGNED: 非对齐访问\r\n");
+	if (ufsr & (1 << 9)) printf("  [UFSR] DIVBYZERO: 除零错误\r\n");
+
+	/* 解析BusFault */
+	if (bfsr & (1 << 0)) printf("  [BFSR] IBUSERR: 指令总线错误\r\n");
+	if (bfsr & (1 << 1)) printf("  [BFSR] PRECISERR: 精确数据总线错误, BFAR=0x%08lX\r\n", SCB->BFAR);
+	if (bfsr & (1 << 2)) printf("  [BFSR] IMPRECISERR: 不精确数据总线错误\r\n");
+	if (bfsr & (1 << 3)) printf("  [BFSR] UNSTKERR: 出栈错误\r\n");
+	if (bfsr & (1 << 4)) printf("  [BFSR] STKERR: 入栈错误\r\n");
+
+	/* 解析MemManage */
+	if (mmfsr & (1 << 0)) printf("  [MMFSR] IACCVIOL: 指令访问违规\r\n");
+	if (mmfsr & (1 << 1)) printf("  [MMFSR] DACCVIOL: 数据访问违规, MMFAR=0x%08lX\r\n", SCB->MMFAR);
+	if (mmfsr & (1 << 3)) printf("  [MMFSR] MUNSTKERR: MemManage出栈错误\r\n");
+	if (mmfsr & (1 << 4)) printf("  [MMFSR] MSTKERR: MemManage入栈错误\r\n");
+
+	/* 中断返回值（EXC_RETURN） */
+	printf("EXC_RETURN=0x%08lX", lr_value);
+	if (lr_value & (1UL << 2))
+		printf(" (使用PSP, 任务上下文)\r\n");
+	else
+		printf(" (使用MSP, 中断/主程序上下文)\r\n");
+
+	/* 堆栈中保存的寄存器 */
+	printf("\r\n--- 异常时寄存器 ---\r\n");
+	printf("R0 =0x%08lX\r\n", stack[0]);
+	printf("R1 =0x%08lX\r\n", stack[1]);
+	printf("R2 =0x%08lX\r\n", stack[2]);
+	printf("R3 =0x%08lX\r\n", stack[3]);
+	printf("R12=0x%08lX\r\n", stack[4]);
+	printf("LR =0x%08lX\r\n", stack[5]);
+	printf("PC =0x%08lX  <-- 崩溃地址\r\n", stack[6]);
+	printf("xPSR=0x%08lX\r\n", stack[7]);
+
+	/* FreeRTOS当前任务 */
+	TaskHandle_t task = xTaskGetCurrentTaskHandle();
+	if (task)
+		printf("当前任务: %s\r\n", pcTaskGetName(task));
+
+	printf("====================================\r\n");
+}
 
 /* USER CODE END 0 */
 
@@ -110,7 +185,6 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
-	printf("进入HardFault_Handler错误中断\r\n");
 
   /* USER CODE END HardFault_IRQn 0 */
   while (1)

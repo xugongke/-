@@ -61,7 +61,7 @@ void setup_scr_screen_user_detail(lv_ui *ui)
     lv_table_set_cell_value(ui->screen_user_detail_table_1,1,1,"10w ");
     lv_table_set_cell_value(ui->screen_user_detail_table_1,2,1,"100w ");
     lv_table_set_cell_value(ui->screen_user_detail_table_1,3,1,"100kWh ");
-    lv_obj_set_pos(ui->screen_user_detail_table_1, 110, 31);
+    lv_obj_set_pos(ui->screen_user_detail_table_1, 107, 74);
     lv_obj_set_scrollbar_mode(ui->screen_user_detail_table_1, LV_SCROLLBAR_MODE_OFF);
 
     //Write style for screen_user_detail_table_1, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
@@ -93,7 +93,7 @@ void setup_scr_screen_user_detail(lv_ui *ui)
 
     //Write codes screen_user_detail_cont_1
     ui->screen_user_detail_cont_1 = lv_obj_create(ui->screen_user_detail);
-    lv_obj_set_pos(ui->screen_user_detail_cont_1, 77, 288);
+    lv_obj_set_pos(ui->screen_user_detail_cont_1, 77, 276);
     lv_obj_set_size(ui->screen_user_detail_cont_1, 398, 31);
     lv_obj_set_scrollbar_mode(ui->screen_user_detail_cont_1, LV_SCROLLBAR_MODE_OFF);
 
@@ -164,8 +164,8 @@ void setup_scr_screen_user_detail(lv_ui *ui)
     lv_obj_align(ui->screen_user_detail_btn_1_label, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_style_pad_all(ui->screen_user_detail_btn_1, 0, LV_STATE_DEFAULT);
     lv_obj_set_width(ui->screen_user_detail_btn_1_label, LV_PCT(100));
-    lv_obj_set_pos(ui->screen_user_detail_btn_1, 128, 218);
-    lv_obj_set_size(ui->screen_user_detail_btn_1, 100, 50);
+    lv_obj_set_pos(ui->screen_user_detail_btn_1, 9, 114);
+    lv_obj_set_size(ui->screen_user_detail_btn_1, 78, 38);
 
     //Write style for screen_user_detail_btn_1, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
     lv_obj_set_style_bg_opa(ui->screen_user_detail_btn_1, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
@@ -187,8 +187,8 @@ void setup_scr_screen_user_detail(lv_ui *ui)
     lv_obj_align(ui->screen_user_detail_btn_2_label, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_style_pad_all(ui->screen_user_detail_btn_2, 0, LV_STATE_DEFAULT);
     lv_obj_set_width(ui->screen_user_detail_btn_2_label, LV_PCT(100));
-    lv_obj_set_pos(ui->screen_user_detail_btn_2, 259, 218);
-    lv_obj_set_size(ui->screen_user_detail_btn_2, 100, 50);
+    lv_obj_set_pos(ui->screen_user_detail_btn_2, 393, 118);
+    lv_obj_set_size(ui->screen_user_detail_btn_2, 78, 38);
 
     //Write style for screen_user_detail_btn_2, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
     lv_obj_set_style_bg_opa(ui->screen_user_detail_btn_2, 255, LV_PART_MAIN|LV_STATE_DEFAULT);
