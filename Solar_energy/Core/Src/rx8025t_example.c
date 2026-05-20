@@ -47,7 +47,6 @@
 HAL_StatusTypeDef RX8025T_UpdateTimeDisplay(void)
 {
     RX8025T_DateTimeCompact datetime;
-    char time_str[20];
     char date_str[20];
 //    char weekday_str[15];
     HAL_StatusTypeDef status;
@@ -58,20 +57,36 @@ HAL_StatusTypeDef RX8025T_UpdateTimeDisplay(void)
         return status;
     }
     
-    /* 格式化时间字符串 */
-    lv_snprintf(time_str, sizeof(time_str), "%02d:%02d:%02d",
-             datetime.hours, datetime.minutes, datetime.seconds);
-    
     /* 格式化日期字符串 */
     lv_snprintf(date_str, sizeof(date_str), "20%02d-%02d-%02d",
              datetime.year, datetime.month, datetime.day);
-    
-//    /* 获取星期名称 */
-//    RX8025T_GetWeekdayName(datetime.weekday, weekday_str, sizeof(weekday_str));
-		
-		/* 刷新 UI 文本 */
+
+    /* 更新日期文本 */
     lv_label_set_text(guider_ui.screen_user_home_label_Date, date_str);
-		lv_label_set_text(guider_ui.screen_user_home_label_Time, time_str);
+
+    /* 更新数码管数字卡片 (每个卡片内有一个子label显示单个数字) */
+    char buf[2] = "0";
+    lv_obj_t *cards[] = {
+        guider_ui.screen_user_home_digit_h1,
+        guider_ui.screen_user_home_digit_h2,
+        guider_ui.screen_user_home_digit_m1,
+        guider_ui.screen_user_home_digit_m2,
+    };
+    uint8_t digits[] = {
+        (uint8_t)(datetime.hours / 10),
+        (uint8_t)(datetime.hours % 10),
+        (uint8_t)(datetime.minutes / 10),
+        (uint8_t)(datetime.minutes % 10),
+    };
+    for (uint8_t i = 0; i < 4; i++) {
+        if (lv_obj_is_valid(cards[i])) {
+            buf[0] = '0' + digits[i];
+            lv_obj_t *child = lv_obj_get_child(cards[i], 0);
+            if (child != NULL) {
+                lv_label_set_text(child, buf);
+            }
+        }
+    }
 
     return HAL_OK;
 }
@@ -161,7 +176,7 @@ HAL_StatusTypeDef RX8025T_Task(void)
     /* 只有当秒数变化并且两个标签都有效的时候才更新时间 */
     if (current_time.seconds != last_second)
 		{
-        if(lv_obj_is_valid(guider_ui.screen_user_home_label_Date) && lv_obj_is_valid(guider_ui.screen_user_home_label_Time))
+        if(lv_obj_is_valid(guider_ui.screen_user_home_label_Date) && lv_obj_is_valid(guider_ui.screen_user_home_digit_h1))
         {
             last_second = current_time.seconds;
             status = RX8025T_UpdateTimeDisplay();

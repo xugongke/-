@@ -31,16 +31,21 @@ static void screen_user_home_event_handler (lv_event_t *e)
     {
         lv_group_remove_all_objs(g_keypad_group);//清空group中的所有组件
         //给group添加新组件
-        lv_group_add_obj(g_keypad_group, guider_ui.screen_user_home_user_list_btn);
+        //给group添加3个数据卡片
+        lv_group_add_obj(g_keypad_group, guider_ui.screen_user_home_card_solar);
+        lv_group_add_obj(g_keypad_group, guider_ui.screen_user_home_card_device);
+        lv_group_add_obj(g_keypad_group, guider_ui.screen_user_home_card_alert);
         //将按键添加进焦点组
         lv_indev_set_group(indev_keypad, g_keypad_group);
-        //设置初始焦点
-        lv_group_focus_obj(guider_ui.screen_user_home_user_list_btn);
+        //设置初始焦点 (设备在线卡片)
+        lv_group_focus_obj(guider_ui.screen_user_home_card_device);
         //显示IP地址和端口号
         lv_label_set_text(guider_ui.screen_user_home_label_ip, ip_buf);
         lv_label_set_text(guider_ui.screen_user_home_label_port, port_buf);
         //初始化/刷新电池电量指示器组件
         Battery_Widget_Init(guider_ui.screen_user_home);
+        //初始化/刷新信号强度指示器组件
+        Signal_Widget_Init(guider_ui.screen_user_home);
         break;
     }
     default:
@@ -48,24 +53,39 @@ static void screen_user_home_event_handler (lv_event_t *e)
     }
 }
 
-static void screen_user_home_user_list_btn_event_handler (lv_event_t *e)
+/* 太阳能卡片点击 → 后续跳转到太阳能详情页 */
+static void screen_user_home_card_solar_event_handler (lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
-    switch (code) {
-    case LV_EVENT_CLICKED:
-    {
-        ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_list, guider_ui.screen_user_list_del, &guider_ui.screen_user_home_del, setup_scr_screen_user_list, LV_SCR_LOAD_ANIM_NONE, 10, 10, true, false);
-        break;
+    if (code == LV_EVENT_CLICKED) {
+        // TODO: 跳转到太阳能详情页面
     }
-    default:
-        break;
+}
+
+/* 设备在线卡片点击 → 跳转到用户列表页面 */
+static void screen_user_home_card_device_event_handler (lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if (code == LV_EVENT_CLICKED) {
+        ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_list, guider_ui.screen_user_list_del, &guider_ui.screen_user_home_del, setup_scr_screen_user_list, LV_SCR_LOAD_ANIM_NONE, 10, 10, true, false);
+    }
+}
+
+/* 告警卡片点击 → 后续跳转到告警详情页 */
+static void screen_user_home_card_alert_event_handler (lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if (code == LV_EVENT_CLICKED) {
+        // TODO: 跳转到告警详情页面
     }
 }
 
 void events_init_screen_user_home (lv_ui *ui)
 {
     lv_obj_add_event_cb(ui->screen_user_home, screen_user_home_event_handler, LV_EVENT_ALL, ui);
-    lv_obj_add_event_cb(ui->screen_user_home_user_list_btn, screen_user_home_user_list_btn_event_handler, LV_EVENT_ALL, ui);
+    lv_obj_add_event_cb(ui->screen_user_home_card_solar, screen_user_home_card_solar_event_handler, LV_EVENT_ALL, ui);
+    lv_obj_add_event_cb(ui->screen_user_home_card_device, screen_user_home_card_device_event_handler, LV_EVENT_ALL, ui);
+    lv_obj_add_event_cb(ui->screen_user_home_card_alert, screen_user_home_card_alert_event_handler, LV_EVENT_ALL, ui);
 }
 
 static void screen_user_list_event_handler (lv_event_t *e)

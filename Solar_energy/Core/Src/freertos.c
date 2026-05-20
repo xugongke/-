@@ -46,6 +46,7 @@
 #include "device_manager.h"
 #include "a7680c_http.h"
 #include "rs485_usart.h"
+#include "battery.h"
 lv_ui  guider_ui;                     // 定义 界面对象
 extern lv_group_t * g_keypad_group;		//声明全局group
 WeatherCurrent_t weather_data = {0};//存储天气代码的结构体
@@ -89,8 +90,6 @@ void SDCardInfo(void)
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-/* USER CODE BEGIN Variables */
-
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -426,13 +425,11 @@ void StartDefaultTask(void *argument)
 		}
 
 		/*======================================================
-		 * UI就绪检测 + 信号强度显示 + 网络健康检查
+		 * 网络健康检查 + 信号等级采集
+		 * (UI显示由LVGL定时器自动完成, 这里只更新g_signal_level)
 		 *======================================================*/
-		uint8_t ui_ready = lv_obj_is_valid(guider_ui.screen_user_home_line_1) &&
-		                   lv_obj_is_valid(guider_ui.screen_user_home_line_3) &&
-		                   lv_obj_is_valid(guider_ui.screen_user_home_label_3);
-
-		if(ui_ready)
+		if(guider_ui.screen_user_home != NULL &&
+		   lv_obj_is_valid(guider_ui.screen_user_home))
 		{
 			/* 检测SIM卡 + 网络附着状态 */
 			uint8_t sim_ok = A7680C_SendAT_CPIN();
@@ -445,12 +442,10 @@ void StartDefaultTask(void *argument)
 
 			if(sim_ok == AT_RESULT_OK && net_ok == AT_RESULT_OK)
 			{
-				/* 网络基本正常：更新信号强度显示 */
+				/* 网络基本正常 */
 				fail_count = 0;
 
-				/* 周期性验证上网能力（每30秒用CLBS检查一次）
-				 * CPIN+CGATT在欠费卡下也能通过，但CLBS需要真正的数据通道
-				 * CLBS失败说明SIM卡无法上网（欠费等），将simcard_ready置0 */
+				/* 周期性验证上网能力（每30秒用CLBS检查一次） */
 				online_check_count++;
 				if(online_check_count >= 30)
 				{
@@ -459,7 +454,6 @@ void StartDefaultTask(void *argument)
 					{
 						printf("CLBS失败,SIM卡可能欠费无法上网\r\n");
 						simcard_ready = 0;
-						/* 不重启模块，只标记上网不可用，等下次CLBS成功再恢复 */
 					}
 					else
 					{
@@ -471,34 +465,11 @@ void StartDefaultTask(void *argument)
 					}
 				}
 
+				/* 读取CSQ并更新全局信号等级 (LVGL定时器会自动刷新UI) */
 				if(A7680C_SendAT_CSQ(Signal_buff) == AT_RESULT_OK)
 				{
-					lv_obj_add_flag(guider_ui.screen_user_home_label_3, LV_OBJ_FLAG_HIDDEN);
-					A7680C_ParseCSQ(Signal_buff,&rssi,&ber);
-					if(rssi >= 10 && rssi < 17)
-					{
-						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_1, lv_color_hex(0x00ff86), LV_PART_MAIN|LV_STATE_DEFAULT);
-						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_2, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
-						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_3, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
-					}
-					else if(rssi >= 17 && rssi < 24)
-					{
-						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_1, lv_color_hex(0x00ff86), LV_PART_MAIN|LV_STATE_DEFAULT);
-						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_2, lv_color_hex(0x00ff86), LV_PART_MAIN|LV_STATE_DEFAULT);
-						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_3, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
-					}
-					else if(rssi >= 24 && rssi <= 31)
-					{
-						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_1, lv_color_hex(0x00ff86), LV_PART_MAIN|LV_STATE_DEFAULT);
-						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_2, lv_color_hex(0x00ff86), LV_PART_MAIN|LV_STATE_DEFAULT);
-						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_3, lv_color_hex(0x00ff86), LV_PART_MAIN|LV_STATE_DEFAULT);
-					}
-					else if(rssi == 99)
-					{
-						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_1, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
-						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_2, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
-						lv_obj_set_style_line_color(guider_ui.screen_user_home_line_3, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
-					}
+					A7680C_ParseCSQ(Signal_buff, &rssi, &ber);
+					g_signal_level = Signal_GetLevel(rssi);
 				}
 			}
 			else
@@ -507,10 +478,7 @@ void StartDefaultTask(void *argument)
 				fail_count++;
 				printf("网络异常(SIM=%d,CGATT=%d, fail=%d/10)\r\n", sim_ok, net_ok, fail_count);
 
-				lv_obj_set_style_line_color(guider_ui.screen_user_home_line_1, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
-				lv_obj_set_style_line_color(guider_ui.screen_user_home_line_2, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
-				lv_obj_set_style_line_color(guider_ui.screen_user_home_line_3, lv_color_hex(0x757575), LV_PART_MAIN|LV_STATE_DEFAULT);
-				lv_obj_clear_flag(guider_ui.screen_user_home_label_3, LV_OBJ_FLAG_HIDDEN);
+				g_signal_level = -1;  /* 无信号, LVGL定时器会显示X */
 
 				if(fail_count >= 10)
 				{
@@ -766,4 +734,3 @@ void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
     for(;;);
 }
 /* USER CODE END Application */
-

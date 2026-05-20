@@ -23,20 +23,22 @@ typedef struct
 	lv_obj_t *Startup_screen_img_1;
 	lv_obj_t *screen_user_home;
 	bool screen_user_home_del;
-	lv_obj_t *screen_user_home_user_list_btn;
-	lv_obj_t *screen_user_home_user_list_btn_label;
+	lv_obj_t *screen_user_home_card_solar;       /* 太阳能卡片(电压/电流/功率) */
+	lv_obj_t *screen_user_home_card_solar_val;   /* 太阳能数值标签 */
+	lv_obj_t *screen_user_home_card_device;      /* 设备在线卡片 */
+	lv_obj_t *screen_user_home_card_device_val;  /* 设备数值标签 */
+	lv_obj_t *screen_user_home_card_alert;       /* 告警卡片 */
+	lv_obj_t *screen_user_home_card_alert_val;   /* 告警数值标签 */
 	lv_obj_t *screen_user_home_cont_1;
 	lv_obj_t *screen_user_home_label_Date;
-	lv_obj_t *screen_user_home_label_Time;
-	lv_obj_t *screen_user_home_img_1;
+	lv_obj_t *screen_user_home_digit_h1;     /* 小时十位 */
+	lv_obj_t *screen_user_home_digit_h2;     /* 小时个位 */
+	lv_obj_t *screen_user_home_digit_colon;  /* 冒号 ":" */
+	lv_obj_t *screen_user_home_digit_m1;     /* 分钟十位 */
+	lv_obj_t *screen_user_home_digit_m2;     /* 分钟个位 */
 	lv_obj_t *screen_user_home_cont_2;
 	lv_obj_t *screen_user_home_label_2;
 	lv_obj_t *screen_user_home_label_1;
-	lv_obj_t *screen_user_home_cont_Signal;
-	lv_obj_t *screen_user_home_line_1;
-	lv_obj_t *screen_user_home_line_2;
-	lv_obj_t *screen_user_home_line_3;
-	lv_obj_t *screen_user_home_label_3;
 	lv_obj_t *screen_user_home_cont_3;
 	lv_obj_t *screen_user_home_label_8;
 	lv_obj_t *screen_user_home_label_ip;
@@ -86,6 +88,7 @@ LV_IMG_DECLARE(_logo_shunpu_alpha_338x72);
 LV_FONT_DECLARE(lv_font_SourceHanSerifSC_Regular_16)
 LV_FONT_DECLARE(lv_font_montserratMedium_16)
 LV_FONT_DECLARE(lv_font_montserratMedium_26)
+LV_FONT_DECLARE(lv_font_montserrat_48)
 LV_FONT_DECLARE(lv_font_montserratMedium_12)
 
 
