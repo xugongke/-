@@ -23,22 +23,22 @@ typedef struct
 	lv_obj_t *Startup_screen_img_1;
 	lv_obj_t *screen_user_home;
 	bool screen_user_home_del;
-	lv_obj_t *screen_user_home_card_solar;       /* Ì«ÑôÄÜ¿¨Æ¬(µçÑ¹/µçÁ÷/¹¦ÂÊ) */
-	lv_obj_t *screen_user_home_card_solar_val;   /* Ì«ÑôÄÜÊıÖµ±êÇ© */
-	lv_obj_t *screen_user_home_card_device;      /* Éè±¸ÔÚÏß¿¨Æ¬ */
-	lv_obj_t *screen_user_home_card_device_val;  /* Éè±¸ÊıÖµ±êÇ© */
-	lv_obj_t *screen_user_home_card_alert;       /* ¸æ¾¯¿¨Æ¬ */
-	lv_obj_t *screen_user_home_card_alert_val;   /* ¸æ¾¯ÊıÖµ±êÇ© */
+	lv_obj_t *screen_user_home_card_solar;       /* å¤ªé˜³èƒ½å¡ç‰‡(ç”µå‹/ç”µæµ/åŠŸç‡) */
+	lv_obj_t *screen_user_home_card_solar_val;   /* å¤ªé˜³èƒ½æ•°å€¼æ ‡ç­¾ */
+	lv_obj_t *screen_user_home_card_device;      /* è®¾å¤‡åœ¨çº¿å¡ç‰‡ */
+	lv_obj_t *screen_user_home_card_device_val;  /* è®¾å¤‡æ•°å€¼æ ‡ç­¾ */
+	lv_obj_t *screen_user_home_card_alert;       /* å‘Šè­¦å¡ç‰‡ */
+	lv_obj_t *screen_user_home_card_alert_val;   /* å‘Šè­¦æ•°å€¼æ ‡ç­¾ */
 	lv_obj_t *screen_user_home_cont_1;
 	lv_obj_t *screen_user_home_label_Date;
-	lv_obj_t *screen_user_home_digit_h1;     /* Ğ¡Ê±Ê®Î» */
-	lv_obj_t *screen_user_home_digit_h2;     /* Ğ¡Ê±¸öÎ» */
-	lv_obj_t *screen_user_home_digit_colon;  /* Ã°ºÅ ":" */
-	lv_obj_t *screen_user_home_digit_m1;     /* ·ÖÖÓÊ®Î» */
-	lv_obj_t *screen_user_home_digit_m2;     /* ·ÖÖÓ¸öÎ» */
+	lv_obj_t *screen_user_home_digit_h1;     /* å°æ—¶åä½ */
+	lv_obj_t *screen_user_home_digit_h2;     /* å°æ—¶ä¸ªä½ */
+	lv_obj_t *screen_user_home_digit_colon;  /* å†’å· ":" */
+	lv_obj_t *screen_user_home_digit_m1;     /* åˆ†é’Ÿåä½ */
+	lv_obj_t *screen_user_home_digit_m2;     /* åˆ†é’Ÿä¸ªä½ */
 	lv_obj_t *screen_user_home_cont_2;
-	lv_obj_t *screen_user_home_weather_icon;     /* ÌìÆøÍ¼±ê(²ÊÉ«Ô²) */
-	lv_obj_t *screen_user_home_daynight_dot;     /* ÖçÒ¹Ö¸Ê¾Ô²µã */
+	lv_obj_t *screen_user_home_weather_icon;     /* å¤©æ°”å›¾æ ‡(å½©è‰²åœ†) */
+	lv_obj_t *screen_user_home_daynight_dot;     /* æ˜¼å¤œæŒ‡ç¤ºåœ†ç‚¹ */
 	lv_obj_t *screen_user_home_label_2;
 	lv_obj_t *screen_user_home_label_1;
 	lv_obj_t *screen_user_home_cont_3;

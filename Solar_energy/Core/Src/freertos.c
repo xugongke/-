@@ -690,7 +690,7 @@ void RTC_Task(void *argument)
 
 	/* 跳转到home界面 */
 	ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_home,
-			guider_ui.screen_user_home_del, &guider_ui.screen_user_list_del,
+			guider_ui.screen_user_home_del, &guider_ui.Startup_screen_del,
 			setup_scr_screen_user_home, LV_SCR_LOAD_ANIM_NONE, 10, 10, true, true);
 
   /* Infinite loop */

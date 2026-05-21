@@ -21,8 +21,8 @@ void setup_scr_screen_user_home(lv_ui *ui)
     lv_obj_set_size(ui->screen_user_home, 480, 320);
     lv_obj_set_scrollbar_mode(ui->screen_user_home, LV_SCROLLBAR_MODE_OFF);
 
-    /* 浅灰白背景 */
-    lv_obj_set_style_bg_color(ui->screen_user_home, lv_color_hex(0xf5f5f5), LV_PART_MAIN|LV_STATE_DEFAULT);
+    /* 浅灰白背景 (与 list / detail 统一) */
+    lv_obj_set_style_bg_color(ui->screen_user_home, lv_color_hex(0xF0F2F5), LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_bg_opa(ui->screen_user_home, LV_OPA_COVER, LV_PART_MAIN|LV_STATE_DEFAULT);
 
     /* ============================================================

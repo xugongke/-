@@ -295,7 +295,9 @@ void user_list_item_event_handler(lv_event_t *e)
     user_data_file_t user_data;
     int ret = read_user_data(device_list[idx].addr, &user_data);
 
-    /* 切换到用户详情页 */
+    /* 无动画直接切换到用户详情页
+     * is_clean=false: 不在回调内清理旧屏幕(避免在子对象回调中删除父对象导致白屏)
+     * auto_del=true: 由LVGL在屏幕切换完成后自动释放旧屏幕 */
     ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_detail,
                           guider_ui.screen_user_detail_del,
                           &guider_ui.screen_user_list_del,

@@ -160,6 +160,7 @@ void screen_user_list_item_event_handler(lv_event_t *e)
         if(key == LV_KEY_ESC)//ESC键，返回首页
         {
 					 s_last_user_no = 0;//回到首页，重置用户列表焦点
+					 /* 无动画直接返回首页 (is_clean=false避免在子对象回调中清理父屏幕) */
 					 ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_home, guider_ui.screen_user_home_del, &guider_ui.screen_user_list_del, setup_scr_screen_user_home, LV_SCR_LOAD_ANIM_NONE, 10, 10, true, true);
         }
 

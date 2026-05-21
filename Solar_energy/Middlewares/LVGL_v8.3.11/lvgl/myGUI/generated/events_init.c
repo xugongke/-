@@ -2,16 +2,16 @@
 * Copyright 2026 NXP
 * NXP Proprietary. This software is owned or controlled by NXP and may only be used strictly in
 * accordance with the applicable license terms. By expressly accepting such terms or by downloading, installing,
-* activating and/or otherwise using the software, you are agreeing that you have read, and that you agree to
-* comply with and are bound by, such license terms.  If you do not agree to be bound by the applicable license
-* terms, then you may not retain, install, activate or otherwise use the software.
+* activating and/or otherwise using the software, you are agreeing to you have read, or that you agree to
+* comply with, be bound by, such license terms.  If you do not agree to be bound by the applicable license
+* terms, then you may not retain, install, activate, or otherwise use the software.
 */
 
 #include "events_init.h"
 #include <stdio.h>
 #include "lvgl.h"
 
-#if LV_USE_GUIDER_SIMULATOR && LV_USE_FREEMASTER
+#if LV_USE_GUIDER_SIMULATOR && LV_USE_FREERTOS
 #include "freemaster_client.h"
 #endif
 
@@ -23,6 +23,8 @@
 extern lv_indev_t * indev_keypad;
 lv_group_t * g_keypad_group;//创建全局group(可被焦点选中的对象集合)指针，在lv_init后分配空间
 
+/* ======== Home 页事件处理 ======== */
+
 static void screen_user_home_event_handler (lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
@@ -30,7 +32,6 @@ static void screen_user_home_event_handler (lv_event_t *e)
     case LV_EVENT_SCREEN_LOADED:
     {
         lv_group_remove_all_objs(g_keypad_group);//清空group中的所有组件
-        //给group添加新组件
         //给group添加3个数据卡片
         lv_group_add_obj(g_keypad_group, guider_ui.screen_user_home_card_solar);
         lv_group_add_obj(g_keypad_group, guider_ui.screen_user_home_card_device);
@@ -53,139 +54,21 @@ static void screen_user_home_event_handler (lv_event_t *e)
     }
 }
 
-/* ======== 卡片选中动画 (上浮 + 阴影发光 + 描边) ======== */
-
-/* 卡片主题色 (与 setup_scr 中的颜色对应) */
-#define CARD_COLOR_BLUE    0x2196F3
-#define CARD_COLOR_GREEN   0x4CAF50
-#define CARD_COLOR_ORANGE  0xFF9800
-
-/**
- * @brief  动画回调 - Y轴位移 (translate_y, 不影响布局)
- */
-static void card_anim_y_cb(void *var, int32_t v) {
-    lv_obj_set_style_translate_y((lv_obj_t *)var, v, 0);
-}
-
-/**
- * @brief  动画回调 - 阴影宽度
- */
-static void card_anim_shadow_w_cb(void *var, int32_t v) {
-    lv_obj_set_style_shadow_width((lv_obj_t *)var, v, 0);
-}
-
-/**
- * @brief  动画回调 - 阴影透明度
- */
-static void card_anim_shadow_opa_cb(void *var, int32_t v) {
-    lv_obj_set_style_shadow_opa((lv_obj_t *)var, v, 0);
-}
-
-/**
- * @brief  动画回调 - 描边宽度
- */
-static void card_anim_border_w_cb(void *var, int32_t v) {
-    lv_obj_set_style_border_width((lv_obj_t *)var, v, 0);
-}
-
-/**
- * @brief  卡片被选中 → 上浮 + 阴影发光 + 彩色描边
- */
-static void card_focus_anim(lv_obj_t *card, uint32_t theme_color)
-{
-    /* 1. Y轴上浮: 0 → -8px (弹跳过冲) */
-    lv_anim_t a_y;
-    lv_anim_init(&a_y);
-    lv_anim_set_var(&a_y, card);
-    lv_anim_set_exec_cb(&a_y, card_anim_y_cb);
-    lv_anim_set_values(&a_y, 0, -8);
-    lv_anim_set_time(&a_y, 300);
-    lv_anim_set_path_cb(&a_y, lv_anim_path_overshoot);
-    lv_anim_start(&a_y);
-
-    /* 2. 阴影宽度: 12 → 20 */
-    lv_anim_t a_sw;
-    lv_anim_init(&a_sw);
-    lv_anim_set_var(&a_sw, card);
-    lv_anim_set_exec_cb(&a_sw, card_anim_shadow_w_cb);
-    lv_anim_set_values(&a_sw, 12, 20);
-    lv_anim_set_time(&a_sw, 250);
-    lv_anim_set_path_cb(&a_sw, lv_anim_path_ease_out);
-    lv_anim_start(&a_sw);
-
-    /* 3. 阴影透明度: 50 → 120 */
-    lv_anim_t a_so;
-    lv_anim_init(&a_so);
-    lv_anim_set_var(&a_so, card);
-    lv_anim_set_exec_cb(&a_so, card_anim_shadow_opa_cb);
-    lv_anim_set_values(&a_so, 50, 120);
-    lv_anim_set_time(&a_so, 250);
-    lv_anim_start(&a_so);
-
-    /* 4. 彩色描边: 0 → 2px */
-    lv_obj_set_style_border_color(card, lv_color_hex(theme_color), 0);
-    lv_obj_set_style_border_opa(card, LV_OPA_COVER, 0);
-    lv_anim_t a_bw;
-    lv_anim_init(&a_bw);
-    lv_anim_set_var(&a_bw, card);
-    lv_anim_set_exec_cb(&a_bw, card_anim_border_w_cb);
-    lv_anim_set_values(&a_bw, 0, 2);
-    lv_anim_set_time(&a_bw, 200);
-    lv_anim_start(&a_bw);
-}
-
-/**
- * @brief  卡片取消选中 → 回落 + 阴影收缩 + 去描边
- */
-static void card_defocus_anim(lv_obj_t *card)
-{
-    /* 1. Y轴回落: -8 → 0 */
-    lv_anim_t a_y;
-    lv_anim_init(&a_y);
-    lv_anim_set_var(&a_y, card);
-    lv_anim_set_exec_cb(&a_y, card_anim_y_cb);
-    lv_anim_set_values(&a_y, -8, 0);
-    lv_anim_set_time(&a_y, 200);
-    lv_anim_set_path_cb(&a_y, lv_anim_path_ease_in);
-    lv_anim_start(&a_y);
-
-    /* 2. 阴影宽度回: → 12 */
-    lv_anim_t a_sw;
-    lv_anim_init(&a_sw);
-    lv_anim_set_var(&a_sw, card);
-    lv_anim_set_exec_cb(&a_sw, card_anim_shadow_w_cb);
-    lv_anim_set_values(&a_sw, 20, 12);
-    lv_anim_set_time(&a_sw, 200);
-    lv_anim_start(&a_sw);
-
-    /* 3. 阴影透明度回: → 50 */
-    lv_anim_t a_so;
-    lv_anim_init(&a_so);
-    lv_anim_set_var(&a_so, card);
-    lv_anim_set_exec_cb(&a_so, card_anim_shadow_opa_cb);
-    lv_anim_set_values(&a_so, 120, 50);
-    lv_anim_set_time(&a_so, 200);
-    lv_anim_start(&a_so);
-
-    /* 4. 描边消失: 2 → 0 */
-    lv_anim_t a_bw;
-    lv_anim_init(&a_bw);
-    lv_anim_set_var(&a_bw, card);
-    lv_anim_set_exec_cb(&a_bw, card_anim_border_w_cb);
-    lv_anim_set_values(&a_bw, 2, 0);
-    lv_anim_set_time(&a_bw, 200);
-    lv_anim_start(&a_bw);
-}
-
 /* 太阳能卡片: FOCUSED/DEFOCUSED/CLICKED */
 static void screen_user_home_card_solar_event_handler (lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
     if (code == LV_EVENT_FOCUSED) {
-        card_focus_anim(guider_ui.screen_user_home_card_solar, CARD_COLOR_BLUE);
+        lv_obj_set_style_border_color(guider_ui.screen_user_home_card_solar, lv_color_hex(0x2196F3), 0);
+        lv_obj_set_style_border_opa(guider_ui.screen_user_home_card_solar, LV_OPA_COVER, 0);
+        lv_obj_set_style_border_width(guider_ui.screen_user_home_card_solar, 2, 0);
+        lv_obj_set_style_shadow_width(guider_ui.screen_user_home_card_solar, 18, 0);
+        lv_obj_set_style_shadow_opa(guider_ui.screen_user_home_card_solar, 80, 0);
     }
     else if (code == LV_EVENT_DEFOCUSED) {
-        card_defocus_anim(guider_ui.screen_user_home_card_solar);
+        lv_obj_set_style_border_width(guider_ui.screen_user_home_card_solar, 0, 0);
+        lv_obj_set_style_shadow_width(guider_ui.screen_user_home_card_solar, 12, 0);
+        lv_obj_set_style_shadow_opa(guider_ui.screen_user_home_card_solar, 50, 0);
     }
     else if (code == LV_EVENT_CLICKED) {
         // TODO: 跳转到太阳能详情页面
@@ -197,12 +80,19 @@ static void screen_user_home_card_device_event_handler (lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
     if (code == LV_EVENT_FOCUSED) {
-        card_focus_anim(guider_ui.screen_user_home_card_device, CARD_COLOR_GREEN);
+        lv_obj_set_style_border_color(guider_ui.screen_user_home_card_device, lv_color_hex(0x4CAF50), 0);
+        lv_obj_set_style_border_opa(guider_ui.screen_user_home_card_device, LV_OPA_COVER, 0);
+        lv_obj_set_style_border_width(guider_ui.screen_user_home_card_device, 2, 0);
+        lv_obj_set_style_shadow_width(guider_ui.screen_user_home_card_device, 18, 0);
+        lv_obj_set_style_shadow_opa(guider_ui.screen_user_home_card_device, 80, 0);
     }
     else if (code == LV_EVENT_DEFOCUSED) {
-        card_defocus_anim(guider_ui.screen_user_home_card_device);
+        lv_obj_set_style_border_width(guider_ui.screen_user_home_card_device, 0, 0);
+        lv_obj_set_style_shadow_width(guider_ui.screen_user_home_card_device, 12, 0);
+        lv_obj_set_style_shadow_opa(guider_ui.screen_user_home_card_device, 50, 0);
     }
     else if (code == LV_EVENT_CLICKED) {
+        /* 无动画直接切换到用户列表页 (is_clean=false避免在卡片回调中清理home屏幕) */
         ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_list, guider_ui.screen_user_list_del, &guider_ui.screen_user_home_del, setup_scr_screen_user_list, LV_SCR_LOAD_ANIM_NONE, 10, 10, true, false);
     }
 }
@@ -212,10 +102,16 @@ static void screen_user_home_card_alert_event_handler (lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
     if (code == LV_EVENT_FOCUSED) {
-        card_focus_anim(guider_ui.screen_user_home_card_alert, CARD_COLOR_ORANGE);
+        lv_obj_set_style_border_color(guider_ui.screen_user_home_card_alert, lv_color_hex(0xFF9800), 0);
+        lv_obj_set_style_border_opa(guider_ui.screen_user_home_card_alert, LV_OPA_COVER, 0);
+        lv_obj_set_style_border_width(guider_ui.screen_user_home_card_alert, 2, 0);
+        lv_obj_set_style_shadow_width(guider_ui.screen_user_home_card_alert, 18, 0);
+        lv_obj_set_style_shadow_opa(guider_ui.screen_user_home_card_alert, 80, 0);
     }
     else if (code == LV_EVENT_DEFOCUSED) {
-        card_defocus_anim(guider_ui.screen_user_home_card_alert);
+        lv_obj_set_style_border_width(guider_ui.screen_user_home_card_alert, 0, 0);
+        lv_obj_set_style_shadow_width(guider_ui.screen_user_home_card_alert, 12, 0);
+        lv_obj_set_style_shadow_opa(guider_ui.screen_user_home_card_alert, 50, 0);
     }
     else if (code == LV_EVENT_CLICKED) {
         // TODO: 跳转到告警详情页面
@@ -229,6 +125,8 @@ void events_init_screen_user_home (lv_ui *ui)
     lv_obj_add_event_cb(ui->screen_user_home_card_device, screen_user_home_card_device_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->screen_user_home_card_alert, screen_user_home_card_alert_event_handler, LV_EVENT_ALL, ui);
 }
+
+/* ======== User List 页事件处理 ======== */
 
 static void screen_user_list_event_handler (lv_event_t *e)
 {
@@ -265,23 +163,43 @@ static void screen_user_list_event_handler (lv_event_t *e)
             /* 创建 list item（返回的是一个 btn） */
             lv_obj_t *btn = lv_list_add_btn(guider_ui.screen_user_list_list_1, LV_SYMBOL_HOME, txt);
 
-            //修改list中按钮的样式
-            static lv_style_t style_screen_user_list_list_1_extra_btns_main_default;
-            ui_init_style(&style_screen_user_list_list_1_extra_btns_main_default);
+            /* ======== 现代卡片式列表项样式 ======== */
+            static lv_style_t style_list_btn;
+            ui_init_style(&style_list_btn);
+            lv_style_set_pad_top(&style_list_btn, 10);
+            lv_style_set_pad_left(&style_list_btn, 14);
+            lv_style_set_pad_right(&style_list_btn, 14);
+            lv_style_set_pad_bottom(&style_list_btn, 10);
+            lv_style_set_border_width(&style_list_btn, 0);
+            lv_style_set_text_color(&style_list_btn, lv_color_hex(0x2C3E50));
+            lv_style_set_text_font(&style_list_btn, &lv_font_SourceHanSerifSC_Regular_16);
+            lv_style_set_text_opa(&style_list_btn, 255);
+            lv_style_set_radius(&style_list_btn, 10);
+            lv_style_set_bg_opa(&style_list_btn, LV_OPA_COVER);
+            lv_style_set_bg_color(&style_list_btn, lv_color_hex(0xffffff));
+            lv_style_set_bg_grad_dir(&style_list_btn, LV_GRAD_DIR_NONE);
+            lv_style_set_shadow_width(&style_list_btn, 2);
+            lv_style_set_shadow_color(&style_list_btn, lv_color_hex(0x000000));
+            lv_style_set_shadow_opa(&style_list_btn, 15);
+            lv_style_set_shadow_ofs_y(&style_list_btn, 2);
+            lv_style_set_shadow_spread(&style_list_btn, 0);
+            lv_obj_add_style(btn, &style_list_btn, LV_PART_MAIN|LV_STATE_DEFAULT);
 
-            lv_style_set_pad_top(&style_screen_user_list_list_1_extra_btns_main_default, 5);
-            lv_style_set_pad_left(&style_screen_user_list_list_1_extra_btns_main_default, 5);
-            lv_style_set_pad_right(&style_screen_user_list_list_1_extra_btns_main_default, 5);
-            lv_style_set_pad_bottom(&style_screen_user_list_list_1_extra_btns_main_default, 5);
-            lv_style_set_border_width(&style_screen_user_list_list_1_extra_btns_main_default, 0);
-            lv_style_set_text_color(&style_screen_user_list_list_1_extra_btns_main_default, lv_color_hex(0x0D3055));
-            lv_style_set_text_font(&style_screen_user_list_list_1_extra_btns_main_default, &lv_font_SourceHanSerifSC_Regular_16);
-            lv_style_set_text_opa(&style_screen_user_list_list_1_extra_btns_main_default, 255);
-            lv_style_set_radius(&style_screen_user_list_list_1_extra_btns_main_default, 3);
-            lv_style_set_bg_opa(&style_screen_user_list_list_1_extra_btns_main_default, 255);
-            lv_style_set_bg_color(&style_screen_user_list_list_1_extra_btns_main_default, lv_color_hex(0xffffff));
-            lv_style_set_bg_grad_dir(&style_screen_user_list_list_1_extra_btns_main_default, LV_GRAD_DIR_NONE);
-            lv_obj_add_style(btn, &style_screen_user_list_list_1_extra_btns_main_default, LV_PART_MAIN|LV_STATE_DEFAULT);
+            /* 聚焦状态样式 (蓝色左边框指示) */
+            static lv_style_t style_list_btn_focused;
+            ui_init_style(&style_list_btn_focused);
+            lv_style_set_border_width(&style_list_btn_focused, 4);
+            lv_style_set_border_color(&style_list_btn_focused, lv_color_hex(0x2196F3));
+            lv_style_set_border_opa(&style_list_btn_focused, LV_OPA_COVER);
+            lv_style_set_border_side(&style_list_btn_focused, LV_BORDER_SIDE_LEFT);
+            lv_style_set_shadow_width(&style_list_btn_focused, 8);
+            lv_style_set_shadow_color(&style_list_btn_focused, lv_color_hex(0x2196F3));
+            lv_style_set_shadow_opa(&style_list_btn_focused, 30);
+            lv_style_set_shadow_ofs_y(&style_list_btn_focused, 3);
+            lv_style_set_bg_color(&style_list_btn_focused, lv_color_hex(0xffffff));
+            lv_style_set_bg_opa(&style_list_btn_focused, LV_OPA_COVER);
+            lv_style_set_radius(&style_list_btn_focused, 10);
+            lv_obj_add_style(btn, &style_list_btn_focused, LV_PART_MAIN|LV_STATE_FOCUSED);
 
             lv_group_add_obj(g_keypad_group, btn);//将按键添加进焦点组
             /* 给每个 btn 绑定同一个按下按钮时执行的回调函数，并用 user_data 传用户编号,LV_EVENT_CLICKED代表已按下 */
@@ -294,7 +212,7 @@ static void screen_user_list_event_handler (lv_event_t *e)
                 lv_group_focus_obj(btn);
             }
         }
-        //把“输入设备”绑定到“焦点管理组（group）
+        //把"输入设备"绑定到"焦点管理组（group）
         lv_indev_set_group(indev_keypad, g_keypad_group);
         break;
     }
@@ -308,6 +226,8 @@ void events_init_screen_user_list (lv_ui *ui)
     lv_obj_add_event_cb(ui->screen_user_list, screen_user_list_event_handler, LV_EVENT_ALL, ui);
 }
 
+/* ======== User Detail 页事件处理 ======== */
+
 static void screen_user_detail_event_handler (lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
@@ -317,6 +237,7 @@ static void screen_user_detail_event_handler (lv_event_t *e)
         uint32_t key = lv_event_get_key(e);
         if(key == LV_KEY_ESC)
         {
+            /* 无动画直接返回用户列表页 */
             ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_list, guider_ui.screen_user_list_del, &guider_ui.screen_user_detail_del, setup_scr_screen_user_list, LV_SCR_LOAD_ANIM_NONE, 10, 10, true, true);
         }
 
