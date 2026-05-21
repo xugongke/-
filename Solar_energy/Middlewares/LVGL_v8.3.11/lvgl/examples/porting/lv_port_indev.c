@@ -157,9 +157,6 @@ void lv_port_indev_init(void)
     lv_indev_drv_init(&indev_drv);
     indev_drv.type = LV_INDEV_TYPE_KEYPAD;
     indev_drv.read_cb = keypad_read;
-		/* 长按 300ms 开始连发，每 80ms 连发一次 */
-		indev_drv.long_press_time = 300;
-		indev_drv.long_press_repeat_time = 80;
     indev_keypad = lv_indev_drv_register(&indev_drv);
 
     /*Later you should create group(s) with `lv_group_t * group = lv_group_create()`,
@@ -175,7 +172,7 @@ void lv_port_indev_init(void)
     /*Initialize your encoder if you have*/
     encoder_init();
 
-    /*Register a encoder input device*/
+    /*Register an encoder input device*/
     lv_indev_drv_init(&indev_drv);
     indev_drv.type = LV_INDEV_TYPE_ENCODER;
     indev_drv.read_cb = encoder_read;
@@ -367,44 +364,128 @@ static void keypad_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
     data->key = last_key;
 }
 
-/*获取当前被按下的按键。如果没有按键被按下，则为0*/
+/**
+ * @brief  软件连发机制 (Software Auto-Repeat)
+ *
+ *         解决的问题:
+ *         1. 边沿触发 → 单次按下 = 单次事件，不会产生事件积压
+ *         2. 方向键长按 → 软件连发，方便在列表中快速翻页
+ *         3. 松手即停 → 不会出现之前 LVGL long_press_repeat 的事件堆积
+ *
+ *         原理:
+ *         - 首次按下: 通过 KEY_EVENT_SHORT_PRESS 边沿触发，立即返回
+ *         - 持续按住: 用 KEY_IsPressedStable 检测物理状态
+ *         - 延迟后开始连发: 第一次按下后延迟 ~500ms，然后每 ~150ms 产生一次
+ *         - 松手立即停止: 不会有积压事件继续执行
+ *
+ *         与 LVGL 内置 long_press_repeat 的区别:
+ *         LVGL 的连发是在 indev_proc 内部生成 PRESSED 事件队列，
+ *         即使回调函数返回 REL，队列中的 PRESSED 仍会被执行。
+ *         而软件连发是我们主动控制返回值，松手即返回0，彻底杜绝积压。
+ */
+
+/* ---- 连发参数 (以 LVGL 读周期 30ms 为单位) ---- */
+#define REPEAT_DELAY_COUNT    17u   /* 首次延迟: 17 × 30ms ≈ 510ms */
+#define REPEAT_INTERVAL_COUNT  5u   /* 连发间隔:  5 × 30ms = 150ms */
+
+/* 方向键列表: 这些键支持长按连发 */
+static const key_id_t s_dir_keys[] = {
+    Key_Down, Key_UP, Key_Left, Key_Right
+};
+#define DIR_KEY_COUNT  (sizeof(s_dir_keys) / sizeof(s_dir_keys[0]))
+
+/* 连发状态 */
+static key_id_t  s_hold_key  = (key_id_t)0xFF;   /* 当前长按的键 (0xFF=无) */
+static uint16_t  s_hold_cnt  = 0;                 /* 长按计数器 */
+
+/**
+ * @brief  判断某个 key_id 是否为方向键
+ */
+static int is_direction_key(key_id_t id)
+{
+    for (uint32_t i = 0; i < DIR_KEY_COUNT; i++) {
+        if (s_dir_keys[i] == id) return 1;
+    }
+    return 0;
+}
+
+/**
+ * @brief  将 key_id 映射为 keypad 编号 (1~8)
+ */
+static uint32_t key_to_code(key_id_t id)
+{
+    switch (id) {
+        case Key_Down:   return 1;   /* NEXT */
+        case Key_UP:     return 2;   /* PREV */
+        case Key_Left:   return 3;   /* LEFT */
+        case Key_Right:  return 4;   /* RIGHT */
+        case Key_Enter:  return 5;   /* ENTER */
+        case Key_Return: return 6;   /* ESC */
+        case Key1:       return 7;   /* UP */
+        case Key2:       return 8;   /* DOWN */
+        default:         return 0;
+    }
+}
+
+/**
+ * @brief  获取当前被按下的按键 (带软件连发)
+ */
 static uint32_t keypad_get_key(void)
 {
     key_id_t kid_edge;
     key_event_t ev = KEY_Scan(&kid_edge);   /* 每次调用都更新消抖状态 */
-	
-		if(ev == KEY_EVENT_SHORT_PRESS)
-		{
-				HAL_GPIO_WritePin(LCD_BL_GPIO_Port, LCD_BL_Pin, GPIO_PIN_SET);
-			
-				// 1. 停止定时器
-				HAL_TIM_Base_Stop_IT(&htim3);
 
-				// 2. 计数器 清0 → 从头开始计数
-				__HAL_TIM_SET_COUNTER(&htim3, 0);
+    /* 任意按键按下时重置屏幕背光超时定时器 */
+    if(ev == KEY_EVENT_SHORT_PRESS)
+    {
+        HAL_GPIO_WritePin(LCD_BL_GPIO_Port, LCD_BL_Pin, GPIO_PIN_SET);
+        HAL_TIM_Base_Stop_IT(&htim3);
+        __HAL_TIM_SET_COUNTER(&htim3, 0);
+        HAL_TIM_Base_Start_IT(&htim3);
+    }
 
-				// 3. 再次启动定时器
-				HAL_TIM_Base_Start_IT(&htim3);
-		}
-
-    /* 1) 方向键：稳定按下期间持续返回 -> LVGL 才能识别“按住”并自动 repeat */
-    if (KEY_IsPressedStable(Key_Down))  return 1;   /* 例如：下/next */
-    if (KEY_IsPressedStable(Key_UP)) return 2;   		/* 例如：上/prev */
-    if (KEY_IsPressedStable(Key_Left))  return 3;   /* 左 */
-    if (KEY_IsPressedStable(Key_Right))  return 4;  /* 右 */
-
-    /* 2) 其他键：仍然只在“确认按下瞬间”返回一次（避免长按变连发） */
+    /* ======== 1. 边沿触发: 首次按下 ======== */
     if (ev == KEY_EVENT_SHORT_PRESS)
     {
-        switch (kid_edge)
+        uint32_t code = key_to_code(kid_edge);
+        if (code == 0) return 0;
+
+        /* 如果是方向键，记录为当前长按键，准备连发计数 */
+        if (is_direction_key(kid_edge)) {
+            s_hold_key = kid_edge;
+            s_hold_cnt = 0;
+        }
+        return code;
+    }
+
+    /* ======== 2. 软件连发: 方向键长按 ======== */
+    if (s_hold_key != (key_id_t)0xFF)
+    {
+        /* 检查该键是否仍然物理按住 */
+        if (KEY_IsPressedStable(s_hold_key))
         {
-            case Key_Enter: return 5;   /* ENTER */
-            case Key_Return: return 6;   /* ESC */
-            case Key1: return 7;   /* up */
-            case Key2: return 8;   /* down */					
-            default: break;
+            s_hold_cnt++;
+            /* 延迟阶段: 还没到连发时间 */
+            if (s_hold_cnt < REPEAT_DELAY_COUNT) {
+                return 0;
+            }
+            /* 连发阶段: 每隔 REPEAT_INTERVAL_COUNT 次读数产生一次事件 */
+            uint16_t ticks_after_delay = s_hold_cnt - REPEAT_DELAY_COUNT;
+            if ((ticks_after_delay % REPEAT_INTERVAL_COUNT) == 0) {
+                return key_to_code(s_hold_key);
+            }
+            return 0;
+        }
+        else
+        {
+            /* 键已松开 → 立即停止连发，无积压 */
+            s_hold_key = (key_id_t)0xFF;
+            s_hold_cnt = 0;
         }
     }
+
+    /* ======== 3. 其他键 (非方向键): 仅边沿触发，无连发 ======== */
+    /* 已在上面的 SHORT_PRESS 分支处理 */
 
     return 0;
 }

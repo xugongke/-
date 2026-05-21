@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "a7680c.h"
+#include "lvgl.h"
 
 // 默认 HTTP 配置
 static http_config_t g_http_config = {
@@ -211,3 +212,63 @@ const char* Weather_GetShortDesc(int code)
     }
 }
 
+/* 根据天气代码返回图标圆的背景颜色 (0xRRGGBB) */
+uint32_t Weather_GetIconColor(int code)
+{
+    switch(code)
+    {
+        case 0:  	return 0xFF9800;  /* 晴天 - 温暖橙色 */
+        case 1:		return 0xFFA726;  /* 晴转多云 */
+        case 2:		return 0x90A4AE;  /* 多云 - 灰蓝 */
+        case 3:  	return 0x78909C;  /* 阴天 - 深灰蓝 */
+        case 45:	return 0xB0BEC5;  /* 雾 */
+        case 48: 	return 0x9E9E9E;  /* 霾 */
+        case 51: case 53: case 55:
+        case 56: case 57:
+        case 61:	return 0x42A5F5;  /* 小雨 - 浅蓝 */
+        case 63:	return 0x1E88E5;  /* 中雨 - 蓝色 */
+        case 65: 	return 0x1565C0;  /* 大雨 - 深蓝 */
+        case 66: 	return 0x80DEEA;  /* 冻雨 - 青色 */
+        case 67: 	return 0x80DEEA;  /* 冻雨 */
+        case 71:	return 0xE0E0E0;  /* 小雪 - 浅灰白 */
+        case 73:	return 0xCFD8DC;  /* 中雪 */
+        case 75:	return 0xB0BEC5;  /* 大雪 */
+        case 77: 	return 0xECEFF1;  /* 雪粒 */
+        case 80: case 81:
+        case 82: 	return 0x5C6BC0;  /* 阵雨 - 靛蓝 */
+        case 85: case 86: return 0xE8EAF6;  /* 阵雪 - 淡紫白 */
+        case 95: case 96: 	return 0x7E57C2;  /* 雷暴 - 紫色 */
+        case 99: 	return 0x4527A0;  /* 冰雹 - 深紫 */
+        default: 	return 0x607D8B;  /* 未知 - 灰色 */
+    }
+}
+
+/* 根据天气代码返回LVGL符号图标 */
+const char* Weather_GetSymbol(int code)
+{
+    switch(code)
+    {
+        case 0:  	return LV_SYMBOL_CHARGE;    /* 晴天 - 闪电/太阳 */
+        case 1:		return LV_SYMBOL_IMAGE;     /* 晴转多云 */
+        case 2:		return LV_SYMBOL_IMAGE;     /* 多云 */
+        case 3:  	return LV_SYMBOL_IMAGE;     /* 阴天 */
+        case 45:	return LV_SYMBOL_EYE_OPEN;  /* 雾 */
+        case 48: 	return LV_SYMBOL_EYE_CLOSE; /* 霾 */
+        case 51: case 53: case 55:
+        case 56: case 57:
+        case 61:	return LV_SYMBOL_TINT;      /* 小雨 - 水滴 */
+        case 63:	return LV_SYMBOL_TINT;      /* 中雨 */
+        case 65: 	return LV_SYMBOL_TINT;      /* 大雨 */
+        case 66: case 67: return LV_SYMBOL_TINT;   /* 冻雨 */
+        case 71:	return LV_SYMBOL_SD_CARD;   /* 小雪 - 白色方块 */
+        case 73:	return LV_SYMBOL_SD_CARD;   /* 中雪 */
+        case 75:	return LV_SYMBOL_SD_CARD;   /* 大雪 */
+        case 77: 	return LV_SYMBOL_SD_CARD;   /* 雪粒 */
+        case 80: case 81:
+        case 82: 	return LV_SYMBOL_TINT;      /* 阵雨 */
+        case 85: case 86: return LV_SYMBOL_SD_CARD;  /* 阵雪 */
+        case 95: case 96: return LV_SYMBOL_WARNING;   /* 雷暴 */
+        case 99: 	return LV_SYMBOL_WARNING;   /* 冰雹 */
+        default: 	return LV_SYMBOL_SETTINGS;  /* 未知 */
+    }
+}

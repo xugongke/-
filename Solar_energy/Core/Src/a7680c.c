@@ -11,7 +11,7 @@ __attribute__((section("RW_IRAM1")))// 放到普通 SRAM（0x20000000）
 uint8_t a7680c_rx_buf[UART_RX_DMA_SIZE];
 
 __attribute__((section("RW_IRAM2")))// 放到 CCM RAM（0x10000000）
-uint8_t at_parse_buf[AT_PARSE_BUFFER_SIZE];//流式拼接缓冲区，接收到的完整的4G数据存储在这里面
+uint8_t at_parse_buf[AT_PARSE_BUFFER_SIZE] = {[AT_PARSE_BUFFER_SIZE - 1] = '\0',[AT_PARSE_BUFFER_SIZE - 2] = '\n',[AT_PARSE_BUFFER_SIZE - 3] = '\r'};//流式拼接缓冲区，接收到的完整的4G数据存储在这里面
 uint16_t at_index = 0;//记录缓冲区下标
 
 /* 接收到的完整帧总长度 */
@@ -104,8 +104,8 @@ uint8_t A7680C_SendAT(char *cmd, char *ack, uint32_t timeout,uint8_t* data)
     }
     else
     {
-        printf("在指定时间里没找到目标字符串：%s",ack);
-				printf("模块响应的字符串为:%s",at_parse_buf);
+        printf("在指定时间里没找到目标字符串：%s\r\n",ack);
+				printf("模块响应的字符串为:%s\r\n",at_parse_buf);
         ret = AT_RESULT_TIMEOUT;
     }
 

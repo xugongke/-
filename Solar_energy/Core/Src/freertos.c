@@ -350,14 +350,20 @@ void StartDefaultTask(void *argument)
 				if (A7680C_SendATE0() == AT_RESULT_OK)
 				{
 					ate0_ok = 1;
-					printf("回显已关闭(第%d次尝试)\r\n", ate_retry + 1);
+//					printf("回显已关闭(第%d次尝试)\r\n", ate_retry + 1);
 					break;
 				}
+//				printf("等待回显关闭...(%d/30)\r\n", ate_retry + 1);
 				osDelay(1000);
 			}
 			if (!ate0_ok)
 			{
 				printf("警告: 30s内未能关闭回显\r\n");
+				simcard_ready = 0;
+				need_init = 1;  /* 保持init标志，下次循环继续尝试 */
+				A7680C_SendAT_CFUN();  /* 重启模块 */
+				osDelay(5000);
+				continue;
 			}
 
 			/* 轮询等待网络就绪（最多60秒）
@@ -369,10 +375,10 @@ void StartDefaultTask(void *argument)
 				if (A7680C_CheckNetworkReady() == AT_RESULT_OK)
 				{
 					net_ok = 1;
-					printf("网络就绪(第%d次尝试)\r\n", retry + 1);
+//					printf("网络就绪(第%d次尝试)\r\n", retry + 1);
 					break;
 				}
-				printf("等待网络就绪...(%d/60)\r\n", retry + 1);
+//				printf("等待网络就绪...(%d/60)\r\n", retry + 1);
 				osDelay(1000);
 			}
 
@@ -492,18 +498,54 @@ void StartDefaultTask(void *argument)
 			}
 		}
 
-		/* 天气文字更新 */
-		const char* Weather_buff = Weather_GetShortDesc(weather_data.weather_code);
-		if(lv_obj_is_valid(guider_ui.screen_user_home_label_1) && lv_obj_is_valid(guider_ui.screen_user_home_label_2))
+		/* 天气显示更新 (文字+彩色图标+昼夜指示) */
+		if(lv_obj_is_valid(guider_ui.screen_user_home_label_1) &&
+		   lv_obj_is_valid(guider_ui.screen_user_home_label_2))
 		{
+				/* 更新天气文字 */
+				const char* Weather_buff = Weather_GetShortDesc(weather_data.weather_code);
 				lv_label_set_text(guider_ui.screen_user_home_label_1, Weather_buff);
+
+				/* 更新天气图标圆的颜色和内部符号 */
+				if(lv_obj_is_valid(guider_ui.screen_user_home_weather_icon))
+				{
+						uint32_t icon_color = Weather_GetIconColor(weather_data.weather_code);
+						lv_color_t color = lv_color_hex(icon_color);
+						lv_obj_set_style_bg_color(guider_ui.screen_user_home_weather_icon, color, 0);
+						lv_obj_set_style_shadow_color(guider_ui.screen_user_home_weather_icon, color, 0);
+
+						/* 更新圆内图标符号 (第一个子对象即图标label) */
+						uint32_t child_cnt = lv_obj_get_child_cnt(guider_ui.screen_user_home_weather_icon);
+						if(child_cnt > 0)
+						{
+								lv_obj_t *icon_sym = lv_obj_get_child(guider_ui.screen_user_home_weather_icon, 0);
+								if(icon_sym != NULL)
+								{
+										lv_label_set_text(icon_sym, Weather_GetSymbol(weather_data.weather_code));
+								}
+						}
+				}
+
+				/* 更新昼夜指示 (☀/☾ 图标 + 颜色) */
 				if(weather_data.is_day == 1)
 				{
-					lv_label_set_text(guider_ui.screen_user_home_label_2,"白天 ");
+						lv_label_set_text(guider_ui.screen_user_home_label_2, "\xE7\x99\xBD\xE5\xA4\xA9 ");  /* 白天 */
+						if(lv_obj_is_valid(guider_ui.screen_user_home_daynight_dot))
+						{
+								lv_label_set_text(guider_ui.screen_user_home_daynight_dot, "\xE2\x98\x80");  /* ☀ */
+								lv_obj_set_style_text_color(guider_ui.screen_user_home_daynight_dot,
+										lv_color_hex(0xFFC107), 0);  /* 金色 */
+						}
 				}
 				else
 				{
-					lv_label_set_text(guider_ui.screen_user_home_label_2,"黑天 ");
+						lv_label_set_text(guider_ui.screen_user_home_label_2, "\xE5\xA4\x9C\xE6\x99\x9A ");  /* 夜晚 */
+						if(lv_obj_is_valid(guider_ui.screen_user_home_daynight_dot))
+						{
+								lv_label_set_text(guider_ui.screen_user_home_daynight_dot, "\xE2\x98\x81");  /* ☁ */
+								lv_obj_set_style_text_color(guider_ui.screen_user_home_daynight_dot,
+										lv_color_hex(0x5C6BC0), 0);  /* 靛蓝 */
+						}
 				}
 		}
     osDelay(1000);
@@ -526,8 +568,10 @@ void lvgl_task(void *argument)
 	lv_port_disp_init();		/* lvgl显示接口初始化,放在lv_init()的后面 */	
 	lv_port_indev_init();   /* lvgl输入接口初始化,放在lv_init()的后面 */	
 	lv_port_fs_init();   		/* lvgl文件系统接口初始化,放在lv_init()的后面 */	
-//	SDCardInfo();//读取SD卡基本信息,在挂载之后执行
 	printf("LVGL Version: %d.%d.%d\r\n", LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH);
+	
+	// 文件系统初始化完成之后读取设备表文件加载到RAM中
+	device_manager_init();
 	
 	/* USER CODE END 2 */
 	//自己设计的图形窗口
@@ -589,8 +633,6 @@ void ES1642_Task(void *argument)
 	{
 			Error_Handler();
 	}
-	// 上电时加载设备表
-	device_manager_init();
   /* Infinite loop */
   for(;;)
   {

@@ -86,5 +86,7 @@ typedef struct {
 // 获取天气数据的函数
 void A7680C_HTTP_GetWeatherData(float latitude, float longitude, WeatherCurrent_t *weather_data);
 const char* Weather_GetShortDesc(int code);
+uint32_t Weather_GetIconColor(int code);
+const char* Weather_GetSymbol(int code);
 uint8_t A7680C_HTTP_Init(void);
 #endif // A7680C_HTTP_H

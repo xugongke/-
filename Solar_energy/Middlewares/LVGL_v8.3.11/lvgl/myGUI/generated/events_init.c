@@ -53,29 +53,171 @@ static void screen_user_home_event_handler (lv_event_t *e)
     }
 }
 
-/* 太阳能卡片点击 → 后续跳转到太阳能详情页 */
+/* ======== 卡片选中动画 (上浮 + 阴影发光 + 描边) ======== */
+
+/* 卡片主题色 (与 setup_scr 中的颜色对应) */
+#define CARD_COLOR_BLUE    0x2196F3
+#define CARD_COLOR_GREEN   0x4CAF50
+#define CARD_COLOR_ORANGE  0xFF9800
+
+/**
+ * @brief  动画回调 - Y轴位移 (translate_y, 不影响布局)
+ */
+static void card_anim_y_cb(void *var, int32_t v) {
+    lv_obj_set_style_translate_y((lv_obj_t *)var, v, 0);
+}
+
+/**
+ * @brief  动画回调 - 阴影宽度
+ */
+static void card_anim_shadow_w_cb(void *var, int32_t v) {
+    lv_obj_set_style_shadow_width((lv_obj_t *)var, v, 0);
+}
+
+/**
+ * @brief  动画回调 - 阴影透明度
+ */
+static void card_anim_shadow_opa_cb(void *var, int32_t v) {
+    lv_obj_set_style_shadow_opa((lv_obj_t *)var, v, 0);
+}
+
+/**
+ * @brief  动画回调 - 描边宽度
+ */
+static void card_anim_border_w_cb(void *var, int32_t v) {
+    lv_obj_set_style_border_width((lv_obj_t *)var, v, 0);
+}
+
+/**
+ * @brief  卡片被选中 → 上浮 + 阴影发光 + 彩色描边
+ */
+static void card_focus_anim(lv_obj_t *card, uint32_t theme_color)
+{
+    /* 1. Y轴上浮: 0 → -8px (弹跳过冲) */
+    lv_anim_t a_y;
+    lv_anim_init(&a_y);
+    lv_anim_set_var(&a_y, card);
+    lv_anim_set_exec_cb(&a_y, card_anim_y_cb);
+    lv_anim_set_values(&a_y, 0, -8);
+    lv_anim_set_time(&a_y, 300);
+    lv_anim_set_path_cb(&a_y, lv_anim_path_overshoot);
+    lv_anim_start(&a_y);
+
+    /* 2. 阴影宽度: 12 → 20 */
+    lv_anim_t a_sw;
+    lv_anim_init(&a_sw);
+    lv_anim_set_var(&a_sw, card);
+    lv_anim_set_exec_cb(&a_sw, card_anim_shadow_w_cb);
+    lv_anim_set_values(&a_sw, 12, 20);
+    lv_anim_set_time(&a_sw, 250);
+    lv_anim_set_path_cb(&a_sw, lv_anim_path_ease_out);
+    lv_anim_start(&a_sw);
+
+    /* 3. 阴影透明度: 50 → 120 */
+    lv_anim_t a_so;
+    lv_anim_init(&a_so);
+    lv_anim_set_var(&a_so, card);
+    lv_anim_set_exec_cb(&a_so, card_anim_shadow_opa_cb);
+    lv_anim_set_values(&a_so, 50, 120);
+    lv_anim_set_time(&a_so, 250);
+    lv_anim_start(&a_so);
+
+    /* 4. 彩色描边: 0 → 2px */
+    lv_obj_set_style_border_color(card, lv_color_hex(theme_color), 0);
+    lv_obj_set_style_border_opa(card, LV_OPA_COVER, 0);
+    lv_anim_t a_bw;
+    lv_anim_init(&a_bw);
+    lv_anim_set_var(&a_bw, card);
+    lv_anim_set_exec_cb(&a_bw, card_anim_border_w_cb);
+    lv_anim_set_values(&a_bw, 0, 2);
+    lv_anim_set_time(&a_bw, 200);
+    lv_anim_start(&a_bw);
+}
+
+/**
+ * @brief  卡片取消选中 → 回落 + 阴影收缩 + 去描边
+ */
+static void card_defocus_anim(lv_obj_t *card)
+{
+    /* 1. Y轴回落: -8 → 0 */
+    lv_anim_t a_y;
+    lv_anim_init(&a_y);
+    lv_anim_set_var(&a_y, card);
+    lv_anim_set_exec_cb(&a_y, card_anim_y_cb);
+    lv_anim_set_values(&a_y, -8, 0);
+    lv_anim_set_time(&a_y, 200);
+    lv_anim_set_path_cb(&a_y, lv_anim_path_ease_in);
+    lv_anim_start(&a_y);
+
+    /* 2. 阴影宽度回: → 12 */
+    lv_anim_t a_sw;
+    lv_anim_init(&a_sw);
+    lv_anim_set_var(&a_sw, card);
+    lv_anim_set_exec_cb(&a_sw, card_anim_shadow_w_cb);
+    lv_anim_set_values(&a_sw, 20, 12);
+    lv_anim_set_time(&a_sw, 200);
+    lv_anim_start(&a_sw);
+
+    /* 3. 阴影透明度回: → 50 */
+    lv_anim_t a_so;
+    lv_anim_init(&a_so);
+    lv_anim_set_var(&a_so, card);
+    lv_anim_set_exec_cb(&a_so, card_anim_shadow_opa_cb);
+    lv_anim_set_values(&a_so, 120, 50);
+    lv_anim_set_time(&a_so, 200);
+    lv_anim_start(&a_so);
+
+    /* 4. 描边消失: 2 → 0 */
+    lv_anim_t a_bw;
+    lv_anim_init(&a_bw);
+    lv_anim_set_var(&a_bw, card);
+    lv_anim_set_exec_cb(&a_bw, card_anim_border_w_cb);
+    lv_anim_set_values(&a_bw, 2, 0);
+    lv_anim_set_time(&a_bw, 200);
+    lv_anim_start(&a_bw);
+}
+
+/* 太阳能卡片: FOCUSED/DEFOCUSED/CLICKED */
 static void screen_user_home_card_solar_event_handler (lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
-    if (code == LV_EVENT_CLICKED) {
+    if (code == LV_EVENT_FOCUSED) {
+        card_focus_anim(guider_ui.screen_user_home_card_solar, CARD_COLOR_BLUE);
+    }
+    else if (code == LV_EVENT_DEFOCUSED) {
+        card_defocus_anim(guider_ui.screen_user_home_card_solar);
+    }
+    else if (code == LV_EVENT_CLICKED) {
         // TODO: 跳转到太阳能详情页面
     }
 }
 
-/* 设备在线卡片点击 → 跳转到用户列表页面 */
+/* 设备在线卡片: FOCUSED/DEFOCUSED/CLICKED */
 static void screen_user_home_card_device_event_handler (lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
-    if (code == LV_EVENT_CLICKED) {
+    if (code == LV_EVENT_FOCUSED) {
+        card_focus_anim(guider_ui.screen_user_home_card_device, CARD_COLOR_GREEN);
+    }
+    else if (code == LV_EVENT_DEFOCUSED) {
+        card_defocus_anim(guider_ui.screen_user_home_card_device);
+    }
+    else if (code == LV_EVENT_CLICKED) {
         ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_list, guider_ui.screen_user_list_del, &guider_ui.screen_user_home_del, setup_scr_screen_user_list, LV_SCR_LOAD_ANIM_NONE, 10, 10, true, false);
     }
 }
 
-/* 告警卡片点击 → 后续跳转到告警详情页 */
+/* 告警卡片: FOCUSED/DEFOCUSED/CLICKED */
 static void screen_user_home_card_alert_event_handler (lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
-    if (code == LV_EVENT_CLICKED) {
+    if (code == LV_EVENT_FOCUSED) {
+        card_focus_anim(guider_ui.screen_user_home_card_alert, CARD_COLOR_ORANGE);
+    }
+    else if (code == LV_EVENT_DEFOCUSED) {
+        card_defocus_anim(guider_ui.screen_user_home_card_alert);
+    }
+    else if (code == LV_EVENT_CLICKED) {
         // TODO: 跳转到告警详情页面
     }
 }

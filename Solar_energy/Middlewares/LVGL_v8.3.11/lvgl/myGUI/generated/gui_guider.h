@@ -37,6 +37,8 @@ typedef struct
 	lv_obj_t *screen_user_home_digit_m1;     /* 分钟十位 */
 	lv_obj_t *screen_user_home_digit_m2;     /* 分钟个位 */
 	lv_obj_t *screen_user_home_cont_2;
+	lv_obj_t *screen_user_home_weather_icon;     /* 天气图标(彩色圆) */
+	lv_obj_t *screen_user_home_daynight_dot;     /* 昼夜指示圆点 */
 	lv_obj_t *screen_user_home_label_2;
 	lv_obj_t *screen_user_home_label_1;
 	lv_obj_t *screen_user_home_cont_3;
