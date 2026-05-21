@@ -1,9 +1,8 @@
-/*
+﻿/*
 * Copyright 2026 NXP
 * NXP Proprietary. This software is owned or controlled by NXP and may only be used strictly in
 * accordance with the applicable license terms. By expressly accepting such terms or by downloading, installing,
-* activating and/or using the software, you are agreeing that you have read, and that you agree to
-* comply with and be bound by, such license terms.  If you do not any way use this software.
+* activating and/or otherwise using the software, you are agreeing that you do not any way use this software.
 */
 
 #include "lvgl.h"
@@ -58,7 +57,7 @@ void setup_scr_screen_user_home(lv_ui *ui)
         lv_obj_set_pos(icon_lbl, 12, 8);
 
         lv_obj_t *title_lbl = lv_label_create(ui->screen_user_home_card_solar);
-        lv_label_set_text(title_lbl, "\xE5\xA4\xAA\xE9\x98\xB3\xE8\x83\xBD");  /* 太阳能 */
+        lv_label_set_text(title_lbl, "太阳能");
         lv_obj_set_style_text_color(title_lbl, lv_color_hex(0xffffff), 0);
         lv_obj_set_style_text_font(title_lbl, &lv_font_SourceHanSerifSC_Regular_16, 0);
         lv_obj_set_style_bg_opa(title_lbl, 0, 0);
@@ -113,7 +112,7 @@ void setup_scr_screen_user_home(lv_ui *ui)
         lv_obj_set_pos(icon_lbl, 12, 8);
 
         lv_obj_t *title_lbl = lv_label_create(ui->screen_user_home_card_device);
-        lv_label_set_text(title_lbl, "\xE8\xAE\xBE\xE5\xA4\x87\xE5\x9C\xA8\xE7\xBA\xBF");  /* 设备在线 */
+        lv_label_set_text(title_lbl, "设备在线");
         lv_obj_set_style_text_color(title_lbl, lv_color_hex(0xffffff), 0);
         lv_obj_set_style_text_font(title_lbl, &lv_font_SourceHanSerifSC_Regular_16, 0);
         lv_obj_set_style_bg_opa(title_lbl, 0, 0);
@@ -167,7 +166,7 @@ void setup_scr_screen_user_home(lv_ui *ui)
         lv_obj_set_pos(icon_lbl, 12, 8);
 
         lv_obj_t *title_lbl = lv_label_create(ui->screen_user_home_card_alert);
-        lv_label_set_text(title_lbl, "\xE5\x91\x8A\xE8\xAD\xA6");  /* 告警 */
+        lv_label_set_text(title_lbl, "告警");
         lv_obj_set_style_text_color(title_lbl, lv_color_hex(0xffffff), 0);
         lv_obj_set_style_text_font(title_lbl, &lv_font_SourceHanSerifSC_Regular_16, 0);
         lv_obj_set_style_bg_opa(title_lbl, 0, 0);
@@ -311,7 +310,7 @@ void setup_scr_screen_user_home(lv_ui *ui)
 
     /* 昼夜图标 (☀/☾, 使用中文字体支持Unicode) */
     ui->screen_user_home_daynight_dot = lv_label_create(ui->screen_user_home_cont_2);
-    lv_label_set_text(ui->screen_user_home_daynight_dot, "\xE2\x98\x80");  /* ☀ UTF-8 */
+    lv_label_set_text(ui->screen_user_home_daynight_dot, "☀");
     lv_obj_set_pos(ui->screen_user_home_daynight_dot, 52, 30);
     lv_obj_set_style_text_color(ui->screen_user_home_daynight_dot, lv_color_hex(0xFFC107), 0);
     lv_obj_set_style_text_font(ui->screen_user_home_daynight_dot, &lv_font_SourceHanSerifSC_Regular_16, 0);
@@ -319,7 +318,7 @@ void setup_scr_screen_user_home(lv_ui *ui)
 
     /* 昼夜文字标签 */
     ui->screen_user_home_label_2 = lv_label_create(ui->screen_user_home_cont_2);
-    lv_label_set_text(ui->screen_user_home_label_2, "\xE7\x99\xBD\xE5\xA4\xA9 ");  /* 白天 UTF-8 */
+    lv_label_set_text(ui->screen_user_home_label_2, "白天 ");
     lv_obj_set_pos(ui->screen_user_home_label_2, 70, 30);
     lv_obj_set_style_text_color(ui->screen_user_home_label_2, lv_color_hex(0x888888), 0);
     lv_obj_set_style_text_font(ui->screen_user_home_label_2, &lv_font_SourceHanSerifSC_Regular_16, 0);
@@ -363,7 +362,7 @@ void setup_scr_screen_user_home(lv_ui *ui)
         lv_obj_t *wifi_icon = lv_label_create(ui->screen_user_home_cont_3);
         lv_label_set_text(wifi_icon, LV_SYMBOL_WIFI);
         lv_obj_set_style_text_color(wifi_icon, lv_color_hex(0xffffff), 0);
-        lv_obj_set_style_text_font(wifi_icon, &lv_font_montserratMedium_12, 0);
+        lv_obj_set_style_text_font(wifi_icon, &lv_font_SourceHanSerifSC_Regular_12, 0);
         lv_obj_set_style_bg_opa(wifi_icon, 0, 0);
         lv_obj_align(wifi_icon, LV_ALIGN_LEFT_MID, 8, 0);
     }
@@ -372,7 +371,7 @@ void setup_scr_screen_user_home(lv_ui *ui)
     ui->screen_user_home_label_8 = lv_label_create(ui->screen_user_home_cont_3);
     lv_label_set_text(ui->screen_user_home_label_8, "IP:");
     lv_obj_set_style_text_color(ui->screen_user_home_label_8, lv_color_hex(0xaaaaaa), 0);
-    lv_obj_set_style_text_font(ui->screen_user_home_label_8, &lv_font_montserratMedium_12, 0);
+    lv_obj_set_style_text_font(ui->screen_user_home_label_8, &lv_font_SourceHanSerifSC_Regular_12, 0);
     lv_obj_set_style_bg_opa(ui->screen_user_home_label_8, 0, 0);
     lv_obj_align(ui->screen_user_home_label_8, LV_ALIGN_LEFT_MID, 24, 0);
 
@@ -380,7 +379,7 @@ void setup_scr_screen_user_home(lv_ui *ui)
     ui->screen_user_home_label_ip = lv_label_create(ui->screen_user_home_cont_3);
     lv_label_set_text(ui->screen_user_home_label_ip, "");
     lv_obj_set_style_text_color(ui->screen_user_home_label_ip, lv_color_hex(0xffffff), 0);
-    lv_obj_set_style_text_font(ui->screen_user_home_label_ip, &lv_font_montserratMedium_12, 0);
+    lv_obj_set_style_text_font(ui->screen_user_home_label_ip, &lv_font_SourceHanSerifSC_Regular_12, 0);
     lv_obj_set_style_bg_opa(ui->screen_user_home_label_ip, 0, 0);
     lv_obj_align(ui->screen_user_home_label_ip, LV_ALIGN_LEFT_MID, 44, 0);
 
@@ -399,7 +398,7 @@ void setup_scr_screen_user_home(lv_ui *ui)
     ui->screen_user_home_label_10 = lv_label_create(ui->screen_user_home_cont_3);
     lv_label_set_text(ui->screen_user_home_label_10, "P:");
     lv_obj_set_style_text_color(ui->screen_user_home_label_10, lv_color_hex(0xaaaaaa), 0);
-    lv_obj_set_style_text_font(ui->screen_user_home_label_10, &lv_font_montserratMedium_12, 0);
+    lv_obj_set_style_text_font(ui->screen_user_home_label_10, &lv_font_SourceHanSerifSC_Regular_12, 0);
     lv_obj_set_style_bg_opa(ui->screen_user_home_label_10, 0, 0);
     lv_obj_align(ui->screen_user_home_label_10, LV_ALIGN_LEFT_MID, 160, 0);
 
@@ -407,7 +406,7 @@ void setup_scr_screen_user_home(lv_ui *ui)
     ui->screen_user_home_label_port = lv_label_create(ui->screen_user_home_cont_3);
     lv_label_set_text(ui->screen_user_home_label_port, "");
     lv_obj_set_style_text_color(ui->screen_user_home_label_port, lv_color_hex(0xffffff), 0);
-    lv_obj_set_style_text_font(ui->screen_user_home_label_port, &lv_font_montserratMedium_12, 0);
+    lv_obj_set_style_text_font(ui->screen_user_home_label_port, &lv_font_SourceHanSerifSC_Regular_12, 0);
     lv_obj_set_style_bg_opa(ui->screen_user_home_label_port, 0, 0);
     lv_obj_align(ui->screen_user_home_label_port, LV_ALIGN_LEFT_MID, 178, 0);
 

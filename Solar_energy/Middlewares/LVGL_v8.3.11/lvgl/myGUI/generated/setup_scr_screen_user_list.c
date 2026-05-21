@@ -64,7 +64,7 @@ void setup_scr_screen_user_list(lv_ui *ui)
 
         /* 标题 "用户列表" (白色) */
         lv_obj_t *title_lbl = lv_label_create(header);
-        lv_label_set_text(title_lbl, "\xE7\x94\xA8\xE6\x88\xB7\xE5\x88\x97\xE8\xA1\xA8");  /* 用户列表 */
+        lv_label_set_text(title_lbl, "用户列表");
         lv_obj_set_style_text_color(title_lbl, lv_color_hex(0xffffff), 0);
         lv_obj_set_style_text_font(title_lbl, &lv_font_SourceHanSerifSC_Regular_16, 0);
         lv_obj_set_style_bg_opa(title_lbl, 0, 0);

@@ -61,14 +61,26 @@ static void screen_user_home_card_solar_event_handler (lv_event_t *e)
     if (code == LV_EVENT_FOCUSED) {
         lv_obj_set_style_border_color(guider_ui.screen_user_home_card_solar, lv_color_hex(0x2196F3), 0);
         lv_obj_set_style_border_opa(guider_ui.screen_user_home_card_solar, LV_OPA_COVER, 0);
-        lv_obj_set_style_border_width(guider_ui.screen_user_home_card_solar, 2, 0);
-        lv_obj_set_style_shadow_width(guider_ui.screen_user_home_card_solar, 18, 0);
-        lv_obj_set_style_shadow_opa(guider_ui.screen_user_home_card_solar, 80, 0);
+        lv_obj_set_style_border_width(guider_ui.screen_user_home_card_solar, 3, 0);
+        lv_obj_set_style_shadow_width(guider_ui.screen_user_home_card_solar, 20, 0);
+        lv_obj_set_style_shadow_opa(guider_ui.screen_user_home_card_solar, 100, 0);
+        lv_obj_set_style_shadow_ofs_y(guider_ui.screen_user_home_card_solar, 6, 0);
+        /* 整体放大: 卡片 + 内部白色body一起变大 */
+        lv_obj_set_size(guider_ui.screen_user_home_card_solar, 150, 108);
+        lv_obj_set_pos(guider_ui.screen_user_home_card_solar, 15, 151);
+        lv_obj_t *_body = lv_obj_get_child(guider_ui.screen_user_home_card_solar, 2);
+        if(_body) { lv_obj_set_size(_body, 146, 66); lv_obj_set_pos(_body, 2, 38); }
     }
     else if (code == LV_EVENT_DEFOCUSED) {
         lv_obj_set_style_border_width(guider_ui.screen_user_home_card_solar, 0, 0);
         lv_obj_set_style_shadow_width(guider_ui.screen_user_home_card_solar, 12, 0);
         lv_obj_set_style_shadow_opa(guider_ui.screen_user_home_card_solar, 50, 0);
+        lv_obj_set_style_shadow_ofs_y(guider_ui.screen_user_home_card_solar, 4, 0);
+        /* 恢复原始大小 */
+        lv_obj_set_size(guider_ui.screen_user_home_card_solar, 140, 100);
+        lv_obj_set_pos(guider_ui.screen_user_home_card_solar, 20, 155);
+        lv_obj_t *_body = lv_obj_get_child(guider_ui.screen_user_home_card_solar, 2);
+        if(_body) { lv_obj_set_size(_body, 136, 62); lv_obj_set_pos(_body, 2, 36); }
     }
     else if (code == LV_EVENT_CLICKED) {
         // TODO: 跳转到太阳能详情页面
@@ -82,14 +94,26 @@ static void screen_user_home_card_device_event_handler (lv_event_t *e)
     if (code == LV_EVENT_FOCUSED) {
         lv_obj_set_style_border_color(guider_ui.screen_user_home_card_device, lv_color_hex(0x4CAF50), 0);
         lv_obj_set_style_border_opa(guider_ui.screen_user_home_card_device, LV_OPA_COVER, 0);
-        lv_obj_set_style_border_width(guider_ui.screen_user_home_card_device, 2, 0);
-        lv_obj_set_style_shadow_width(guider_ui.screen_user_home_card_device, 18, 0);
-        lv_obj_set_style_shadow_opa(guider_ui.screen_user_home_card_device, 80, 0);
+        lv_obj_set_style_border_width(guider_ui.screen_user_home_card_device, 3, 0);
+        lv_obj_set_style_shadow_width(guider_ui.screen_user_home_card_device, 20, 0);
+        lv_obj_set_style_shadow_opa(guider_ui.screen_user_home_card_device, 100, 0);
+        lv_obj_set_style_shadow_ofs_y(guider_ui.screen_user_home_card_device, 6, 0);
+        /* 整体放大 */
+        lv_obj_set_size(guider_ui.screen_user_home_card_device, 150, 108);
+        lv_obj_set_pos(guider_ui.screen_user_home_card_device, 165, 151);
+        lv_obj_t *_body = lv_obj_get_child(guider_ui.screen_user_home_card_device, 2);
+        if(_body) { lv_obj_set_size(_body, 146, 66); lv_obj_set_pos(_body, 2, 38); }
     }
     else if (code == LV_EVENT_DEFOCUSED) {
         lv_obj_set_style_border_width(guider_ui.screen_user_home_card_device, 0, 0);
         lv_obj_set_style_shadow_width(guider_ui.screen_user_home_card_device, 12, 0);
         lv_obj_set_style_shadow_opa(guider_ui.screen_user_home_card_device, 50, 0);
+        lv_obj_set_style_shadow_ofs_y(guider_ui.screen_user_home_card_device, 4, 0);
+        /* 恢复原始大小 */
+        lv_obj_set_size(guider_ui.screen_user_home_card_device, 140, 100);
+        lv_obj_set_pos(guider_ui.screen_user_home_card_device, 170, 155);
+        lv_obj_t *_body = lv_obj_get_child(guider_ui.screen_user_home_card_device, 2);
+        if(_body) { lv_obj_set_size(_body, 136, 62); lv_obj_set_pos(_body, 2, 36); }
     }
     else if (code == LV_EVENT_CLICKED) {
         /* 无动画直接切换到用户列表页 (is_clean=false避免在卡片回调中清理home屏幕) */
@@ -104,14 +128,26 @@ static void screen_user_home_card_alert_event_handler (lv_event_t *e)
     if (code == LV_EVENT_FOCUSED) {
         lv_obj_set_style_border_color(guider_ui.screen_user_home_card_alert, lv_color_hex(0xFF9800), 0);
         lv_obj_set_style_border_opa(guider_ui.screen_user_home_card_alert, LV_OPA_COVER, 0);
-        lv_obj_set_style_border_width(guider_ui.screen_user_home_card_alert, 2, 0);
-        lv_obj_set_style_shadow_width(guider_ui.screen_user_home_card_alert, 18, 0);
-        lv_obj_set_style_shadow_opa(guider_ui.screen_user_home_card_alert, 80, 0);
+        lv_obj_set_style_border_width(guider_ui.screen_user_home_card_alert, 3, 0);
+        lv_obj_set_style_shadow_width(guider_ui.screen_user_home_card_alert, 20, 0);
+        lv_obj_set_style_shadow_opa(guider_ui.screen_user_home_card_alert, 100, 0);
+        lv_obj_set_style_shadow_ofs_y(guider_ui.screen_user_home_card_alert, 6, 0);
+        /* 整体放大 */
+        lv_obj_set_size(guider_ui.screen_user_home_card_alert, 150, 108);
+        lv_obj_set_pos(guider_ui.screen_user_home_card_alert, 315, 151);
+        lv_obj_t *_body = lv_obj_get_child(guider_ui.screen_user_home_card_alert, 2);
+        if(_body) { lv_obj_set_size(_body, 146, 66); lv_obj_set_pos(_body, 2, 38); }
     }
     else if (code == LV_EVENT_DEFOCUSED) {
         lv_obj_set_style_border_width(guider_ui.screen_user_home_card_alert, 0, 0);
         lv_obj_set_style_shadow_width(guider_ui.screen_user_home_card_alert, 12, 0);
         lv_obj_set_style_shadow_opa(guider_ui.screen_user_home_card_alert, 50, 0);
+        lv_obj_set_style_shadow_ofs_y(guider_ui.screen_user_home_card_alert, 4, 0);
+        /* 恢复原始大小 */
+        lv_obj_set_size(guider_ui.screen_user_home_card_alert, 140, 100);
+        lv_obj_set_pos(guider_ui.screen_user_home_card_alert, 320, 155);
+        lv_obj_t *_body = lv_obj_get_child(guider_ui.screen_user_home_card_alert, 2);
+        if(_body) { lv_obj_set_size(_body, 136, 62); lv_obj_set_pos(_body, 2, 36); }
     }
     else if (code == LV_EVENT_CLICKED) {
         // TODO: 跳转到告警详情页面

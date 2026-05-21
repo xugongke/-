@@ -322,7 +322,7 @@ void user_list_item_event_handler(lv_event_t *e)
         snprintf(buf, sizeof(buf), "%.2f kWh ", user_data.annual_energy);
         lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 3, 1, buf);
 			
-				snprintf(buf, sizeof(buf), "20%02d年%02d月%02d日 %02d时%02d分%02d秒  ",
+				snprintf(buf, sizeof(buf), "20%02d年%02d月%02d日 %02d:%02d:%02d  ",
 				user_data.update_time.year,user_data.update_time.month,user_data.update_time.day,user_data.update_time.hours,user_data.update_time.minutes,user_data.update_time.seconds);
 				
 				lv_label_set_text(guider_ui.screen_user_detail_label_time,buf);
