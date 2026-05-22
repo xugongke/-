@@ -1,10 +1,6 @@
 /*
 * Copyright 2026 NXP
-* NXP Proprietary. This software is owned or controlled by NXP and may only be used strictly in
-* accordance with the applicable license terms. By expressly accepting such terms or by downloading, installing,
-* activating and/or otherwise using the software, you are agreeing that you have read, or that you agree to
-* comply with, be bound by, such license terms.  If you do not agree to be bound by the applicable license
-* terms, then you may not retain, install, activate, or otherwise use the software.
+* NXP Confidential - DO NOT SHARE
 */
 
 #include "lvgl.h"
@@ -14,55 +10,159 @@
 #include "widgets_init.h"
 #include "custom.h"
 
+/* fake data - replace with SD card reading later */
+
+static const float solar_daily_kwh[15] = {
+    15.2f, 18.5f, 12.0f, 21.0f, 19.5f,
+    17.5f, 19.1f, 22.3f, 16.8f, 14.5f,
+    20.1f, 23.5f, 18.7f, 15.9f, 21.6f
+};
+
+static const float solar_total_kwh  = 12568.5f;
+static const float solar_year_kwh   = 3245.8f;
+static const float solar_month_kwh  = 256.4f;
+static const float solar_today_kwh  = 21.6f;
+
+static void fmt_val(char *buf, int val_x10)
+{
+    int a = val_x10 < 0 ? -val_x10 : val_x10;
+    int ipart = a / 10;
+    int dpart = a % 10;
+    if(val_x10 < 0) lv_snprintf(buf, 32, "-%d.%d", ipart, dpart);
+    else             lv_snprintf(buf, 32, "%d.%d", ipart, dpart);
+}
+
+static int f2x10(float v)
+{
+    return (v >= 0) ? (int)(v * 10 + 0.5f) : (int)(v * 10 - 0.5f);
+}
 
 void setup_scr_screen_solar(lv_ui *ui)
 {
-    /* ======== 创建屏幕 ======== */
     ui->screen_solar = lv_obj_create(NULL);
     lv_obj_set_size(ui->screen_solar, 480, 320);
     lv_obj_set_scrollbar_mode(ui->screen_solar, LV_SCROLLBAR_MODE_OFF);
-
-    /* 浅灰白背景 */
     lv_obj_set_style_bg_color(ui->screen_solar, lv_color_hex(0xF0F2F5), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_opa(ui->screen_solar, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    /* 顶部导航栏 */
+    /* header */
     {
-        lv_obj_t *header = lv_obj_create(ui->screen_solar);
-        lv_obj_remove_style_all(header);
-        lv_obj_set_size(header, 480, 42);
-        lv_obj_set_pos(header, 0, 0);
-        lv_obj_set_style_bg_color(header, lv_color_hex(0x2C3E50), 0);
-        lv_obj_set_style_bg_opa(header, LV_OPA_COVER, 0);
-        lv_obj_clear_flag(header, LV_OBJ_FLAG_SCROLLABLE);
-        lv_obj_set_style_pad_all(header, 0, 0);
+        lv_obj_t * h = lv_obj_create(ui->screen_solar);
+        lv_obj_remove_style_all(h);
+        lv_obj_set_size(h, 480, 42);
+        lv_obj_set_pos(h, 0, 0);
+        lv_obj_set_style_bg_color(h, lv_color_hex(0x2C3E50), 0);
+        lv_obj_set_style_bg_opa(h, LV_OPA_COVER, 0);
+        lv_obj_clear_flag(h, LV_OBJ_FLAG_SCROLLABLE);
+        lv_obj_set_style_pad_all(h, 0, 0);
 
-        lv_obj_t *title_lbl = lv_label_create(header);
-        lv_label_set_text(title_lbl, LV_SYMBOL_LEFT " 太阳能发电量");
-        lv_obj_set_style_text_color(title_lbl, lv_color_hex(0xffffff), 0);
-        lv_obj_set_style_text_font(title_lbl, &lv_font_SourceHanSerifSC_Regular_16, 0);
-        lv_obj_set_style_bg_opa(title_lbl, 0, 0);
-        lv_obj_set_pos(title_lbl, 14, 11);
+        lv_obj_t * t = lv_label_create(h);
+        lv_label_set_text(t, LV_SYMBOL_LEFT " Solar Energy");
+        lv_obj_set_style_text_color(t, lv_color_hex(0xffffff), 0);
+        lv_obj_set_style_text_font(t, &lv_font_SourceHanSerifSC_Regular_16, 0);
+        lv_obj_set_style_bg_opa(t, 0, 0);
+        lv_obj_set_pos(t, 14, 11);
     }
 
-    /* 中间内容区 - 简单的文本标签 (最小化测试) */
+    /* line chart card */
     {
-        lv_obj_t *info_label = lv_label_create(ui->screen_solar);
-        lv_label_set_text(info_label, "太阳能发电量详情页\n\n总发电量: 12568.5 kWh\n年发电量: 3245.8 kWh\n月发电量: 256.4 kWh\n日发电量: 19.1 kWh");
-        lv_obj_set_style_text_color(info_label, lv_color_hex(0x2C3E50), 0);
-        lv_obj_set_style_text_font(info_label, &lv_font_SourceHanSerifSC_Regular_16, 0);
-        lv_obj_set_style_bg_opa(info_label, 0, 0);
-        lv_obj_set_pos(info_label, 20, 60);
+        lv_obj_t * c = lv_obj_create(ui->screen_solar);
+        lv_obj_remove_style_all(c);
+        lv_obj_set_size(c, 464, 165);
+        lv_obj_set_pos(c, 8, 48);
+        lv_obj_set_style_radius(c, 10, 0);
+        lv_obj_set_style_bg_color(c, lv_color_hex(0xffffff), 0);
+        lv_obj_set_style_bg_opa(c, LV_OPA_COVER, 0);
+        lv_obj_set_style_shadow_width(c, 6, 0);
+        lv_obj_set_style_shadow_opa(c, 30, 0);
+        lv_obj_set_style_shadow_ofs_y(c, 3, 0);
+        lv_obj_set_style_border_width(c, 0, 0);
+        lv_obj_clear_flag(c, LV_OBJ_FLAG_SCROLLABLE);
+        lv_obj_set_style_pad_all(c, 6, 0);
+
+        lv_obj_t * ct = lv_label_create(c);
+        lv_label_set_text(ct, "15-Day Generation (kWh)");
+        lv_obj_set_style_text_color(ct, lv_color_hex(0x2C3E50), 0);
+        lv_obj_set_style_text_font(ct, &lv_font_SourceHanSerifSC_Regular_16, 0);
+        lv_obj_set_style_bg_opa(ct, 0, 0);
+        lv_obj_set_pos(ct, 8, 2);
+
+        lv_obj_t * ch = lv_chart_create(c);
+        lv_obj_set_size(ch, 444, 120);
+        lv_obj_set_pos(ch, 8, 24);
+        lv_obj_set_style_bg_opa(ch, LV_OPA_TRANSP, LV_PART_MAIN);
+        lv_obj_set_style_border_width(ch, 1, LV_PART_MAIN);
+        lv_obj_set_style_border_color(ch, lv_color_hex(0xE0E0E0), LV_PART_MAIN);
+        lv_chart_set_type(ch, LV_CHART_TYPE_LINE);
+        lv_chart_set_point_count(ch, 15);
+        lv_chart_set_div_line_count(ch, 4, 0);
+        lv_chart_set_range(ch, LV_CHART_AXIS_PRIMARY_Y, 0, 300);
+
+        lv_chart_series_t * s = lv_chart_add_series(ch, lv_color_hex(0x2196F3), LV_CHART_AXIS_PRIMARY_Y);
+        for(int i = 0; i < 15; i++){
+            s->y_points[i] = (int16_t)f2x10(solar_daily_kwh[i]);
+        }
+        lv_chart_refresh(ch);
+        lv_obj_set_style_size(ch, 4, LV_PART_INDICATOR);
     }
 
-    /* 底部提示 */
+    /* table card */
     {
-        lv_obj_t *hint = lv_label_create(ui->screen_solar);
-        lv_label_set_text(hint, "按ESC返回");
-        lv_obj_set_style_text_color(hint, lv_color_hex(0x888888), 0);
-        lv_obj_set_style_text_font(hint, &lv_font_SourceHanSerifSC_Regular_16, 0);
-        lv_obj_set_style_bg_opa(hint, 0, 0);
-        lv_obj_align(hint, LV_ALIGN_BOTTOM_MID, 0, -10);
+        lv_obj_t * tc = lv_obj_create(ui->screen_solar);
+        lv_obj_remove_style_all(tc);
+        lv_obj_set_size(tc, 464, 100);
+        lv_obj_set_pos(tc, 8, 218);
+        lv_obj_set_style_radius(tc, 10, 0);
+        lv_obj_set_style_bg_color(tc, lv_color_hex(0xffffff), 0);
+        lv_obj_set_style_bg_opa(tc, LV_OPA_COVER, 0);
+        lv_obj_set_style_shadow_width(tc, 6, 0);
+        lv_obj_set_style_shadow_opa(tc, 30, 0);
+        lv_obj_set_style_shadow_ofs_y(tc, 3, 0);
+        lv_obj_set_style_border_width(tc, 0, 0);
+        lv_obj_clear_flag(tc, LV_OBJ_FLAG_SCROLLABLE);
+        lv_obj_set_style_pad_all(tc, 6, 0);
+
+        lv_obj_t * tt = lv_label_create(tc);
+        lv_label_set_text(tt, "Generation Stats");
+        lv_obj_set_style_text_color(tt, lv_color_hex(0x2C3E50), 0);
+        lv_obj_set_style_text_font(tt, &lv_font_SourceHanSerifSC_Regular_16, 0);
+        lv_obj_set_style_bg_opa(tt, 0, 0);
+        lv_obj_set_pos(tt, 8, 2);
+
+        lv_obj_t * tb = lv_table_create(tc);
+        lv_obj_set_pos(tb, 4, 22);
+        lv_obj_set_style_text_font(tb, &lv_font_SourceHanSerifSC_Regular_16, LV_PART_MAIN);
+        lv_obj_set_style_border_width(tb, 1, LV_PART_MAIN);
+        lv_obj_set_style_border_color(tb, lv_color_hex(0xE0E0E0), LV_PART_MAIN);
+        lv_obj_set_style_pad_left(tb, 8, LV_PART_MAIN);
+        lv_obj_set_style_pad_right(tb, 8, LV_PART_MAIN);
+        lv_obj_set_style_pad_top(tb, 6, LV_PART_MAIN);
+        lv_obj_set_style_pad_bottom(tb, 6, LV_PART_MAIN);
+        lv_obj_set_style_bg_color(tb, lv_color_hex(0xffffff), LV_PART_MAIN);
+        lv_obj_set_style_bg_opa(tb, LV_OPA_COVER, LV_PART_MAIN);
+
+        lv_table_set_col_cnt(tb, 4);
+        lv_table_set_row_cnt(tb, 2);
+        lv_table_set_col_width(tb, 0, 106);
+        lv_table_set_col_width(tb, 1, 106);
+        lv_table_set_col_width(tb, 2, 106);
+        lv_table_set_col_width(tb, 3, 106);
+
+        lv_table_set_cell_value(tb, 0, 0, "Total");
+        lv_table_set_cell_value(tb, 0, 1, "Year");
+        lv_table_set_cell_value(tb, 0, 2, "Month");
+        lv_table_set_cell_value(tb, 0, 3, "Today");
+
+        char b0[32], b1[32], b2[32], b3[32];
+        fmt_val(b0, f2x10(solar_total_kwh));
+        fmt_val(b1, f2x10(solar_year_kwh));
+        fmt_val(b2, f2x10(solar_month_kwh));
+        fmt_val(b3, f2x10(solar_today_kwh));
+
+        lv_table_set_cell_value(tb, 1, 0, b0);
+        lv_table_set_cell_value(tb, 1, 1, b1);
+        lv_table_set_cell_value(tb, 1, 2, b2);
+        lv_table_set_cell_value(tb, 1, 3, b3);
     }
 
     lv_obj_update_layout(ui->screen_solar);

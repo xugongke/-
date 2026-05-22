@@ -290,6 +290,7 @@ static struct {
 /* LVGL周期更新定时器 (电池+信号共用) */
 static lv_timer_t *status_bar_timer = NULL;
 
+
 /**
  * @brief  将CSQ RSSI值映射到信号格数
  */
@@ -305,10 +306,21 @@ int8_t Signal_GetLevel(int32_t rssi)
 
 /**
  * @brief  LVGL定时器回调 - 周期更新电池+信号状态
+ * @note   仅在 home 页面为当前活跃屏幕时才执行 ADC 读取,
+ *         避免 screen 过渡动画期间阻塞 LVGL 任务导致卡死
  */
 static void status_bar_timer_cb(lv_timer_t *timer)
 {
     (void)timer;
+
+    /* 如果 home 页面不是当前活跃屏幕, 跳过更新 (避免在页面切换时阻塞) */
+    if (guider_ui.screen_user_home == NULL ||
+        lv_scr_act() != guider_ui.screen_user_home)
+    {
+        return;
+    }
+
+    printf("更新一次图标\r\n");
     Battery_Widget_Update();
     Signal_Widget_Update();
 }
@@ -328,20 +340,6 @@ static void status_bar_timer_cb(lv_timer_t *timer)
 void Battery_Widget_Init(lv_obj_t *parent)
 {
     if (parent == NULL) return;
-
-    /* ---- 如果组件已存在且有效, 仅刷新数据即可 (避免重复创建) ---- */
-    if (battery_widget.cont != NULL && lv_obj_is_valid(battery_widget.cont))
-    {
-        Battery_Widget_Update();
-        return;
-    }
-
-    /* ---- 清理旧的定时器 (屏幕重建时旧定时器仍存在) ---- */
-    if (status_bar_timer != NULL)
-    {
-        lv_timer_del(status_bar_timer);
-        status_bar_timer = NULL;
-    }
 
     /* ---- 1. 整体容器 (仅包含电池图标) ---- */
     battery_widget.cont = lv_obj_create(parent);
@@ -401,11 +399,14 @@ void Battery_Widget_Init(lv_obj_t *parent)
     lv_obj_add_flag(battery_widget.label_chg, LV_OBJ_FLAG_HIDDEN);
 
     /* ---- 7. 创建LVGL定时器, 每10秒更新电池+信号状态 ---- */
+    /* 先删除旧定时器, 防止每次重建 home 页面时定时器累积 */
+    if (status_bar_timer != NULL)
+    {
+        lv_timer_del(status_bar_timer);
+        status_bar_timer = NULL;
+    }
     status_bar_timer = lv_timer_create(status_bar_timer_cb, 10000, NULL);
     lv_timer_ready(status_bar_timer);  /* 立即触发第一次更新 */
-
-    /* 立即更新一次显示 */
-    Battery_Widget_Update();
 }
 
 /**
@@ -413,7 +414,21 @@ void Battery_Widget_Init(lv_obj_t *parent)
  */
 void Battery_Widget_Update(void)
 {
-    if (battery_widget.fill == NULL) return;
+    /* 安全检查: 确保所有 widget 对象仍然有效 */
+    if (battery_widget.fill == NULL ||
+        battery_widget.cont == NULL ||
+        battery_widget.label_pct == NULL ||
+        battery_widget.label_chg == NULL)
+    {
+        return;
+    }
+    if (!lv_obj_is_valid(battery_widget.cont) ||
+        !lv_obj_is_valid(battery_widget.fill) ||
+        !lv_obj_is_valid(battery_widget.label_pct) ||
+        !lv_obj_is_valid(battery_widget.label_chg))
+    {
+        return;
+    }
 
     /* 读取电池信息 */
     Battery_Info_t info;
@@ -484,13 +499,6 @@ void Signal_Widget_Init(lv_obj_t *parent)
 {
     if (parent == NULL) return;
 
-    /* 如果已存在且有效, 仅刷新 */
-    if (signal_widget.cont != NULL && lv_obj_is_valid(signal_widget.cont))
-    {
-        Signal_Widget_Update();
-        return;
-    }
-
     /* 容器 */
     signal_widget.cont = lv_obj_create(parent);
     lv_obj_remove_style_all(signal_widget.cont);
@@ -528,9 +536,6 @@ void Signal_Widget_Init(lv_obj_t *parent)
     lv_obj_set_style_text_font(signal_widget.label_x, &lv_font_montserratMedium_12, 0);
     lv_obj_align(signal_widget.label_x, LV_ALIGN_CENTER, 0, 0);
     lv_obj_add_flag(signal_widget.label_x, LV_OBJ_FLAG_HIDDEN);
-
-    /* 立即刷新一次 */
-    Signal_Widget_Update();
 }
 
 /**

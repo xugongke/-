@@ -19,7 +19,6 @@
 #include "user_data_manager.h"
 #include "key.h"
 #include "device_manager.h"
-#include "battery.h"
 extern lv_indev_t * indev_keypad;
 lv_group_t * g_keypad_group;//创建全局group(可被焦点选中的对象集合)指针，在lv_init后分配空间
 
@@ -43,10 +42,6 @@ static void screen_user_home_event_handler (lv_event_t *e)
         //显示IP地址和端口号
         lv_label_set_text(guider_ui.screen_user_home_label_ip, ip_buf);
         lv_label_set_text(guider_ui.screen_user_home_label_port, port_buf);
-        //初始化/刷新电池电量指示器组件
-        Battery_Widget_Init(guider_ui.screen_user_home);
-        //初始化/刷新信号强度指示器组件
-        Signal_Widget_Init(guider_ui.screen_user_home);
         break;
     }
     default:
@@ -84,7 +79,7 @@ static void screen_user_home_card_solar_event_handler (lv_event_t *e)
     }
     else if (code == LV_EVENT_CLICKED) {
         /* 跳转到太阳能发电量详情页 */
-        ui_load_scr_animation(&guider_ui, &guider_ui.screen_solar, guider_ui.screen_solar_del, &guider_ui.screen_user_home_del, setup_scr_screen_solar, LV_SCR_LOAD_ANIM_NONE, 10, 10, true, false);
+        ui_load_scr_animation(&guider_ui, &guider_ui.screen_solar, guider_ui.screen_solar_del, &guider_ui.screen_user_home_del, setup_scr_screen_solar, LV_SCR_LOAD_ANIM_NONE, 10, 10, false, false);
     }
 }
 
@@ -118,7 +113,7 @@ static void screen_user_home_card_device_event_handler (lv_event_t *e)
     }
     else if (code == LV_EVENT_CLICKED) {
         /* 无动画直接切换到用户列表页 (is_clean=false避免在卡片回调中清理home屏幕) */
-        ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_list, guider_ui.screen_user_list_del, &guider_ui.screen_user_home_del, setup_scr_screen_user_list, LV_SCR_LOAD_ANIM_NONE, 10, 10, true, false);
+        ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_list, guider_ui.screen_user_list_del, &guider_ui.screen_user_home_del, setup_scr_screen_user_list, LV_SCR_LOAD_ANIM_NONE, 10, 10, false, false);
     }
 }
 
