@@ -83,7 +83,8 @@ static void screen_user_home_card_solar_event_handler (lv_event_t *e)
         if(_body) { lv_obj_set_size(_body, 136, 62); lv_obj_set_pos(_body, 2, 36); }
     }
     else if (code == LV_EVENT_CLICKED) {
-        // TODO: 跳转到太阳能详情页面
+        /* 跳转到太阳能发电量详情页 */
+        ui_load_scr_animation(&guider_ui, &guider_ui.screen_solar, guider_ui.screen_solar_del, &guider_ui.screen_user_home_del, setup_scr_screen_solar, LV_SCR_LOAD_ANIM_NONE, 10, 10, true, false);
     }
 }
 
@@ -298,6 +299,40 @@ static void screen_user_detail_event_handler (lv_event_t *e)
 void events_init_screen_user_detail (lv_ui *ui)
 {
     lv_obj_add_event_cb(ui->screen_user_detail, screen_user_detail_event_handler, LV_EVENT_ALL, ui);
+}
+
+/* ======== Solar 太阳能详情页事件处理 ======== */
+
+static void screen_solar_event_handler (lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    switch (code) {
+    case LV_EVENT_KEY:
+    {
+        uint32_t key = lv_event_get_key(e);
+        if(key == LV_KEY_ESC)
+        {
+            /* 返回首页 */
+            ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_home, guider_ui.screen_user_home_del, &guider_ui.screen_solar_del, setup_scr_screen_user_home, LV_SCR_LOAD_ANIM_NONE, 10, 10, true, true);
+        }
+        break;
+    }
+    case LV_EVENT_SCREEN_LOADED:
+    {
+        lv_group_remove_all_objs(g_keypad_group);
+        lv_group_add_obj(g_keypad_group, guider_ui.screen_solar);
+        lv_indev_set_group(indev_keypad, g_keypad_group);
+        lv_group_focus_obj(guider_ui.screen_solar);
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+void events_init_screen_solar (lv_ui *ui)
+{
+    lv_obj_add_event_cb(ui->screen_solar, screen_solar_event_handler, LV_EVENT_ALL, ui);
 }
 
 

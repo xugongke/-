@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Copyright 2026 NXP
 * NXP Proprietary. This software is owned or controlled by NXP and may only be used strictly in
 * accordance with the applicable license terms. By expressly accepting such terms or by downloading, installing,
@@ -8,6 +8,7 @@
 #include "lvgl.h"
 #include <stdio.h>
 #include "gui_guider.h"
+#include "weather_icons.h"
 #include "events_init.h"
 #include "widgets_init.h"
 #include "custom.h"
@@ -57,7 +58,7 @@ void setup_scr_screen_user_home(lv_ui *ui)
         lv_obj_set_pos(icon_lbl, 12, 8);
 
         lv_obj_t *title_lbl = lv_label_create(ui->screen_user_home_card_solar);
-        lv_label_set_text(title_lbl, "太阳能");
+        lv_label_set_text(title_lbl, "太阳能 ");
         lv_obj_set_style_text_color(title_lbl, lv_color_hex(0xffffff), 0);
         lv_obj_set_style_text_font(title_lbl, &lv_font_SourceHanSerifSC_Regular_16, 0);
         lv_obj_set_style_bg_opa(title_lbl, 0, 0);
@@ -290,11 +291,11 @@ void setup_scr_screen_user_home(lv_ui *ui)
     lv_obj_set_style_shadow_ofs_y(ui->screen_user_home_weather_icon, 2, 0);
     lv_obj_clear_flag(ui->screen_user_home_weather_icon, LV_OBJ_FLAG_SCROLLABLE);
     {
-        /* 圆内图标符号 (白色) */
+        /* 圆内图标符号 (白色, 使用天气图标字体) */
         lv_obj_t *icon_sym = lv_label_create(ui->screen_user_home_weather_icon);
-        lv_label_set_text(icon_sym, LV_SYMBOL_CHARGE);
+        lv_label_set_text(icon_sym, WEATHER_ICON_SUN);
         lv_obj_set_style_text_color(icon_sym, lv_color_hex(0xffffff), 0);
-        lv_obj_set_style_text_font(icon_sym, &lv_font_montserratMedium_16, 0);
+        lv_obj_set_style_text_font(icon_sym, &lv_font_weather_30, 0);
         lv_obj_set_style_bg_opa(icon_sym, 0, 0);
         lv_obj_align(icon_sym, LV_ALIGN_CENTER, 0, 0);
     }

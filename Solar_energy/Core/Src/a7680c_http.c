@@ -4,6 +4,7 @@
 #include <string.h>
 #include "a7680c.h"
 #include "lvgl.h"
+#include "weather_icons.h"
 
 // 默认 HTTP 配置
 static http_config_t g_http_config = {
@@ -243,32 +244,35 @@ uint32_t Weather_GetIconColor(int code)
     }
 }
 
-/* 根据天气代码返回LVGL符号图标 */
+/* 根据天气代码返回天气图标 (使用 Font Awesome 6 天气图标字体) */
 const char* Weather_GetSymbol(int code)
 {
     switch(code)
     {
-        case 0:  	return LV_SYMBOL_CHARGE;    /* 晴天 - 闪电/太阳 */
-        case 1:		return LV_SYMBOL_IMAGE;     /* 晴转多云 */
-        case 2:		return LV_SYMBOL_IMAGE;     /* 多云 */
-        case 3:  	return LV_SYMBOL_IMAGE;     /* 阴天 */
-        case 45:	return LV_SYMBOL_EYE_OPEN;  /* 雾 */
-        case 48: 	return LV_SYMBOL_EYE_CLOSE; /* 霾 */
+        case 0:  	return WEATHER_ICON_SUN;          /* 晴天 - 太阳 */
+        case 1:		return WEATHER_ICON_CLOUD_SUN;    /* 晴转多云 - 云+太阳 */
+        case 2:		return WEATHER_ICON_CLOUD;         /* 多云 - 云 */
+        case 3:  	return WEATHER_ICON_CLOUD;         /* 阴天 - 云 */
+        case 45:	return WEATHER_ICON_FOG;           /* 雾 - 雾霾 */
+        case 48: 	return WEATHER_ICON_HAZE;          /* 霾 - 霾 */
         case 51: case 53: case 55:
         case 56: case 57:
-        case 61:	return LV_SYMBOL_TINT;      /* 小雨 - 水滴 */
-        case 63:	return LV_SYMBOL_TINT;      /* 中雨 */
-        case 65: 	return LV_SYMBOL_TINT;      /* 大雨 */
-        case 66: case 67: return LV_SYMBOL_TINT;   /* 冻雨 */
-        case 71:	return LV_SYMBOL_SD_CARD;   /* 小雪 - 白色方块 */
-        case 73:	return LV_SYMBOL_SD_CARD;   /* 中雪 */
-        case 75:	return LV_SYMBOL_SD_CARD;   /* 大雪 */
-        case 77: 	return LV_SYMBOL_SD_CARD;   /* 雪粒 */
+        case 61:	return WEATHER_ICON_DROPLET;       /* 小雨 - 水滴 */
+        case 63:	return WEATHER_ICON_CLOUD_RAIN;    /* 中雨 - 云+雨 */
+        case 65: 	return WEATHER_ICON_HEAVY_RAIN;    /* 大雨 - 云+暴雨 */
+        case 66: case 67:
+                    return WEATHER_ICON_DROPLET;       /* 冻雨 - 水滴 */
+        case 71:	return WEATHER_ICON_SNOWFLAKE;     /* 小雪 - 雪花 */
+        case 73:	return WEATHER_ICON_SNOWFLAKE;     /* 中雪 - 雪花 */
+        case 75:	return WEATHER_ICON_SNOWFLAKE;     /* 大雪 - 雪花 */
+        case 77: 	return WEATHER_ICON_SNOWFLAKE;     /* 雪粒 - 雪花 */
         case 80: case 81:
-        case 82: 	return LV_SYMBOL_TINT;      /* 阵雨 */
-        case 85: case 86: return LV_SYMBOL_SD_CARD;  /* 阵雪 */
-        case 95: case 96: return LV_SYMBOL_WARNING;   /* 雷暴 */
-        case 99: 	return LV_SYMBOL_WARNING;   /* 冰雹 */
-        default: 	return LV_SYMBOL_SETTINGS;  /* 未知 */
+        case 82: 	return WEATHER_ICON_CLOUD_RAIN;    /* 阵雨 - 云+雨 */
+        case 85: case 86:
+                    return WEATHER_ICON_SNOWFLAKE;     /* 阵雪 - 雪花 */
+        case 95: case 96:
+                    return WEATHER_ICON_CLOUD_BOLT;    /* 雷暴 - 云+闪电 */
+        case 99: 	return WEATHER_ICON_BOLT;          /* 冰雹 - 闪电 */
+        default: 	return WEATHER_ICON_SUN;           /* 未知 - 太阳 */
     }
 }

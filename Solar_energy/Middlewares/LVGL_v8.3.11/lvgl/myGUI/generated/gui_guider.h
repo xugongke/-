@@ -57,6 +57,12 @@ typedef struct
 	lv_obj_t *screen_user_detail_cont_1;
 	lv_obj_t *screen_user_detail_label_4;
 	lv_obj_t *screen_user_detail_label_time;
+	lv_obj_t *screen_solar;                     /* 太阳能详情页 */
+	bool screen_solar_del;
+	lv_obj_t *screen_solar_chart;               /* 15日发电量折线图 */
+	lv_obj_t *screen_solar_table;               /* 发电量统计表格 */
+	lv_obj_t *screen_solar_cont_time;           /* 底部时间胶囊 */
+	lv_obj_t *screen_solar_label_time;          /* 时间数值 */
 }lv_ui;
 
 typedef void (*ui_setup_scr_t)(lv_ui * ui);
@@ -84,6 +90,7 @@ void setup_scr_Startup_screen(lv_ui *ui);
 void setup_scr_screen_user_home(lv_ui *ui);
 void setup_scr_screen_user_list(lv_ui *ui);
 void setup_scr_screen_user_detail(lv_ui *ui);
+void setup_scr_screen_solar(lv_ui *ui);
 LV_IMG_DECLARE(_logo_shunpu_alpha_338x72);
 LV_IMG_DECLARE(_logo_shunpu_alpha_338x72);
 

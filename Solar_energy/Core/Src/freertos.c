@@ -526,7 +526,7 @@ void StartDefaultTask(void *argument)
 						}
 				}
 
-				/* 更新昼夜指示 (☀/☾ 图标 + 颜色) */
+			/* 更新昼夜指示 (☀/☾ 图标 + 颜色) */
 				if(weather_data.is_day == 1)
 				{
 						lv_label_set_text(guider_ui.screen_user_home_label_2, "\xE7\x99\xBD\xE5\xA4\xA9 ");  /* 白天 */

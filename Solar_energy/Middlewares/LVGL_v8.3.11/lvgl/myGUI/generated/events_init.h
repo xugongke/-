@@ -21,6 +21,7 @@ void events_init(lv_ui *ui);
 void events_init_screen_user_home(lv_ui *ui);
 void events_init_screen_user_list(lv_ui *ui);
 void events_init_screen_user_detail(lv_ui *ui);
+void events_init_screen_solar(lv_ui *ui);
 
 #ifdef __cplusplus
 }
