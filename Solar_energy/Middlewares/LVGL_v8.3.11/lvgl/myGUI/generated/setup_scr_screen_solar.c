@@ -45,11 +45,11 @@ void setup_scr_screen_solar(lv_ui *ui)
     lv_obj_set_style_bg_color(ui->screen_solar, lv_color_hex(0xF0F2F5), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_opa(ui->screen_solar, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    /* header */
+    /* header (40px) */
     {
         lv_obj_t * h = lv_obj_create(ui->screen_solar);
         lv_obj_remove_style_all(h);
-        lv_obj_set_size(h, 480, 42);
+        lv_obj_set_size(h, 480, 40);
         lv_obj_set_pos(h, 0, 0);
         lv_obj_set_style_bg_color(h, lv_color_hex(0x2C3E50), 0);
         lv_obj_set_style_bg_opa(h, LV_OPA_COVER, 0);
@@ -57,39 +57,39 @@ void setup_scr_screen_solar(lv_ui *ui)
         lv_obj_set_style_pad_all(h, 0, 0);
 
         lv_obj_t * t = lv_label_create(h);
-        lv_label_set_text(t, LV_SYMBOL_LEFT " Solar Energy");
+        lv_label_set_text(t, LV_SYMBOL_LEFT " 太阳能发电量");
         lv_obj_set_style_text_color(t, lv_color_hex(0xffffff), 0);
         lv_obj_set_style_text_font(t, &lv_font_SourceHanSerifSC_Regular_16, 0);
         lv_obj_set_style_bg_opa(t, 0, 0);
         lv_obj_set_pos(t, 14, 11);
     }
 
-    /* line chart card */
+    /* line chart card: y=42 to y=188 = 146px */
     {
         lv_obj_t * c = lv_obj_create(ui->screen_solar);
         lv_obj_remove_style_all(c);
-        lv_obj_set_size(c, 464, 165);
-        lv_obj_set_pos(c, 8, 48);
-        lv_obj_set_style_radius(c, 10, 0);
+        lv_obj_set_size(c, 464, 146);
+        lv_obj_set_pos(c, 8, 42);
+        lv_obj_set_style_radius(c, 8, 0);
         lv_obj_set_style_bg_color(c, lv_color_hex(0xffffff), 0);
         lv_obj_set_style_bg_opa(c, LV_OPA_COVER, 0);
-        lv_obj_set_style_shadow_width(c, 6, 0);
-        lv_obj_set_style_shadow_opa(c, 30, 0);
-        lv_obj_set_style_shadow_ofs_y(c, 3, 0);
+        lv_obj_set_style_shadow_width(c, 4, 0);
+        lv_obj_set_style_shadow_opa(c, 20, 0);
+        lv_obj_set_style_shadow_ofs_y(c, 2, 0);
         lv_obj_set_style_border_width(c, 0, 0);
         lv_obj_clear_flag(c, LV_OBJ_FLAG_SCROLLABLE);
-        lv_obj_set_style_pad_all(c, 6, 0);
+        lv_obj_set_style_pad_all(c, 4, 0);
 
         lv_obj_t * ct = lv_label_create(c);
-        lv_label_set_text(ct, "15-Day Generation (kWh)");
+        lv_label_set_text(ct, "近15日发电量 (kWh)");
         lv_obj_set_style_text_color(ct, lv_color_hex(0x2C3E50), 0);
         lv_obj_set_style_text_font(ct, &lv_font_SourceHanSerifSC_Regular_16, 0);
         lv_obj_set_style_bg_opa(ct, 0, 0);
-        lv_obj_set_pos(ct, 8, 2);
+        lv_obj_set_pos(ct, 6, 2);
 
         lv_obj_t * ch = lv_chart_create(c);
-        lv_obj_set_size(ch, 444, 120);
-        lv_obj_set_pos(ch, 8, 24);
+        lv_obj_set_size(ch, 448, 105);
+        lv_obj_set_pos(ch, 4, 20);
         lv_obj_set_style_bg_opa(ch, LV_OPA_TRANSP, LV_PART_MAIN);
         lv_obj_set_style_border_width(ch, 1, LV_PART_MAIN);
         lv_obj_set_style_border_color(ch, lv_color_hex(0xE0E0E0), LV_PART_MAIN);
@@ -106,38 +106,38 @@ void setup_scr_screen_solar(lv_ui *ui)
         lv_obj_set_style_size(ch, 4, LV_PART_INDICATOR);
     }
 
-    /* table card */
+    /* table card: y=190 to y=318 = 128px */
     {
         lv_obj_t * tc = lv_obj_create(ui->screen_solar);
         lv_obj_remove_style_all(tc);
-        lv_obj_set_size(tc, 464, 100);
-        lv_obj_set_pos(tc, 8, 218);
-        lv_obj_set_style_radius(tc, 10, 0);
+        lv_obj_set_size(tc, 464, 128);
+        lv_obj_set_pos(tc, 8, 190);
+        lv_obj_set_style_radius(tc, 8, 0);
         lv_obj_set_style_bg_color(tc, lv_color_hex(0xffffff), 0);
         lv_obj_set_style_bg_opa(tc, LV_OPA_COVER, 0);
-        lv_obj_set_style_shadow_width(tc, 6, 0);
-        lv_obj_set_style_shadow_opa(tc, 30, 0);
-        lv_obj_set_style_shadow_ofs_y(tc, 3, 0);
+        lv_obj_set_style_shadow_width(tc, 4, 0);
+        lv_obj_set_style_shadow_opa(tc, 20, 0);
+        lv_obj_set_style_shadow_ofs_y(tc, 2, 0);
         lv_obj_set_style_border_width(tc, 0, 0);
         lv_obj_clear_flag(tc, LV_OBJ_FLAG_SCROLLABLE);
-        lv_obj_set_style_pad_all(tc, 6, 0);
+        lv_obj_set_style_pad_all(tc, 4, 0);
 
         lv_obj_t * tt = lv_label_create(tc);
-        lv_label_set_text(tt, "Generation Stats");
+        lv_label_set_text(tt, "发电量统计 ");
         lv_obj_set_style_text_color(tt, lv_color_hex(0x2C3E50), 0);
         lv_obj_set_style_text_font(tt, &lv_font_SourceHanSerifSC_Regular_16, 0);
         lv_obj_set_style_bg_opa(tt, 0, 0);
-        lv_obj_set_pos(tt, 8, 2);
+        lv_obj_set_pos(tt, 6, 2);
 
         lv_obj_t * tb = lv_table_create(tc);
-        lv_obj_set_pos(tb, 4, 22);
+        lv_obj_set_pos(tb, 4, 20);
         lv_obj_set_style_text_font(tb, &lv_font_SourceHanSerifSC_Regular_16, LV_PART_MAIN);
         lv_obj_set_style_border_width(tb, 1, LV_PART_MAIN);
         lv_obj_set_style_border_color(tb, lv_color_hex(0xE0E0E0), LV_PART_MAIN);
-        lv_obj_set_style_pad_left(tb, 8, LV_PART_MAIN);
-        lv_obj_set_style_pad_right(tb, 8, LV_PART_MAIN);
-        lv_obj_set_style_pad_top(tb, 6, LV_PART_MAIN);
-        lv_obj_set_style_pad_bottom(tb, 6, LV_PART_MAIN);
+        lv_obj_set_style_pad_left(tb, 6, LV_PART_MAIN);
+        lv_obj_set_style_pad_right(tb, 6, LV_PART_MAIN);
+        lv_obj_set_style_pad_top(tb, 4, LV_PART_MAIN);
+        lv_obj_set_style_pad_bottom(tb, 4, LV_PART_MAIN);
         lv_obj_set_style_bg_color(tb, lv_color_hex(0xffffff), LV_PART_MAIN);
         lv_obj_set_style_bg_opa(tb, LV_OPA_COVER, LV_PART_MAIN);
 
@@ -148,10 +148,10 @@ void setup_scr_screen_solar(lv_ui *ui)
         lv_table_set_col_width(tb, 2, 106);
         lv_table_set_col_width(tb, 3, 106);
 
-        lv_table_set_cell_value(tb, 0, 0, "Total");
-        lv_table_set_cell_value(tb, 0, 1, "Year");
-        lv_table_set_cell_value(tb, 0, 2, "Month");
-        lv_table_set_cell_value(tb, 0, 3, "Today");
+        lv_table_set_cell_value(tb, 0, 0, "总发电 ");
+        lv_table_set_cell_value(tb, 0, 1, "年发电 ");
+        lv_table_set_cell_value(tb, 0, 2, "月发电 ");
+        lv_table_set_cell_value(tb, 0, 3, "日发电 ");
 
         char b0[32], b1[32], b2[32], b3[32];
         fmt_val(b0, f2x10(solar_total_kwh));

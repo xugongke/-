@@ -312,15 +312,18 @@ void user_list_item_event_handler(lv_event_t *e)
 
     if (ret == 0)
     {
-        /* 文件读取成功，显示日/月/年累积用电量 */
-        snprintf(buf, sizeof(buf), "%.2f kWh ", user_data.daily_energy);
+        /* 文件读取成功，显示日/月/年/总累积用电量 (2行x4列表格) */
+        snprintf(buf, sizeof(buf), "%.2f", user_data.daily_energy);
+        lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 1, 0, buf);
+
+        snprintf(buf, sizeof(buf), "%.2f", user_data.monthly_energy);
         lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 1, 1, buf);
 
-        snprintf(buf, sizeof(buf), "%.2f kWh ", user_data.monthly_energy);
-        lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 2, 1, buf);
+        snprintf(buf, sizeof(buf), "%.2f", user_data.annual_energy);
+        lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 1, 2, buf);
 
-        snprintf(buf, sizeof(buf), "%.2f kWh ", user_data.annual_energy);
-        lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 3, 1, buf);
+        snprintf(buf, sizeof(buf), "%.2f", user_data.total_energy);
+        lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 1, 3, buf);
 			
 				snprintf(buf, sizeof(buf), "20%02d年%02d月%02d日 %02d:%02d:%02d  ",
 				user_data.update_time.year,user_data.update_time.month,user_data.update_time.day,user_data.update_time.hours,user_data.update_time.minutes,user_data.update_time.seconds);
@@ -330,8 +333,9 @@ void user_list_item_event_handler(lv_event_t *e)
     else
     {
         /* 文件不存在或读取失败，显示默认/错误信息 */
-        lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 1, 1, "-- kWh ");
-        lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 2, 1, "-- kWh ");
-        lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 3, 1, "-- kWh ");
+        lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 1, 0, "--");
+        lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 1, 1, "--");
+        lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 1, 2, "--");
+        lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 1, 3, "--");
     }
 }
