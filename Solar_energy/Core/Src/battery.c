@@ -290,6 +290,10 @@ static struct {
 /* LVGL周期更新定时器 (电池+信号共用) */
 static lv_timer_t *status_bar_timer = NULL;
 
+/* 电池数据缓存 (由非LVGL任务通过 Battery_UpdateCache() 写入,
+ * LVGL定时器通过 Battery_Widget_Update() 只读缓存) */
+static volatile uint8_t  cached_battery_pct = 100;
+static volatile uint8_t  cached_charge_status = 0;
 
 /**
  * @brief  将CSQ RSSI值映射到信号格数
@@ -305,22 +309,34 @@ int8_t Signal_GetLevel(int32_t rssi)
 }
 
 /**
- * @brief  LVGL定时器回调 - 周期更新电池+信号状态
- * @note   仅在 home 页面为当前活跃屏幕时才执行 ADC 读取,
- *         避免 screen 过渡动画期间阻塞 LVGL 任务导致卡死
+ * @brief  更新电池数据缓存 (由非LVGL任务周期调用, 如StartDefaultTask)
+ * @note   在非LVGL任务中执行阻塞的ADC采集, 将结果存入缓存,
+ *         LVGL定时器回调只读缓存, 不做阻塞操作, 避免与其他任务的
+ *         LVGL API调用产生竞态条件导致TLSF堆损坏。
+ */
+void Battery_UpdateCache(void)
+{
+    uint16_t adc_raw = Battery_ReadADC_Average();
+    float voltage = Battery_ADC_ToVoltage(adc_raw);
+    cached_battery_pct = Battery_CalcSOC(voltage);
+    cached_charge_status = Battery_ReadChargeStatus();
+}
+
+/**
+ * @brief  LVGL定时器回调 - 周期更新电池+信号UI显示
+ * @note   只读取缓存数据更新UI, 不做阻塞ADC采集
  */
 static void status_bar_timer_cb(lv_timer_t *timer)
 {
     (void)timer;
 
-    /* 如果 home 页面不是当前活跃屏幕, 跳过更新 (避免在页面切换时阻塞) */
+    /* 如果 home 页面不是当前活跃屏幕, 跳过更新 */
     if (guider_ui.screen_user_home == NULL ||
         lv_scr_act() != guider_ui.screen_user_home)
     {
         return;
     }
 
-    printf("更新一次图标\r\n");
     Battery_Widget_Update();
     Signal_Widget_Update();
 }
@@ -406,7 +422,8 @@ void Battery_Widget_Init(lv_obj_t *parent)
         status_bar_timer = NULL;
     }
     status_bar_timer = lv_timer_create(status_bar_timer_cb, 10000, NULL);
-    lv_timer_ready(status_bar_timer);  /* 立即触发第一次更新 */
+//    lv_timer_ready(status_bar_timer);  /* 立即触发第一次更新 */
+		Battery_Widget_Update();
 }
 
 /**
@@ -430,12 +447,11 @@ void Battery_Widget_Update(void)
         return;
     }
 
-    /* 读取电池信息 */
-    Battery_Info_t info;
-    Battery_GetInfo(&info);
+    /* 从缓存读取电池数据 (缓存由 Battery_UpdateCache() 在非LVGL任务中更新) */
+    uint8_t pct = cached_battery_pct;
+    uint8_t charge_status = cached_charge_status;
 
     /* ---- 更新填充条宽度 (电池内部可用宽度约20px) ---- */
-    uint8_t pct = info.percentage;
     if (pct > 100) pct = 100;
     lv_coord_t fill_w = (lv_coord_t)((float)pct * 38 / 100);
     if (fill_w < 2 && pct > 0) fill_w = 2;  /* 至少显示一点 */
@@ -463,13 +479,13 @@ void Battery_Widget_Update(void)
     lv_label_set_text(battery_widget.label_pct, buf);
 
     /* ---- 更新充电图标 ---- */
-    if (info.is_charging == 1)
+    if (charge_status == 1)
     {
         /* 正在充电 - 显示闪电图标 */
         lv_obj_clear_flag(battery_widget.label_chg, LV_OBJ_FLAG_HIDDEN);
         lv_obj_set_style_text_color(battery_widget.label_chg, lv_color_hex(0xFF9800), 0);
     }
-    else if (info.is_charging == 2)
+    else if (charge_status == 2)
     {
         /* 充电完成 - 显示满电标识 */
         lv_obj_clear_flag(battery_widget.label_chg, LV_OBJ_FLAG_HIDDEN);

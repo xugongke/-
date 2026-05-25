@@ -80,12 +80,16 @@ void SDCardInfo(void)
         printf("块数量：%d \r\n", pCardInfo.BlockNbr);         // 可用的块数量
         printf("块大小：%d \r\n", pCardInfo.BlockSize);        // 每个块的大小; 单位：字节
         printf("卡容量：%lluMB \r\n", ((uint64_t)pCardInfo.BlockSize * pCardInfo.BlockNbr) / 1024 / 1024);  // 计算卡的容量; 单位：GB
-    }
-		else
-		{
-			printf("SD卡通信失败\r\n");
 		}
+
+		/* 更新电池数据缓存 (在非LVGL任务中执行阻塞ADC采集,
+		 * LVGL定时器只读缓存更新UI, 避免竞态条件) */
+		Battery_UpdateCache();
+
+    osDelay(1000);
 }
+  /* USER CODE END StartDefaultTask */
+
 
 /* USER CODE END PM */
 
@@ -697,6 +701,9 @@ void RTC_Task(void *argument)
   for(;;)
   {
 		RX8025T_Task();
+		/* 更新电池数据缓存 (在非LVGL任务中执行阻塞ADC采集,
+		 * LVGL定时器只读缓存更新UI, 避免竞态条件) */
+		Battery_UpdateCache();
     osDelay(100);
   }
   /* USER CODE END RTC_Task */

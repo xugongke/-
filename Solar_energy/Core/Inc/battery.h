@@ -120,6 +120,13 @@ void Battery_Widget_Init(lv_obj_t *parent);
 void Battery_Widget_Update(void);
 
 /**
+ * @brief  更新电池数据缓存 (由非LVGL任务周期调用)
+ * @note   执行阻塞的ADC采集并将结果存入缓存,
+ *         LVGL定时器回调只读缓存, 避免竞态条件
+ */
+void Battery_UpdateCache(void);
+
+/**
  * @brief  LVGL信号强度指示器初始化 (与电池指示器一起初始化)
  * @param  parent: 父容器对象 (通常为 screen_user_home)
  */
