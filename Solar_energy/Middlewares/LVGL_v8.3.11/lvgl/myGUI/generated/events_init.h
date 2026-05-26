@@ -22,6 +22,12 @@ void events_init_screen_user_home(lv_ui *ui);
 void events_init_screen_user_list(lv_ui *ui);
 void events_init_screen_user_detail(lv_ui *ui);
 void events_init_screen_solar(lv_ui *ui);
+void events_init_screen_alert(lv_ui *ui);
+
+/* 列表分页函数 (供key.c调用) */
+void List_NextPage(void);
+void List_PrevPage(void);
+void List_ResetPage(void);
 
 #ifdef __cplusplus
 }

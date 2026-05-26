@@ -279,6 +279,7 @@
 "lcd_pj\lv_font_montserratmedium_26.o"
 "lcd_pj\lv_font_sourcehanserifsc_regular_12.o"
 "lcd_pj\lv_font_weather_30.o"
+"lcd_pj\setup_scr_screen_alert.o"
 "lcd_pj\bsp_driver_sd.o"
 "lcd_pj\sd_diskio.o"
 "lcd_pj\fatfs.o"

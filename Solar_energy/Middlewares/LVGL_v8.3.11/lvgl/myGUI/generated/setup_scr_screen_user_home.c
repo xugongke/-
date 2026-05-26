@@ -346,8 +346,8 @@ void setup_scr_screen_user_home(lv_ui *ui)
      * ============================================================ */
     ui->screen_user_home_cont_3 = lv_obj_create(ui->screen_user_home);
     lv_obj_remove_style_all(ui->screen_user_home_cont_3);
-    lv_obj_set_pos(ui->screen_user_home_cont_3, 100, 3);
-    lv_obj_set_size(ui->screen_user_home_cont_3, 280, 28);
+    lv_obj_set_pos(ui->screen_user_home_cont_3, 130, 3);
+    lv_obj_set_size(ui->screen_user_home_cont_3, 220, 28);
     lv_obj_clear_flag(ui->screen_user_home_cont_3, LV_OBJ_FLAG_SCROLLABLE);
     /* 药丸胶囊: 深色半透明背景 + 圆角 */
     lv_obj_set_style_radius(ui->screen_user_home_cont_3, 14, 0);

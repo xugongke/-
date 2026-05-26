@@ -92,8 +92,8 @@ void setup_scr_screen_user_list(lv_ui *ui)
      *  位于导航栏下方, 留 8px 边距
      * ============================================================ */
     ui->screen_user_list_list_1 = lv_list_create(ui->screen_user_list);
-    lv_obj_set_pos(ui->screen_user_list_list_1, 8, 50);
-    lv_obj_set_size(ui->screen_user_list_list_1, 464, 262);
+    lv_obj_set_pos(ui->screen_user_list_list_1, 8, 45);
+    lv_obj_set_size(ui->screen_user_list_list_1, 464, 270);
     lv_obj_set_scrollbar_mode(ui->screen_user_list_list_1, LV_SCROLLBAR_MODE_OFF);
 
     /* 列表主体: 透明背景, 无边框, 横向边距让卡片悬浮 */

@@ -329,5 +329,5 @@ void network_init(uint8_t *ethernet_buff, wiz_NetInfo *conf_info)
             wizchip_setnetinfo(conf_info);
         }
     }
-    print_network_information();
+    print_network_information();//设置灵动岛显示在这个函数里面
 }

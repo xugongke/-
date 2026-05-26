@@ -10,7 +10,7 @@
 #include "widgets_init.h"
 #include "custom.h"
 
-/* fake data - replace with SD card reading later */
+/* 假数据 - 稍后用 SD 卡读取替换 */
 
 static const float solar_daily_kwh[15] = {
     15.2f, 18.5f, 12.0f, 21.0f, 19.5f,
@@ -35,6 +35,56 @@ static void fmt_val(char *buf, int val_x10)
 static int f2x10(float v)
 {
     return (v >= 0) ? (int)(v * 10 + 0.5f) : (int)(v * 10 - 0.5f);
+}
+
+/**
+ * @brief  Chart draw callback: draw value labels above each data point/bar
+ * @note   Values are stored as ×10 integers (e.g., 15.2 → 152), displayed as "15.2"
+ */
+static void chart_draw_value_label_cb(lv_event_t *e)
+{
+    lv_obj_draw_part_dsc_t * dsc = lv_event_get_draw_part_dsc(e);
+    if(dsc->part != LV_PART_ITEMS) return;
+
+    lv_obj_t * chart = lv_event_get_target(e);
+
+    /* For line charts, skip line-segment events (draw_area is large) */
+    if(lv_chart_get_type(chart) == LV_CHART_TYPE_LINE) {
+        if(lv_area_get_width(dsc->draw_area) > 10 ||
+           lv_area_get_height(dsc->draw_area) > 10)
+            return;
+    }
+
+    lv_chart_series_t * ser = lv_chart_get_series_next(chart, NULL);
+    if(!ser) return;
+    if(dsc->id >= lv_chart_get_point_count(chart)) return;
+
+    int16_t val = ser->y_points[dsc->id];
+    if(val == LV_CHART_POINT_NONE) return;
+
+    /* Format value (×10 → "x.y") */
+    char txt[16];
+    int a = (val < 0) ? -val : val;
+    if(val < 0) lv_snprintf(txt, sizeof(txt), "-%d.%d", a / 10, a % 10);
+    else         lv_snprintf(txt, sizeof(txt), "%d.%d", a / 10, a % 10);
+
+    /* Draw label above point/bar */
+    lv_draw_label_dsc_t lbl;
+    lv_draw_label_dsc_init(&lbl);
+    lbl.color = lv_color_hex(0x333333);
+    lbl.font = &lv_font_montserratMedium_12;
+    lbl.align = LV_TEXT_ALIGN_CENTER;
+
+    lv_point_t size;
+    lv_txt_get_size(&size, txt, lbl.font, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
+
+    lv_area_t txt_area;
+    txt_area.x1 = dsc->draw_area->x1 + (lv_area_get_width(dsc->draw_area) - size.x) / 2;
+    txt_area.x2 = txt_area.x1 + size.x;
+    txt_area.y2 = dsc->draw_area->y1 - 1;
+    txt_area.y1 = txt_area.y2 - size.y;
+
+    lv_draw_label(dsc->draw_ctx, &lbl, &txt_area, txt, NULL);
 }
 
 void setup_scr_screen_solar(lv_ui *ui)
@@ -104,6 +154,7 @@ void setup_scr_screen_solar(lv_ui *ui)
         }
         lv_chart_refresh(ch);
         lv_obj_set_style_size(ch, 4, LV_PART_INDICATOR);
+        lv_obj_add_event_cb(ch, chart_draw_value_label_cb, LV_EVENT_DRAW_PART_END, NULL);
     }
 
     /* table card: y=190 to y=318 = 128px */
@@ -123,7 +174,7 @@ void setup_scr_screen_solar(lv_ui *ui)
         lv_obj_set_style_pad_all(tc, 4, 0);
 
         lv_obj_t * tt = lv_label_create(tc);
-        lv_label_set_text(tt, "发电量统计 ");
+        lv_label_set_text(tt, "发电量统计 (kWh)");
         lv_obj_set_style_text_color(tt, lv_color_hex(0x2C3E50), 0);
         lv_obj_set_style_text_font(tt, &lv_font_SourceHanSerifSC_Regular_16, 0);
         lv_obj_set_style_bg_opa(tt, 0, 0);

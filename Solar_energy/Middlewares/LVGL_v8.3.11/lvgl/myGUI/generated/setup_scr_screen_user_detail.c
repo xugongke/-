@@ -10,8 +10,50 @@
 #include "widgets_init.h"
 #include "custom.h"
 
-/* fake data for 7-day bar chart (kWh * 10) */
+/* 7天柱状图的虚拟数据（千瓦时 * 10） */
 static const int usage_7day_x10[7] = {35, 28, 42, 31, 38, 25, 33};
+
+/**
+ * @brief  图表绘制回调：在每个柱子上方绘制数值标签
+ * @note   数值以 ×10 的整数形式存储（例如，3.5 → 35），显示为“3.5”
+ */
+static void detail_chart_draw_label_cb(lv_event_t *e)
+{
+    lv_obj_draw_part_dsc_t * dsc = lv_event_get_draw_part_dsc(e);
+    if(dsc->part != LV_PART_ITEMS) return;
+
+    lv_obj_t * chart = lv_event_get_target(e);
+    lv_chart_series_t * ser = lv_chart_get_series_next(chart, NULL);
+    if(!ser) return;
+    if(dsc->id >= lv_chart_get_point_count(chart)) return;
+
+    int16_t val = ser->y_points[dsc->id];
+    if(val == LV_CHART_POINT_NONE) return;
+
+    /* Format value (×10 → "x.y") */
+    char txt[16];
+    int a = (val < 0) ? -val : val;
+    if(val < 0) lv_snprintf(txt, sizeof(txt), "-%d.%d", a / 10, a % 10);
+    else         lv_snprintf(txt, sizeof(txt), "%d.%d", a / 10, a % 10);
+
+    /* Draw label above bar */
+    lv_draw_label_dsc_t lbl;
+    lv_draw_label_dsc_init(&lbl);
+    lbl.color = lv_color_hex(0x333333);
+    lbl.font = &lv_font_montserratMedium_12;
+    lbl.align = LV_TEXT_ALIGN_CENTER;
+
+    lv_point_t size;
+    lv_txt_get_size(&size, txt, lbl.font, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
+
+    lv_area_t txt_area;
+    txt_area.x1 = dsc->draw_area->x1 + (lv_area_get_width(dsc->draw_area) - size.x) / 2;
+    txt_area.x2 = txt_area.x1 + size.x;
+    txt_area.y2 = dsc->draw_area->y1 - 1;
+    txt_area.y1 = txt_area.y2 - size.y;
+
+    lv_draw_label(dsc->draw_ctx, &lbl, &txt_area, txt, NULL);
+}
 
 void setup_scr_screen_user_detail(lv_ui *ui)
 {
@@ -21,7 +63,7 @@ void setup_scr_screen_user_detail(lv_ui *ui)
     lv_obj_set_style_bg_color(ui->screen_user_detail, lv_color_hex(0xF0F2F5), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_opa(ui->screen_user_detail, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    /* ======== header (40px) ======== */
+    /* ======== 标题 (40px) ======== */
     {
         lv_obj_t *h = lv_obj_create(ui->screen_user_detail);
         lv_obj_remove_style_all(h);
@@ -63,7 +105,7 @@ void setup_scr_screen_user_detail(lv_ui *ui)
         lv_obj_align(edit, LV_ALIGN_RIGHT_MID, -14, 0);
     }
 
-    /* ======== 7-day bar chart card (y=44, h=128) ======== */
+    /* ======== 7天柱状图卡片 (y=44, h=128) ======== */
     {
         lv_obj_t *card = lv_obj_create(ui->screen_user_detail);
         lv_obj_remove_style_all(card);
@@ -95,7 +137,7 @@ void setup_scr_screen_user_detail(lv_ui *ui)
         lv_chart_set_type(ch, LV_CHART_TYPE_BAR);
         lv_chart_set_point_count(ch, 7);
         lv_chart_set_div_line_count(ch, 3, 0);
-        lv_chart_set_range(ch, LV_CHART_AXIS_PRIMARY_Y, 0, 500);
+        lv_chart_set_range(ch, LV_CHART_AXIS_PRIMARY_Y, 0, 50);
 
         lv_chart_series_t *ser = lv_chart_add_series(ch, lv_color_hex(0x4CAF50), LV_CHART_AXIS_PRIMARY_Y);
         for(int i = 0; i < 7; i++){
@@ -103,6 +145,7 @@ void setup_scr_screen_user_detail(lv_ui *ui)
         }
         lv_chart_refresh(ch);
         lv_obj_set_style_size(ch, 16, LV_PART_INDICATOR);
+        lv_obj_add_event_cb(ch, detail_chart_draw_label_cb, LV_EVENT_DRAW_PART_END, NULL);
     }
 
     /* ======== stats table card (y=176, h=120) ========
@@ -125,7 +168,7 @@ void setup_scr_screen_user_detail(lv_ui *ui)
         lv_obj_set_style_pad_all(card, 6, 0);
 
         lv_obj_t *st = lv_label_create(card);
-        lv_label_set_text(st, "用电量统计 ");
+        lv_label_set_text(st, "用电量统计 (kWh)");
         lv_obj_set_style_text_color(st, lv_color_hex(0x2C3E50), 0);
         lv_obj_set_style_text_font(st, &lv_font_SourceHanSerifSC_Regular_16, 0);
         lv_obj_set_style_bg_opa(st, 0, 0);
@@ -162,7 +205,7 @@ void setup_scr_screen_user_detail(lv_ui *ui)
         lv_table_set_cell_value(ui->screen_user_detail_table_1, 1, 2, "-- kWh");
         lv_table_set_cell_value(ui->screen_user_detail_table_1, 1, 3, "-- kWh");
 
-        /* cell style - full border */
+        /* 单元格样式 - 全边框 */
         lv_obj_set_style_text_color(ui->screen_user_detail_table_1, lv_color_hex(0x2C3E50), LV_PART_ITEMS);
         lv_obj_set_style_text_font(ui->screen_user_detail_table_1, &lv_font_SourceHanSerifSC_Regular_16, LV_PART_ITEMS);
         lv_obj_set_style_text_align(ui->screen_user_detail_table_1, LV_TEXT_ALIGN_CENTER, LV_PART_ITEMS);

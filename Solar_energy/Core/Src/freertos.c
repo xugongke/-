@@ -50,6 +50,9 @@
 lv_ui  guider_ui;                     // 定义 界面对象
 extern lv_group_t * g_keypad_group;		//声明全局group
 WeatherCurrent_t weather_data = {0};//存储天气代码的结构体
+
+/* LVGL互斥锁: 保护多任务对LVGL API的并发访问 */
+osMutexId_t lvgl_mutex = NULL;
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -226,6 +229,8 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */
+  /* 创建LVGL互斥锁 */
+  lvgl_mutex = osMutexNew(NULL);
   /* USER CODE END RTOS_MUTEX */
 
   /* Create the semaphores(s) */
@@ -438,8 +443,12 @@ void StartDefaultTask(void *argument)
 		 * 网络健康检查 + 信号等级采集
 		 * (UI显示由LVGL定时器自动完成, 这里只更新g_signal_level)
 		 *======================================================*/
-		if(guider_ui.screen_user_home != NULL &&
-		   lv_obj_is_valid(guider_ui.screen_user_home))
+		if(lvgl_mutex) osMutexAcquire(lvgl_mutex, osWaitForever);
+		uint8_t home_visible = (guider_ui.screen_user_home != NULL &&
+		   lv_obj_is_valid(guider_ui.screen_user_home));
+		if(lvgl_mutex) osMutexRelease(lvgl_mutex);
+
+		if(home_visible)
 		{
 			/* 检测SIM卡 + 网络附着状态 */
 			uint8_t sim_ok = A7680C_SendAT_CPIN();
@@ -503,6 +512,7 @@ void StartDefaultTask(void *argument)
 		}
 
 		/* 天气显示更新 (文字+彩色图标+昼夜指示) */
+		if(lvgl_mutex) osMutexAcquire(lvgl_mutex, osWaitForever);
 		if(lv_obj_is_valid(guider_ui.screen_user_home_label_1) &&
 		   lv_obj_is_valid(guider_ui.screen_user_home_label_2))
 		{
@@ -552,6 +562,7 @@ void StartDefaultTask(void *argument)
 						}
 				}
 		}
+		if(lvgl_mutex) osMutexRelease(lvgl_mutex);
     osDelay(1000);
   }
   /* USER CODE END StartDefaultTask */
@@ -590,7 +601,9 @@ void lvgl_task(void *argument)
   /* Infinite loop */
   for(;;)
   {
+		if(lvgl_mutex) osMutexAcquire(lvgl_mutex, osWaitForever);
 		lv_timer_handler();  // 处理 LVGL 任务
+		if(lvgl_mutex) osMutexRelease(lvgl_mutex);
 		osDelay(5);
   }
   /* USER CODE END lvgl_task */
@@ -692,17 +705,21 @@ void RTC_Task(void *argument)
 	printf("RTCTask: LVGL UI已就绪\r\n");
 	osDelay(1500);
 
-	/* 跳转到home界面 */
+	/* 跳转到home界面 (获取互斥锁保护LVGL操作) */
+	if(lvgl_mutex) osMutexAcquire(lvgl_mutex, osWaitForever);
 	ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_home,
 			guider_ui.screen_user_home_del, &guider_ui.Startup_screen_del,
 			setup_scr_screen_user_home, LV_SCR_LOAD_ANIM_NONE, 10, 10, true, true);
+	if(lvgl_mutex) osMutexRelease(lvgl_mutex);
 
   /* Infinite loop */
   for(;;)
   {
+		/* RX8025T_Task内部会调用LVGL API更新时间显示, 需要互斥锁保护 */
+		if(lvgl_mutex) osMutexAcquire(lvgl_mutex, osWaitForever);
 		RX8025T_Task();
-		/* 更新电池数据缓存 (在非LVGL任务中执行阻塞ADC采集,
-		 * LVGL定时器只读缓存更新UI, 避免竞态条件) */
+		if(lvgl_mutex) osMutexRelease(lvgl_mutex);
+		/* 更新电池数据缓存 (不涉及LVGL, 无需互斥锁) */
 		Battery_UpdateCache();
     osDelay(100);
   }

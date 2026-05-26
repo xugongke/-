@@ -5,6 +5,7 @@
 #include "user_data_manager.h"
 #include "device_manager.h"
 #include "battery.h"
+#include "events_init.h"
 
 /* ====== 用户可调参数 ====== */
 #define KEY_SCAN_PERIOD_MS     10u
@@ -119,8 +120,9 @@ void screen_user_list_item_event_handler(lv_event_t *e)
     case LV_EVENT_KEY:
     {
         uint32_t key = lv_event_get_key(e);
-        if(key == LV_KEY_LEFT)//左键，用户离线
-        {	
+        if(key == LV_KEY_LEFT)//左键，上一页
+        {
+            List_PrevPage();
 //					FRESULT f_res;
 //					static uint8_t aMountBuffer[4096];
 //					f_res = f_mkfs("0:",2, 0, aMountBuffer, sizeof(aMountBuffer)); 
@@ -134,8 +136,9 @@ void screen_user_list_item_event_handler(lv_event_t *e)
 //					ES1642_SendSetPsk(&g_es1642_handle, device_list[0].addr, new_psk, 0x01);
         }
 				
-        if(key == LV_KEY_RIGHT)//右键，用户上线
+        if(key == LV_KEY_RIGHT)//右键，下一页
         {
+            List_NextPage();
 //					//让设备退网
 //					const uint8_t new_psk[2] = {0x01,0x02};
 //					ES1642_SendSetPsk(&g_es1642_handle, device_list[1].addr, new_psk, 0x01);
@@ -159,7 +162,8 @@ void screen_user_list_item_event_handler(lv_event_t *e)
 				
         if(key == LV_KEY_ESC)//ESC键，返回首页
         {
-					 s_last_user_no = 0;//回到首页，重置用户列表焦点
+					 List_ResetPage();    //重置页码
+					 s_last_user_no = 0;  //回到首页，重置用户列表焦点
 					 /* 无动画直接返回首页 (is_clean=false避免在子对象回调中清理父屏幕) */
 					 ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_home, guider_ui.screen_user_home_del, &guider_ui.screen_user_list_del, setup_scr_screen_user_home, LV_SCR_LOAD_ANIM_NONE, 10, 10, true, true);
         }
