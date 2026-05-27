@@ -134,7 +134,7 @@ void RS485_UART7_Init(void)
     __HAL_DMA_DISABLE_IT(huart7.hdmarx, DMA_IT_HT); // 关闭半传中断，避免重复回调
 }
 
-/* ===================== UART8 DMA+空闲中断初始化 ===================== */
+/* ===================== UART8 中断+空闲中断初始化（无DMA） ===================== */
 void RS485_UART8_Init(void)
 {
     // 初始化数据结构体
@@ -145,13 +145,12 @@ void RS485_UART8_Init(void)
     // RS485设置为接收模式
     HAL_GPIO_WritePin(RS485_CTRL3_GPIO_Port, RS485_CTRL3_Pin, GPIO_PIN_RESET);
 
-    // 启动DMA+空闲中断接收
-    if (HAL_UARTEx_ReceiveToIdle_DMA(&huart8, UART8_RX_BUF, RS485_RX_BUFFER_SIZE) != HAL_OK)
+    // 启动中断+空闲中断接收（UART8无DMA，使用IT方式）
+    if (HAL_UARTEx_ReceiveToIdle_IT(&huart8, UART8_RX_BUF, RS485_RX_BUFFER_SIZE) != HAL_OK)
     {
-        printf("UART8 DMA接收启动失败\r\n");
+        printf("UART8 IT接收启动失败\r\n");
         return;
     }
-    __HAL_DMA_DISABLE_IT(huart8.hdmarx, DMA_IT_HT); // 关闭半传中断，避免重复回调
 }
 
 

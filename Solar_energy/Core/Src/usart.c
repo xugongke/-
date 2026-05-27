@@ -40,9 +40,9 @@ UART_HandleTypeDef huart3;
 UART_HandleTypeDef huart6;
 DMA_HandleTypeDef hdma_uart4_rx;
 DMA_HandleTypeDef hdma_uart7_rx;
-DMA_HandleTypeDef hdma_uart8_rx;
 DMA_HandleTypeDef hdma_usart1_rx;
 DMA_HandleTypeDef hdma_usart2_rx;
+DMA_HandleTypeDef hdma_usart2_tx;
 DMA_HandleTypeDef hdma_usart3_rx;
 DMA_HandleTypeDef hdma_usart3_tx;
 DMA_HandleTypeDef hdma_usart6_rx;
@@ -364,25 +364,6 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     GPIO_InitStruct.Alternate = GPIO_AF8_UART8;
     HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-    /* UART8 DMA Init */
-    /* UART8_RX Init */
-    hdma_uart8_rx.Instance = DMA1_Stream6;
-    hdma_uart8_rx.Init.Channel = DMA_CHANNEL_5;
-    hdma_uart8_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
-    hdma_uart8_rx.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_uart8_rx.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_uart8_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    hdma_uart8_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_uart8_rx.Init.Mode = DMA_NORMAL;
-    hdma_uart8_rx.Init.Priority = DMA_PRIORITY_LOW;
-    hdma_uart8_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    if (HAL_DMA_Init(&hdma_uart8_rx) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
-    __HAL_LINKDMA(uartHandle,hdmarx,hdma_uart8_rx);
-
     /* UART8 interrupt Init */
     HAL_NVIC_SetPriority(UART8_IRQn, 5, 0);
     HAL_NVIC_EnableIRQ(UART8_IRQn);
@@ -474,6 +455,24 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     }
 
     __HAL_LINKDMA(uartHandle,hdmarx,hdma_usart2_rx);
+
+    /* USART2_TX Init */
+    hdma_usart2_tx.Instance = DMA1_Stream6;
+    hdma_usart2_tx.Init.Channel = DMA_CHANNEL_4;
+    hdma_usart2_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    hdma_usart2_tx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_usart2_tx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_usart2_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_usart2_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_usart2_tx.Init.Mode = DMA_NORMAL;
+    hdma_usart2_tx.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_usart2_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    if (HAL_DMA_Init(&hdma_usart2_tx) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    __HAL_LINKDMA(uartHandle,hdmatx,hdma_usart2_tx);
 
     /* USART2 interrupt Init */
     HAL_NVIC_SetPriority(USART2_IRQn, 5, 0);
@@ -657,9 +656,6 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
     */
     HAL_GPIO_DeInit(GPIOE, GPIO_PIN_0|GPIO_PIN_1);
 
-    /* UART8 DMA DeInit */
-    HAL_DMA_DeInit(uartHandle->hdmarx);
-
     /* UART8 interrupt Deinit */
     HAL_NVIC_DisableIRQ(UART8_IRQn);
   /* USER CODE BEGIN UART8_MspDeInit 1 */
@@ -705,6 +701,7 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 
     /* USART2 DMA DeInit */
     HAL_DMA_DeInit(uartHandle->hdmarx);
+    HAL_DMA_DeInit(uartHandle->hdmatx);
 
     /* USART2 interrupt Deinit */
     HAL_NVIC_DisableIRQ(USART2_IRQn);
@@ -911,12 +908,11 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
             xQueueSendFromISR(xRS485_UART_Queue, &p_tx, &xHigherPriorityTaskWoken);
         }
         
-        // 重新启动DMA+空闲中断接收
-        if (HAL_UARTEx_ReceiveToIdle_DMA(&huart8, UART8_RX_BUF, RS485_RX_BUFFER_SIZE) != HAL_OK)
+        // 重新启动中断+空闲中断接收（UART8无DMA，使用IT方式）
+        if (HAL_UARTEx_ReceiveToIdle_IT(&huart8, UART8_RX_BUF, RS485_RX_BUFFER_SIZE) != HAL_OK)
 				{
-					printf("启动UART8 DMA接收失败\r\n");
+					printf("启动UART8 IT接收失败\r\n");
 				}
-				__HAL_DMA_DISABLE_IT(huart8.hdmarx, DMA_IT_HT); // 关闭半传中断，避免重复回调
     }
 		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }

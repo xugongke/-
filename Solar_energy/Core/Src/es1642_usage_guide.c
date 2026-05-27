@@ -115,13 +115,13 @@ static int32_t es1642_uart_write(const uint8_t *data, uint16_t len, void *user_a
         return -1;
     }
 
-    for(int i = 0;i < len; i++)
-    {
-        printf("%02X ", data[i]);
-    }
+//    for(int i = 0;i < len; i++)
+//    {
+//        printf("%02X ", data[i]);
+//    }
     
-    /* 使用中断方式发送数据（因为DMA不够用了）所以要保证给es1642模块发送的字节数要少，要不然会频繁占用CPU */
-    status = HAL_UART_Transmit_IT(&huart2, (uint8_t *)data, len);
+    /* 使用DMA方式发送数据，不占用CPU，发送效率高 */
+    status = HAL_UART_Transmit_DMA(&huart2, (uint8_t *)data, len);
     
     if (status == HAL_OK)
     {

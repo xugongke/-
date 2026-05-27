@@ -282,10 +282,15 @@ static void list_populate_current_page(void)
         }
     }
 
-    /* 如果没有匹配到上次焦点的项，聚焦第一个 */
     lv_indev_set_group(indev_keypad, g_keypad_group);
-    if(lv_group_get_focused(g_keypad_group) == NULL && end > start) {
-        /* 焦点第一个btn */
+
+    if (end <= start) {
+        /* 空列表：聚焦屏幕本身，绑定KEY事件回调以支持ESC返回 */
+        lv_group_add_obj(g_keypad_group, guider_ui.screen_user_list);
+        lv_obj_add_event_cb(guider_ui.screen_user_list, screen_user_list_item_event_handler, LV_EVENT_KEY, NULL);
+        lv_group_focus_obj(guider_ui.screen_user_list);
+    } else if (lv_group_get_focused(g_keypad_group) == NULL) {
+        /* 有数据但没有匹配到上次焦点，聚焦第一项 */
         lv_obj_t *first_btn = lv_obj_get_child(guider_ui.screen_user_list_list_1, 0);
         if(first_btn) lv_group_focus_obj(first_btn);
     }
@@ -478,6 +483,9 @@ static const char * alert_type_icon(alert_type_t t)
     }
 }
 
+/* 前向声明 */
+static void alert_item_event_handler(lv_event_t *e);
+
 /**
  * @brief  创建单个告警项控件
  * @param  parent   父容器
@@ -548,7 +556,34 @@ static lv_obj_t * alert_create_item(lv_obj_t *parent, int dev_idx,
     /* 存储设备下标到 user_data，供后续操作使用 */
     lv_obj_set_user_data(item, (void*)(uintptr_t)dev_idx);
 
+    /* 告警项事件回调 */
+    lv_obj_add_event_cb(item, alert_item_event_handler, LV_EVENT_ALL, (void*)(uintptr_t)dev_idx);
+
     return item;
+}
+
+/**
+ * @brief  告警项事件回调
+ * @param  e  事件对象, user_data 为设备在 device_list 中的下标
+ */
+static void alert_item_event_handler(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+
+    if (code == LV_EVENT_KEY)
+    {
+        uint32_t key = lv_event_get_key(e);
+        if (key == LV_KEY_ESC)
+        {
+            /* 返回首页 */
+            ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_home,
+                                  guider_ui.screen_user_home_del,
+                                  &guider_ui.screen_alert_del,
+                                  setup_scr_screen_user_home,
+                                  LV_SCR_LOAD_ANIM_NONE, 10, 10, true, true);
+        }
+        /* 后续可在此添加其他按键处理, 如 LV_KEY_ENTER 对选中设备操作 */
+    }
 }
 
 /**
@@ -560,9 +595,10 @@ static void alert_populate_list(void)
     lv_group_remove_all_objs(g_keypad_group);
 
     int comm_cnt = 0, relay_cnt = 0, temp_cnt = 0, power_cnt = 0;
-    int total = 0;
+    int total = 0;      /* 已创建的告警项数 */
+    int err_total = 0;  /* 实际故障总数(含未显示的) */
 
-    for (uint16_t i = 0; i < device_count && total < ALERT_MAX_ITEMS; i++)
+    for (uint16_t i = 0; i < device_count; i++)
     {
         /* 只显示已入网设备 */
         if (device_list[i].state.bits.valid == 0) continue;
@@ -578,12 +614,13 @@ static void alert_populate_list(void)
         if (device_list[i].state.bits.comm_err)
         {
             comm_cnt++;
-            if (total < ALERT_MAX_ITEMS)
+            err_total++;
+            if (total <= ALERT_MAX_ITEMS)
             {
+                total++;
                 lv_obj_t *item = alert_create_item(guider_ui.screen_alert_list, i,
                                                     ALERT_COMM_FAIL, addr_txt);
                 lv_group_add_obj(g_keypad_group, item);
-                total++;
             }
         }
 
@@ -591,12 +628,13 @@ static void alert_populate_list(void)
         if (device_list[i].state.bits.relay_err)
         {
             relay_cnt++;
-            if (total < ALERT_MAX_ITEMS)
+            err_total++;
+            if (total <= ALERT_MAX_ITEMS)
             {
+                total++;
                 lv_obj_t *item = alert_create_item(guider_ui.screen_alert_list, i,
                                                     ALERT_RELAY_ERR, addr_txt);
                 lv_group_add_obj(g_keypad_group, item);
-                total++;
             }
         }
 
@@ -604,12 +642,13 @@ static void alert_populate_list(void)
         if (device_list[i].state.bits.temp_err)
         {
             temp_cnt++;
-            if (total < ALERT_MAX_ITEMS)
+            err_total++;
+            if (total <= ALERT_MAX_ITEMS)
             {
+                total++;
                 lv_obj_t *item = alert_create_item(guider_ui.screen_alert_list, i,
                                                     ALERT_TEMP_ERR, addr_txt);
                 lv_group_add_obj(g_keypad_group, item);
-                total++;
             }
         }
 
@@ -617,14 +656,41 @@ static void alert_populate_list(void)
         if (device_list[i].state.bits.power_reverse)
         {
             power_cnt++;
-            if (total < ALERT_MAX_ITEMS)
+            err_total++;
+            if (total <= ALERT_MAX_ITEMS)
             {
+                total++;
                 lv_obj_t *item = alert_create_item(guider_ui.screen_alert_list, i,
                                                     ALERT_POWER_REVERSE, addr_txt);
                 lv_group_add_obj(g_keypad_group, item);
-                total++;
             }
         }
+    }
+
+    /* 如果故障总数超过列表最大显示项数，在列表底部添加警告提示 */
+    if (err_total > ALERT_MAX_ITEMS)
+    {
+        lv_obj_t *tip = lv_obj_create(guider_ui.screen_alert_list);
+        lv_obj_remove_style_all(tip);
+        lv_obj_set_size(tip, 448, 30);
+        lv_obj_set_style_radius(tip, 4, 0);
+        lv_obj_set_style_bg_color(tip, lv_color_hex(0xFFF3E0), 0);
+        lv_obj_set_style_bg_opa(tip, LV_OPA_COVER, 0);
+        lv_obj_set_style_border_width(tip, 1, 0);
+        lv_obj_set_style_border_color(tip, lv_color_hex(0xFF9800), 0);
+        lv_obj_set_style_border_opa(tip, LV_OPA_COVER, 0);
+        lv_obj_set_style_pad_all(tip, 0, 0);
+        lv_obj_clear_flag(tip, LV_OBJ_FLAG_SCROLLABLE);
+
+        lv_obj_t *tip_lbl = lv_label_create(tip);
+        char tip_txt[64];
+        lv_snprintf(tip_txt, sizeof(tip_txt),
+                    LV_SYMBOL_WARNING " 故障设备过多(%d项)，请检查线路连接 ", err_total);
+        lv_label_set_text(tip_lbl, tip_txt);
+        lv_obj_set_style_text_color(tip_lbl, lv_color_hex(0xE65100), 0);
+        lv_obj_set_style_text_font(tip_lbl, &lv_font_SourceHanSerifSC_Regular_12, 0);
+        lv_obj_set_style_bg_opa(tip_lbl, 0, 0);
+        lv_obj_align(tip_lbl, LV_ALIGN_CENTER, 0, 0);
     }
 
     /* 更新统计栏标签 */
@@ -638,8 +704,8 @@ static void alert_populate_list(void)
     lv_snprintf(buf, sizeof(buf), LV_SYMBOL_WARNING " 电源反接: %d", power_cnt);
     lv_label_set_text(guider_ui.screen_alert_stat_power, buf);
 
-    /* 更新总数角标 */
-    lv_snprintf(buf, sizeof(buf), "%d", total);
+    /* 更新总数角标 (显示真实故障总数，非截断后的数量) */
+    lv_snprintf(buf, sizeof(buf), "%d", err_total);
     lv_label_set_text(guider_ui.screen_alert_label_count, buf);
 
     lv_indev_set_group(indev_keypad, g_keypad_group);

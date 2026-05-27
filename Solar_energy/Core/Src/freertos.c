@@ -767,10 +767,10 @@ void DevicePoll_Task(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    if(simcard_ready == 1)
-    {
+//    if(simcard_ready == 1)
+//    {
       device_poll_all_status();
-    }
+//    }
     osDelay(30000);  /* 每30秒轮询一次 */
   }
   /* USER CODE END DevicePoll_Task */
@@ -796,3 +796,4 @@ void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
     for(;;);
 }
 /* USER CODE END Application */
+

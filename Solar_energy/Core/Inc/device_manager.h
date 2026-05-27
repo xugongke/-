@@ -28,10 +28,10 @@ typedef struct
 {
     uint8_t mac[6];            // MAC地址（唯一标识）
     uint8_t addr[6];           // 通信地址（可修改）
-    int8_t   temperature;       /**< 温度 (℃) */
-    uint16_t input_voltage;     /**< 输入电压 (V) */
-    device_state_t state;      // 状态位图 (共用体, 可按位域或整字节访问)
-    uint8_t comm_fail_cnt;     // 通信失败次数计数
+    int8_t   temperature;       /**< 温度 (℃) ，不会马上保存到SD卡 */
+    uint16_t input_voltage;     /**< 输入电压 (V) ，不会马上保存到SD卡 */
+    device_state_t state;      // 状态位图 (共用体, 可按位域或整字节访问 ，不会马上保存到SD卡)
+    uint8_t comm_fail_cnt;     // 通信失败次数计数 ，不会马上保存到SD卡
 } device_t;
 //通信地址解析结构体
 typedef struct
