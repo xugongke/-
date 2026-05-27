@@ -67,6 +67,10 @@ typedef struct
 	bool screen_alert_del;
 	lv_obj_t *screen_alert_list;                /* 告警列表 */
 	lv_obj_t *screen_alert_label_count;         /* 告警总数标签 */
+	lv_obj_t *screen_alert_stat_comm;           /* 通信异常计数标签 */
+	lv_obj_t *screen_alert_stat_relay;          /* 开关异常计数标签 */
+	lv_obj_t *screen_alert_stat_temp;           /* 温度异常计数标签 */
+	lv_obj_t *screen_alert_stat_power;          /* 电源反接计数标签 */
 }lv_ui;
 
 typedef void (*ui_setup_scr_t)(lv_ui * ui);

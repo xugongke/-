@@ -104,8 +104,8 @@ uint8_t A7680C_SendAT(char *cmd, char *ack, uint32_t timeout,uint8_t* data)
     }
     else
     {
-        printf("在指定时间里没找到目标字符串：%s\r\n",ack);
-				printf("模块响应的字符串为:%s\r\n",at_parse_buf);
+//        printf("在指定时间里没找到目标字符串：%s\r\n",ack);
+//				printf("模块响应的字符串为:%s\r\n",at_parse_buf);
         ret = AT_RESULT_TIMEOUT;
     }
 
