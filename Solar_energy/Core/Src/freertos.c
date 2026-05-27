@@ -68,7 +68,6 @@ MessageBufferHandle_t uart3Message;//a7680c消息缓冲区句柄
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-// 注意: 本函数需要在f_mount()执行后再调用，因为CubeMX生成的FatFs代码, 会在f_mount()函数内对SD卡进行初始化
 void SDCardInfo(void)
 {
     HAL_SD_CardInfoTypeDef pCardInfo = {0};                    // SD卡信息结构体
@@ -84,12 +83,6 @@ void SDCardInfo(void)
         printf("块大小：%d \r\n", pCardInfo.BlockSize);        // 每个块的大小; 单位：字节
         printf("卡容量：%lluMB \r\n", ((uint64_t)pCardInfo.BlockSize * pCardInfo.BlockNbr) / 1024 / 1024);  // 计算卡的容量; 单位：GB
 		}
-
-		/* 更新电池数据缓存 (在非LVGL任务中执行阻塞ADC采集,
-		 * LVGL定时器只读缓存更新UI, 避免竞态条件) */
-		Battery_UpdateCache();
-
-    osDelay(1000);
 }
   /* USER CODE END StartDefaultTask */
 
@@ -97,6 +90,8 @@ void SDCardInfo(void)
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+/* USER CODE BEGIN Variables */
+
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -719,8 +714,9 @@ void RTC_Task(void *argument)
 		if(lvgl_mutex) osMutexAcquire(lvgl_mutex, osWaitForever);
 		RX8025T_Task();
 		if(lvgl_mutex) osMutexRelease(lvgl_mutex);
-		/* 更新电池数据缓存 (不涉及LVGL, 无需互斥锁) */
+		/* 更新电池+太阳能数据缓存 (不涉及LVGL, 无需互斥锁) */
 		Battery_UpdateCache();
+		Solar_UpdateCache();
     osDelay(100);
   }
   /* USER CODE END RTC_Task */

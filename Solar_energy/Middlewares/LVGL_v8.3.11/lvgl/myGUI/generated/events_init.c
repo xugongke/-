@@ -199,8 +199,8 @@ static uint16_t list_get_total_pages(void)
 static void list_populate_current_page(void)
 {
     house_info_t house;
-    lv_obj_clean(guider_ui.screen_user_list_list_1);
-    lv_group_remove_all_objs(g_keypad_group);
+    lv_obj_clean(guider_ui.screen_user_list_list_1);//清空当前列表中的内容
+    lv_group_remove_all_objs(g_keypad_group);//清空group中的所有组件
 
     uint16_t start = s_list_page * LIST_PAGE_SIZE;
     uint16_t end = start + LIST_PAGE_SIZE;
@@ -217,7 +217,7 @@ static void list_populate_current_page(void)
     for(uint16_t i = start; i < end; i++)
     {
         char txt[100];
-        if(device_list[i].valid != 1)
+        if(device_list[i].state.bits.valid == 0)
         {
             lv_snprintf(txt, sizeof(txt), "未入网   MAC %02X:%02X:%02X:%02X:%02X:%02X  ",
                         device_list[i].mac[0],device_list[i].mac[1],device_list[i].mac[2],

@@ -118,6 +118,7 @@ int main(void)
   MX_UART8_Init();
   MX_USART6_UART_Init();
   MX_ADC3_Init();
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
 	Battery_Init();
 	RS485_USART_Init_All();

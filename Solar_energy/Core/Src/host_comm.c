@@ -81,7 +81,7 @@ void tcp_send_device_list(uint8_t sn)
     {
         host_mac_to_string(device_list[i].mac, mac_str);
         host_addr_to_string(device_list[i].addr, addr_str);
-        sprintf(line, "DEV,%s,%s,%u\n", mac_str, addr_str, device_list[i].valid);
+        sprintf(line, "DEV,%s,%s,%u\n", mac_str, addr_str, device_list[i].state.bits.valid);
         send(sn, (uint8_t *)line, strlen(line));
     }
     send(sn, (uint8_t *)"END\n", sizeof("END\n"));
@@ -235,7 +235,7 @@ void rs485_send_device_list(void)
     {
         host_mac_to_string(device_list[i].mac, mac_str);
         host_addr_to_string(device_list[i].addr, addr_str);
-        sprintf(line, "DEV,%s,%s,%u\n", mac_str, addr_str, device_list[i].valid);
+        sprintf(line, "DEV,%s,%s,%u\n", mac_str, addr_str, device_list[i].state.bits.valid);
         rs485_usart6_send((const uint8_t *)line, strlen(line));
     }
     rs485_usart6_send((const uint8_t *)"END\n", strlen("END\n"));

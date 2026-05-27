@@ -29,6 +29,7 @@
 /* ========================== 私有变量 ========================== */
 
 extern ADC_HandleTypeDef hadc3;
+extern ADC_HandleTypeDef hadc1;
 
 /* ========================== 锂电池 OCV-SOC 查找表 ========================== */
 
@@ -287,8 +288,90 @@ static struct {
     lv_obj_t *label_x;     /* 无信号X标记 */
 } signal_widget;
 
-/* LVGL周期更新定时器 (电池+信号共用) */
+/* LVGL周期更新定时器 (电池+信号+太阳能共用) */
 static lv_timer_t *status_bar_timer = NULL;
+
+/* ========================== 太阳能直流总线电压 ========================== */
+
+/**
+ * @brief 太阳能分压比: VBUS = Vadc × (R1+R2)/R2
+ *        R1=470kΩ, R2=10kΩ → 分压比 = 480/10 = 48
+ * @note  测量范围 30~150V
+ *        150V时 ADC引脚 = 150/48 = 3.125V (< 3.3V ✓)
+ *        最高可测电压 = 3.3V × 48 = 158.4V
+ */
+#define SOLAR_VOLTAGE_DIVIDER   48.0f
+#define SOLAR_ADC_VREF          3.3f
+#define SOLAR_ADC_RESOLUTION    4096.0f
+#define SOLAR_ADC_SAMPLES       8
+
+/**
+ * @brief 太阳能电压校准系数
+ * @note  校准方法: 施加已知电压V_actual, 读取显示电压V_display
+ *        校准系数 = V_actual / V_display
+ *        例: 实际32.5V, 显示34.5V → 校准系数 = 32.5/34.5 = 0.942
+ *        设为 1.0 表示不校准
+ */
+#define SOLAR_CALIBRATION       0.942f
+
+/* 太阳能电压缓存 (V), 由 Solar_UpdateCache() 写入 */
+static volatile float cached_solar_voltage = 0.0f;
+
+/**
+ * @brief  读取太阳能直流总线ADC (ADC1_IN9, PB1)
+ * @retval 平均ADC原始值
+ */
+static uint16_t Solar_ReadADC_Average(void)
+{
+    uint32_t sum = 0;
+    uint16_t valid = 0;
+
+    for (uint16_t i = 0; i < SOLAR_ADC_SAMPLES; i++)
+    {
+        if (HAL_ADC_Start(&hadc1) != HAL_OK) continue;
+        if (HAL_ADC_PollForConversion(&hadc1, 100) == HAL_OK)
+        {
+            sum += HAL_ADC_GetValue(&hadc1);
+            valid++;
+        }
+        HAL_ADC_Stop(&hadc1);
+    }
+    return (valid > 0) ? (uint16_t)(sum / valid) : 0;
+}
+
+/**
+ * @brief  更新太阳能电压缓存 (在非LVGL任务中周期调用)
+ */
+void Solar_UpdateCache(void)
+{
+    uint16_t raw = Solar_ReadADC_Average();
+    float vadc = ((float)raw / SOLAR_ADC_RESOLUTION) * SOLAR_ADC_VREF;
+    cached_solar_voltage = vadc * SOLAR_VOLTAGE_DIVIDER * SOLAR_CALIBRATION;
+}
+
+/**
+ * @brief  获取太阳能直流总线电压 (V)
+ * @retval 电压值, 如 48.5
+ */
+float Solar_GetVoltage(void)
+{
+    return cached_solar_voltage;
+}
+
+/**
+ * @brief  更新home页太阳能卡片的电压显示
+ * @note   由LVGL定时器回调调用, 只读缓存
+ */
+void Solar_Widget_Update(void)
+{
+    if (guider_ui.screen_user_home_card_solar_val == NULL) return;
+    if (!lv_obj_is_valid(guider_ui.screen_user_home_card_solar_val)) return;
+
+    float v = cached_solar_voltage;
+    char buf[32];
+    snprintf(buf, sizeof(buf), "%.1fV", v);
+    lv_label_set_text(guider_ui.screen_user_home_card_solar_val, buf);
+}
 
 /* 电池数据缓存 (由非LVGL任务通过 Battery_UpdateCache() 写入,
  * LVGL定时器通过 Battery_Widget_Update() 只读缓存) */
@@ -339,6 +422,7 @@ static void status_bar_timer_cb(lv_timer_t *timer)
 
     Battery_Widget_Update();
     Signal_Widget_Update();
+    Solar_Widget_Update();
 }
 
 /**

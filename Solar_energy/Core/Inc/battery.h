@@ -57,9 +57,9 @@ extern "C" {
  *        放电截止: 3.00V
  */
 #define BATTERY_VOLTAGE_MAX         4.20f   /* 满充电压 */
-#define BATTERY_VOLTAGE_MIN         3.00f   /* 放电截止电压 */
-#define BATTERY_VOLTAGE_FULL        4.15f   /* 100% 对应电压 */
-#define BATTERY_VOLTAGE_EMPTY       3.00f   /* 0% 对应电压 */
+#define BATTERY_VOLTAGE_MIN         3.30f   /* 放电截止电压 */
+#define BATTERY_VOLTAGE_FULL        4.1f   /* 100% 对应电压 */
+#define BATTERY_VOLTAGE_EMPTY       3.30f   /* 0% 对应电压 */
 
 /* ========================== 数据结构定义 ========================== */
 
@@ -149,6 +149,25 @@ extern volatile int8_t g_signal_level;
  * @retval -1=未知/无信号, 0=极弱, 1=弱, 2=中, 3=强, 4=满格
  */
 int8_t Signal_GetLevel(int32_t rssi);
+
+/* ========================== 太阳能直流总线电压 ========================== */
+
+/**
+ * @brief  更新太阳能电压缓存 (在非LVGL任务中周期调用)
+ * @note   采集 ADC1_IN9 (PB1), 分压比 R1=390kΩ R2=10kΩ = 40
+ */
+void Solar_UpdateCache(void);
+
+/**
+ * @brief  获取太阳能直流总线电压 (V)
+ * @retval 电压值, 如 48.5
+ */
+float Solar_GetVoltage(void);
+
+/**
+ * @brief  更新home页太阳能卡片的电压显示 (由LVGL定时器调用)
+ */
+void Solar_Widget_Update(void);
 
 /* USER CODE END Prototypes */
 

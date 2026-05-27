@@ -8,12 +8,30 @@
 #define MAX_DEVICES 256      // 最大设备数量
 #define DEVICE_FILE "0:/devices.bin"   // 存储文件名
 
+// ================== 设备状态位图共用体 ==================
+typedef union {
+    uint8_t byte;  // 整字节访问
+    struct {
+        uint8_t valid        : 1;  // bit0: 有效/入网标志 (1=已入网, 0=未入网)
+        uint8_t dc_heating   : 1;  // bit1: 直流加热 (1=正在加热, 0=未加热)
+        uint8_t comm_err     : 1;  // bit2: 通信异常 (1=异常, 0=正常)
+        uint8_t reserved1    : 1;  // bit3: 保留
+        uint8_t reserved2    : 1;  // bit4: 保留
+        uint8_t relay_err    : 1;  // bit5: 继电器控制异常 (1=异常, 0=正常)
+        uint8_t temp_err     : 1;  // bit6: 温度异常 (1=异常, 0=正常)
+        uint8_t power_reverse: 1;  // bit7: 电源反接 (1=反接, 0=正常)
+    } bits;
+} device_state_t;
+
 // ================== 设备结构体 ==================
 typedef struct
 {
-    uint8_t mac[6];   // MAC地址（唯一标识）
-    uint8_t addr[6];  // 通信地址（可修改）
-    uint8_t valid;    // 有效标志：1=有效，0=无效
+    uint8_t mac[6];            // MAC地址（唯一标识）
+    uint8_t addr[6];           // 通信地址（可修改）
+    int8_t   temperature;       /**< 温度 (℃) */
+    uint16_t input_voltage;     /**< 输入电压 (V) */
+    device_state_t state;      // 状态位图 (共用体, 可按位域或整字节访问)
+    uint8_t comm_fail_cnt;     // 通信失败次数计数
 } device_t;
 //通信地址解析结构体
 typedef struct
@@ -79,33 +97,20 @@ void make_addr(uint8_t *addr,
 
 /**
  * @brief 控制从机启动/停止加热
- * @param addr      从机通信地址 (6字节)
+ * @param dev_index 设备在device_list中的下标
  * @param heater_on 1=启动加热, 0=停止加热
  * @return 0=成功, -1=参数错误, -2=从机超时, -3=从机拒绝, -4=发送失败
  */
-int device_ctrl_heater(uint8_t *addr, uint8_t heater_on);
+int device_ctrl_heater(int dev_index, uint8_t heater_on);
 
-
-/**
- * @brief 从机状态数据结构体
- */
-typedef struct
-{
-    int8_t   temperature;   /**< 温度 (℃) */
-    uint16_t input_voltage; /**< 输入电压 (V) */
-    uint8_t  dc_heating;    /**< 直流加热: 1=是, 0=否 (state bit1) */
-    uint8_t  relay_err;     /**< 继电器控制失败: 1=是, 0=否 (state bit5) */
-    uint8_t  dry_burn_err;  /**< 温度大于75，或者小于-10: 1=是, 0=否 (state bit6) */
-    uint8_t  power_reverse; /**< 电源反接: 1=是, 0=否 (state bit7) */
-} device_status_t;
 
 /**
  * @brief 读取从机状态并通过结构体返回解析后的数据
- * @param addr   从机通信地址 (6字节)
+ * @param dev_index 设备在device_list中的下标
  * @param status 输出: 解析后的状态数据
  * @return 0=成功, -1=参数错误, -2=从机超时, -3=响应异常, -4=发送失败
  */
-int device_read_status_ex(uint8_t *addr, device_status_t *status);
+int device_read_status_ex(int dev_index);
 
 /**
  * @brief 轮询所有有效设备状态并通过MQTT上报

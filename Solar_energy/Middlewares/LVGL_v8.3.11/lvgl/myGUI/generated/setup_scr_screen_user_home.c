@@ -412,8 +412,6 @@ void setup_scr_screen_user_home(lv_ui *ui)
     lv_obj_set_style_bg_opa(ui->screen_user_home_label_port, 0, 0);
     lv_obj_align(ui->screen_user_home_label_port, LV_ALIGN_LEFT_MID, 178, 0);
 		
-		printf("创建一次home\r\n");
-		
 		//初始化/刷新信号强度指示器组件
 		Signal_Widget_Init(guider_ui.screen_user_home);
 		//初始化/刷新电池电量指示器组件

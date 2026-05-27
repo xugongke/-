@@ -599,19 +599,21 @@ int ES1642_ReadAddr(void)
  * @param  response: 中继深度（0表示自动）
  * @retval 0: 成功, -1: 失败
  */
-int ES1642_SendUserData(const uint8_t dst_addr[ES1642_ADDR_LEN], 
-                        const uint8_t *data, 
+int ES1642_SendUserData(int dev_index,
+                        const uint8_t *data,
                         uint16_t len,
                         uint8_t relay_depth,
                         es1642_response_t *response)
 {
     es1642_status_t status;
 
-    if (dst_addr == NULL || (len > 0 && data == NULL))
+    if (dev_index < 0 || dev_index >= device_count || (len > 0 && data == NULL))
     {
         printf("参数错误\r\n");
         return -1;
     }
+
+    const uint8_t *dst_addr = device_list[dev_index].addr;
 
     /* 搜索期间不允许发送其他命令 */
     if (g_es1642_searching)
@@ -665,7 +667,8 @@ int ES1642_SendUserData(const uint8_t dst_addr[ES1642_ADDR_LEN],
     if (osSemaphoreAcquire(ES1642_sendHandle, pdMS_TO_TICKS(20000)) == osOK)
     {
         printf("成功接收到从机的响应\r\n");
-
+        device_list[dev_index].comm_fail_cnt = 0;  /* 成功收到响应，通信失败次数清零 */
+        device_list[dev_index].state.bits.comm_err = 0; /* 清除通信错误标志 */
         /* 将响应数据拷贝给调用者（如果调用者需要） */
         if (response != NULL)
         {
@@ -679,9 +682,14 @@ int ES1642_SendUserData(const uint8_t dst_addr[ES1642_ADDR_LEN],
     }
     else
     {
-				char addr[30];
-				snprintf(addr, sizeof(addr), "%#x:%#x:%#x:%#x:%#x:%#x ",dst_addr[0], dst_addr[1], dst_addr[2], dst_addr[3],dst_addr[4],dst_addr[5]);
-        printf("从机地址为%s响应超时\r\n", addr);
+				char addr_buf[30];
+				snprintf(addr_buf, sizeof(addr_buf), "%02X:%02X:%02X:%02X:%02X:%02X",dst_addr[0], dst_addr[1], dst_addr[2], dst_addr[3],dst_addr[4],dst_addr[5]);
+        printf("从机地址为%s响应超时\r\n", addr_buf);
+        device_list[dev_index].comm_fail_cnt++;  /* 通信失败次数+1 */
+        if(device_list[dev_index].comm_fail_cnt >= 3)
+        {
+            device_list[dev_index].state.bits.comm_err = 1;  /* 标记为通信错误 */
+        }
         g_es1642_wait_type = ES1642_WAIT_NONE;
         Current_addr = NULL;
         osSemaphoreRelease(ES1642_mutexHandle);//解锁
@@ -698,12 +706,26 @@ int ES1642_SendUserData(const uint8_t dst_addr[ES1642_ADDR_LEN],
 int ES1642_SendBroadcastData(const uint8_t *data, uint16_t len)
 {
     uint8_t broadcast_addr[ES1642_ADDR_LEN];
-    
+    es1642_status_t status;
+
+    if (data == NULL || len == 0)
+    {
+        return -1;
+    }
+
     /* 设置广播地址（全0xFF） */
     ES1642_SetBroadcastAddr(broadcast_addr);
-    
-    /* 发送广播数据，中继深度为0（自动），不需要响应 */
-    return ES1642_SendUserData(broadcast_addr, data, len, 0, NULL);
+
+    /* 广播不需要等待响应，直接调用底层发送 */
+    status = ES1642_SendData(&g_es1642_handle, broadcast_addr, data, len, 0, true);
+
+    if (status != ES1642_STATUS_OK)
+    {
+        printf("广播数据发送失败: %s\r\n", ES1642_StatusString(status));
+        return -1;
+    }
+
+    return 0;
 }
 
 /**
@@ -892,16 +914,18 @@ int ES1642_SendSearch(const uint8_t src_addr[ES1642_ADDR_LEN],
  * @note   流程：发送SetPsk命令 → 模块回复空应答(SET_PSK) → 
  *         从机处理入网 → 从机上报结果(REPORT_PSK_RESULT, state=0失败/1成功)
  */
-int ES1642_SetPsk(const uint8_t dst_addr[ES1642_ADDR_LEN],
+int ES1642_SetPsk(int dev_index,
                  const uint8_t new_psk[ES1642_SET_PSK_LEN])
 {
     es1642_status_t status;
 
-    if (dst_addr == NULL || new_psk == NULL)
+    if (dev_index < 0 || dev_index >= device_count || new_psk == NULL)
     {
         printf("参数错误\r\n");
         return -1;
     }
+
+    const uint8_t *dst_addr = device_list[dev_index].addr;
 
     /* 搜索期间不允许发送其他命令 */
     if (g_es1642_searching)
@@ -955,6 +979,8 @@ int ES1642_SetPsk(const uint8_t dst_addr[ES1642_ADDR_LEN],
 
     if (osSemaphoreAcquire(ES1642_sendHandle, pdMS_TO_TICKS(10000)) == osOK)
     {
+        device_list[dev_index].comm_fail_cnt = 0;  /* 成功收到响应，通信失败次数清零 */
+        device_list[dev_index].state.bits.comm_err = 0; /* 清除通信错误标志 */
         printf("收到PSK设置结果: 地址=%02X:%02X:%02X:%02X:%02X:%02X, state=%d\r\n",
                g_es1642_psk_result.src_addr[0], g_es1642_psk_result.src_addr[1],
                g_es1642_psk_result.src_addr[2], g_es1642_psk_result.src_addr[3],
@@ -979,6 +1005,11 @@ int ES1642_SetPsk(const uint8_t dst_addr[ES1642_ADDR_LEN],
     else
     {
         printf("等待PSK设置结果超时\r\n");
+        device_list[dev_index].comm_fail_cnt++;  /* 通信失败次数+1 */
+        if(device_list[dev_index].comm_fail_cnt >= 3)
+        {
+            device_list[dev_index].state.bits.comm_err = 1;  /* 标记为通信错误 */
+        } 
         g_es1642_wait_type = ES1642_WAIT_NONE;
         Current_addr = NULL;
         osSemaphoreRelease(ES1642_mutexHandle);

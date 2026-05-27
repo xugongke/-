@@ -58,17 +58,20 @@ void add_device(uint8_t *mac, uint8_t *addr,uint8_t net_state)
 				printf("设备已满，无法添加\r\n");
 				return;
 		}
-		if(net_state == ES1642_NET_STATE_SAME_NETWORK)//如果已入网，代表之前设置过通信地址,valid设为1
+		if(net_state == ES1642_NET_STATE_SAME_NETWORK)//如果已入网，代表之前设置过通信地址,bit0置1
 		{
 			memcpy(device_list[device_count].mac, mac, 6);
 			memcpy(device_list[device_count].addr, addr, 6);
-			device_list[device_count].valid = 1;
+            //设备状态默认有效且已入网，其他状态位默认0，防止列表中之前的状态位影响到新添加的设备
+			device_list[device_count].state.byte = 0x01;  // bit0=1: 已入网
+			device_list[device_count].comm_fail_cnt = 0;
 		}
 		else//没入网那就先添加进设备表，等待入网
 		{
 			memcpy(device_list[device_count].mac, mac, 6);
 			memcpy(device_list[device_count].addr, addr, 6);
-			device_list[device_count].valid = 0;
+			device_list[device_count].state.byte = 0x00;
+			device_list[device_count].comm_fail_cnt = 0;
 		}
 
 		device_count++;
@@ -85,13 +88,13 @@ int update_device(uint8_t *mac, uint8_t *addr)
 		
     if (index < 0) {return 1;}//设备列表不存在，请重新搜索设备
 		
-		if(device_list[index].valid == 0)//如果是没入网，那就进行入网，入网了才能正常通信,下面的发送修改通信地址命令从机才能接收到
+		if(device_list[index].state.bits.valid == 0)//如果是没入网，那就进行入网，入网了才能正常通信,下面的发送修改通信地址命令从机才能接收到
 		{
-				ret = ES1642_SetPsk(device_list[index].addr, new_psk);
+				ret = ES1642_SetPsk(index, new_psk);
 				if (ret == 0)
 				{
 						printf("从机入网成功\r\n");
-						device_list[index].valid = 1;
+						device_list[index].state.bits.valid = 1;
 						device_changed = 1;
 				}
 				else if (ret == -2)
@@ -122,7 +125,7 @@ int update_device(uint8_t *mac, uint8_t *addr)
 				cmd_buf[0] = SLAVE_CMD_SET_ADDR;       // 命令: 修改通信地址
 				cmd_buf[1] = ES1642_ADDR_LEN;           // 数据长度: 6
 				memcpy(&cmd_buf[2], addr, ES1642_ADDR_LEN); // 数据: 新通信地址
-				ret = ES1642_SendUserData(device_list[index].addr, cmd_buf, sizeof(cmd_buf), 0, &response);
+				ret = ES1642_SendUserData(index, cmd_buf, sizeof(cmd_buf), 0, &response);
 
 				if (ret == 0)
 				{
@@ -285,13 +288,13 @@ void make_addr(uint8_t *addr,
  * 从机响应: [cmd][data_len][result]
  *   result: 0x01=成功, 0x00=失败
  */
-int device_ctrl_heater(uint8_t *addr, uint8_t heater_on)
+int device_ctrl_heater(int dev_index, uint8_t heater_on)
 {
     es1642_response_t response;
     uint8_t cmd_buf[3];  /* [cmd][data_len][data] */
     int ret;
 
-    if (addr == NULL) { return -1; }
+    if (dev_index < 0 || dev_index >= device_count) { return -1; }
 
     /* 组装命令帧 */
     if (heater_on)
@@ -308,7 +311,7 @@ int device_ctrl_heater(uint8_t *addr, uint8_t heater_on)
     }
 
     /* 通过ES1642载波发送给从机 */
-    ret = ES1642_SendUserData(addr, cmd_buf, sizeof(cmd_buf), 0, &response);
+    ret = ES1642_SendUserData(dev_index, cmd_buf, sizeof(cmd_buf), 0, &response);
 
     if (ret == 0)
     {
@@ -354,23 +357,20 @@ int device_ctrl_heater(uint8_t *addr, uint8_t heater_on)
  *   vol:   电压 (uint16_t小端, 单位V)
  *   state: 状态字 (bit1=直流加热, bit7=电源反接)
  */
-int device_read_status_ex(uint8_t *addr, device_status_t *status)
+int device_read_status_ex(int dev_index)
 {
     es1642_response_t response;
     uint8_t cmd_buf[2];  /* [cmd][data_len] */
     int ret;
 
-    if (addr == NULL || status == NULL) { return -1; }
-
-    /* 初始化输出结构体 */
-    memset(status, 0, sizeof(device_status_t));
+    if (dev_index < 0 || dev_index >= device_count) { return -1; }
 
     /* 组装读取命令: 命令字+数据长度(0) */
     cmd_buf[0] = SLAVE_CMD_READ_STATUS;
     cmd_buf[1] = 0x00;  /* 无附加数据 */
 
     /* 发送 */
-    ret = ES1642_SendUserData(addr, cmd_buf, sizeof(cmd_buf), 0, &response);
+    ret = ES1642_SendUserData(dev_index, cmd_buf, sizeof(cmd_buf), 0, &response);
 
     if (ret == 0)
     {
@@ -379,22 +379,22 @@ int device_read_status_ex(uint8_t *addr, device_status_t *status)
             response.data[0] == SLAVE_CMD_READ_STATUS &&
             response.data[1] == 0x04)
         {
-            status->temperature  = (int8_t)response.data[2];
-            status->input_voltage = (uint16_t)response.data[3] | ((uint16_t)response.data[4] << 8);
+            device_list[dev_index].temperature = (int8_t)response.data[2];
+            device_list[dev_index].input_voltage = (uint16_t)response.data[3] | ((uint16_t)response.data[4] << 8);
             uint8_t state_byte   = response.data[5];
 
-            /* bit1 = 直流加热, bit7 = 电源反接 */
-            status->dc_heating    = (state_byte & 0x02) ? 1 : 0;
-            status->power_reverse = (state_byte & 0x80) ? 1 : 0;
-            status->dry_burn_err  = (state_byte & 0x40) ? 1 : 0;
-            status->relay_err     = (state_byte & 0x20) ? 1 : 0;
+            /* bit1 = 直流加热, bit7 = 电源反接,bit6 = 温度异常，bit5 = 继电器控制异常 */
+            device_list[dev_index].state.bits.dc_heating    = (state_byte & 0x02) ? 1 : 0;
+            device_list[dev_index].state.bits.power_reverse = (state_byte & 0x80) ? 1 : 0;
+            device_list[dev_index].state.bits.temp_err  = (state_byte & 0x40) ? 1 : 0;
+            device_list[dev_index].state.bits.relay_err     = (state_byte & 0x20) ? 1 : 0;
 
-            printf("从机状态: 温度=%d℃, 电压=%dV, 直流加热=%s, 电源反接=%s，干烧错误=%s，继电器控制错误=%s\r\n",
-                   status->temperature, status->input_voltage,
-                   status->dc_heating ? "是 " : "否 ",
-                   status->power_reverse ? "是 " : "否 ",
-                   status->dry_burn_err ? "是 " : "否 ",
-                   status->relay_err ? "是 " : "否 ");
+            printf("从机状态: 温度=%d℃, 电压=%dV, 直流加热=%s, 电源反接=%s，温度异常=%s，继电器控制错误=%s\r\n",
+                   device_list[dev_index].temperature, device_list[dev_index].input_voltage,
+                   device_list[dev_index].state.bits.dc_heating ? "是 " : "否 ",
+                   device_list[dev_index].state.bits.power_reverse ? "是 " : "否 ",
+                   device_list[dev_index].state.bits.temp_err ? "是 " : "否 ",
+                   device_list[dev_index].state.bits.relay_err ? "是 " : "否 ");
             return 0;
         }
         else
@@ -444,14 +444,16 @@ void device_poll_all_status(void)
     char topic[48];
     char payload[128];
     house_info_t house;
-    device_status_t status;
 
     printf("开始轮询%d个设备状态...\r\n", device_count);
 
     for (uint16_t i = 0; i < device_count; i++)
     {
         /* 跳过未入网的设备 */
-        if (device_list[i].valid != 1) continue;
+        if (device_list[i].state.bits.valid == 0) continue;
+
+        /* 跳过通信异常的设备（连续3次失败，避免20s超时拖慢轮询） */
+        if (device_list[i].state.bits.comm_err == 1) continue;
 
         /* 解析通信地址 */
         parse_addr(device_list[i].addr, &house);
@@ -461,15 +463,15 @@ void device_poll_all_status(void)
                  house.building, house.unit, house.room);
 
         /* 读取从机状态 */
-        int ret = device_read_status_ex(device_list[i].addr, &status);
+        int ret = device_read_status_ex(i);
 
         if (ret == 0)
         {
             /* 读取成功 */
             snprintf(payload, sizeof(payload),
                      "{\"t\":%d,\"v\":%d,\"dc\":%d,\"pr\":%d,\"ok\":1}",
-                     status.temperature, status.input_voltage,
-                     status.dc_heating, status.power_reverse);
+                     device_list[i].temperature, device_list[i].input_voltage,
+                     device_list[i].state.bits.dc_heating, device_list[i].state.bits.power_reverse);
         }
         else
         {
@@ -516,11 +518,11 @@ void print_device_list(void)
             if (j < 5) printf(":");
         }
 				printf("  网络状态:");
-				if(device_list[i].valid != 1)
+				if(device_list[i].state.bits.valid == 0)
 				{
 					printf("未入网 ");
 				}
-				else if(device_list[i].valid == 1)
+				else
 				{
 					printf("已入网 ");
 				}

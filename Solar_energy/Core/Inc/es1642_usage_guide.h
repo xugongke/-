@@ -146,15 +146,16 @@ int ES1642_ReadAddr(void);
  */
 /**
  * @brief  发送数据到指定设备并等待从机响应
- * @param  dst_addr: 目标地址（6字节）
+ * @param  dev_index: 目标设备在device_list中的下标
  * @param  data: 要发送的数据
  * @param  len: 数据长度
  * @param  relay_depth: 中继深度（0表示自动）
  * @param  response: 输出参数，从机响应数据（可为NULL，表示不需要响应数据）
  * @retval 0: 成功（发送成功且收到响应）, -1: 发送失败, -2: 响应超时
+ * @note   超时时会自动递增 device_list[dev_index].comm_fail_cnt
  */
-int ES1642_SendUserData(const uint8_t dst_addr[ES1642_ADDR_LEN], 
-                        const uint8_t *data, 
+int ES1642_SendUserData(int dev_index,
+                        const uint8_t *data,
                         uint16_t len,
                         uint8_t relay_depth,
                         es1642_response_t *response);
@@ -200,12 +201,13 @@ int ES1642_SendSearch(const uint8_t src_addr[ES1642_ADDR_LEN],
                           const uint8_t *attribute,
                           uint8_t attribute_len);
 /**
- * @brief  设置PSK
- * @param  dst_addr: 目标地址（6字节）
+ * @brief  设置PSK并等待从机入网结果
+ * @param  dev_index: 目标设备在device_list中的下标
  * @param  new_psk: 新的PSK指针（8字节）
- * @retval 0: 成功, -1: 失败
+ * @retval 0: 入网成功, -1: 发送失败, -2: 响应超时, -3: 入网失败
+ * @note   超时时会自动递增 device_list[dev_index].comm_fail_cnt
  */
-int ES1642_SetPsk(const uint8_t dst_addr[ES1642_ADDR_LEN],
+int ES1642_SetPsk(int dev_index,
                  const uint8_t new_psk[ES1642_SET_PSK_LEN]);
 													
 
