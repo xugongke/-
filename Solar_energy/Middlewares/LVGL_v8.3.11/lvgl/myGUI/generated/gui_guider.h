@@ -100,9 +100,6 @@ void setup_scr_screen_user_list(lv_ui *ui);
 void setup_scr_screen_user_detail(lv_ui *ui);
 void setup_scr_screen_solar(lv_ui *ui);
 void setup_scr_screen_alert(lv_ui *ui);
-LV_IMG_DECLARE(_logo_shunpu_alpha_338x72);
-LV_IMG_DECLARE(_logo_shunpu_alpha_338x72);
-
 LV_FONT_DECLARE(lv_font_SourceHanSerifSC_Regular_16)
 LV_FONT_DECLARE(lv_font_montserratMedium_16)
 LV_FONT_DECLARE(lv_font_montserratMedium_26)
