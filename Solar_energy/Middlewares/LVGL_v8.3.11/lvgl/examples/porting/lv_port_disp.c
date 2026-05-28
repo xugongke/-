@@ -43,10 +43,10 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
  **********************/
 void LVGL_LCD_FSMC_DMA_pCallback(DMA_HandleTypeDef *_hdma)
 {
-//  lv_disp_flush_ready(&disp_drv);
-   //为了减少栈帧的使用,把lv_disp_flush_ready里面的操作直接拿出来了
-   disp_drv.draw_buf->flushing = 0;
-   disp_drv.draw_buf->flushing_last = 0;
+  lv_disp_flush_ready(&disp_drv);
+//为了减少栈帧的使用,把lv_disp_flush_ready里面的操作直接拿出来了
+//   disp_drv.draw_buf->flushing = 0;
+//   disp_drv.draw_buf->flushing_last = 0;
 }
 /**********************
  *  STATIC VARIABLES

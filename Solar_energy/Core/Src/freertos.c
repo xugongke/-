@@ -558,6 +558,7 @@ void StartDefaultTask(void *argument)
 				}
 		}
 		if(lvgl_mutex) osMutexRelease(lvgl_mutex);
+
     osDelay(1000);
   }
   /* USER CODE END StartDefaultTask */
@@ -714,7 +715,11 @@ void RTC_Task(void *argument)
 		if(lvgl_mutex) osMutexAcquire(lvgl_mutex, osWaitForever);
 		RX8025T_Task();
 		if(lvgl_mutex) osMutexRelease(lvgl_mutex);
-    osDelay(100);
+
+		/* 更新电池和太阳能电压缓存 (ADC采集, 不涉及LVGL) */
+		Battery_UpdateCache();
+		Solar_UpdateCache();
+    osDelay(1000);
   }
   /* USER CODE END RTC_Task */
 }
@@ -793,4 +798,3 @@ void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
     for(;;);
 }
 /* USER CODE END Application */
-

@@ -315,6 +315,9 @@ static lv_timer_t *status_bar_timer = NULL;
 #define SOLAR_CALIBRATION       0.942f
 
 
+/* 太阳能电压缓存 (V), 由 Solar_UpdateCache() 写入 */
+static volatile float cached_solar_voltage = 0.0f;
+
 /**
  * @brief  读取太阳能直流总线ADC (ADC1_IN9, PB1)
  * @retval 平均ADC原始值
@@ -338,31 +341,55 @@ static uint16_t Solar_ReadADC_Average(void)
 }
 
 /**
- * @brief  获取太阳能直流总线电压 (V)
- * @retval 电压值, 如 48.5
+ * @brief  更新太阳能电压缓存
  */
-float Solar_GetVoltage(void)
+void Solar_UpdateCache(void)
 {
     uint16_t raw = Solar_ReadADC_Average();
     float vadc = ((float)raw / SOLAR_ADC_RESOLUTION) * SOLAR_ADC_VREF;
-    return vadc * SOLAR_VOLTAGE_DIVIDER * SOLAR_CALIBRATION;
+    cached_solar_voltage = vadc * SOLAR_VOLTAGE_DIVIDER * SOLAR_CALIBRATION;
+}
+
+/**
+ * @brief  获取太阳能直流总线电压 (V)
+ * @retval 缓存的电压值, 如 48.5
+ */
+float Solar_GetVoltage(void)
+{
+    return cached_solar_voltage;
 }
 
 /**
  * @brief  更新home页太阳能卡片的电压显示
- * @note   直接采集ADC并更新UI, 由LVGL定时器回调调用
+ * @note   只读缓存更新UI, 由LVGL定时器回调调用
  */
 void Solar_Widget_Update(void)
 {
     if (guider_ui.screen_user_home_card_solar_val == NULL) return;
     if (!lv_obj_is_valid(guider_ui.screen_user_home_card_solar_val)) return;
 
-    float v = Solar_GetVoltage();
+    float v = cached_solar_voltage;
     char buf[32];
     snprintf(buf, sizeof(buf), "%.1fV", v);
     lv_label_set_text(guider_ui.screen_user_home_card_solar_val, buf);
 }
 
+
+/* 电池数据缓存 (由 Battery_UpdateCache() 写入,
+ * LVGL定时器通过 Battery_Widget_Update() 只读缓存) */
+static volatile uint8_t  cached_battery_pct = 100;
+static volatile uint8_t  cached_charge_status = 0;
+
+/**
+ * @brief  更新电池数据缓存
+ */
+void Battery_UpdateCache(void)
+{
+    uint16_t adc_raw = Battery_ReadADC_Average();
+    float voltage = Battery_ADC_ToVoltage(adc_raw);
+    cached_battery_pct = Battery_CalcSOC(voltage);
+    cached_charge_status = Battery_ReadChargeStatus();
+}
 
 /**
  * @brief  将CSQ RSSI值映射到信号格数
@@ -505,11 +532,9 @@ void Battery_Widget_Update(void)
         return;
     }
 
-    /* 直接采集ADC获取电池数据 */
-    uint16_t adc_raw = Battery_ReadADC_Average();
-    float voltage = Battery_ADC_ToVoltage(adc_raw);
-    uint8_t pct = Battery_CalcSOC(voltage);
-    uint8_t charge_status = Battery_ReadChargeStatus();
+    /* 从缓存读取电池数据 */
+    uint8_t pct = cached_battery_pct;
+    uint8_t charge_status = cached_charge_status;
 
     /* ---- 更新填充条宽度 (电池内部可用宽度约20px) ---- */
     if (pct > 100) pct = 100;
