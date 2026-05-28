@@ -124,7 +124,6 @@ int main(void)
 	RS485_USART_Init_All();
 	//注册搬运图像数据完成回调函数
 	HAL_DMA_RegisterCallback(&hdma_memtomem_dma2_stream4, HAL_DMA_XFER_CPLT_CB_ID, LVGL_LCD_FSMC_DMA_pCallback);
-	Battery_UpdateCache();//更新一次电量缓存
   /* USER CODE END 2 */
 
   /* Init scheduler */

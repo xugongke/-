@@ -714,9 +714,6 @@ void RTC_Task(void *argument)
 		if(lvgl_mutex) osMutexAcquire(lvgl_mutex, osWaitForever);
 		RX8025T_Task();
 		if(lvgl_mutex) osMutexRelease(lvgl_mutex);
-		/* 更新电池+太阳能数据缓存 (不涉及LVGL, 无需互斥锁) */
-		Battery_UpdateCache();
-		Solar_UpdateCache();
     osDelay(100);
   }
   /* USER CODE END RTC_Task */

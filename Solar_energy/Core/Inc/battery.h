@@ -116,15 +116,9 @@ void Battery_Widget_Init(lv_obj_t *parent);
 
 /**
  * @brief  LVGL电池电量指示器周期更新 (由lv_timer回调)
+ * @note   内部直接采集ADC并更新UI, 无需单独调用Battery_UpdateCache
  */
 void Battery_Widget_Update(void);
-
-/**
- * @brief  更新电池数据缓存 (由非LVGL任务周期调用)
- * @note   执行阻塞的ADC采集并将结果存入缓存,
- *         LVGL定时器回调只读缓存, 避免竞态条件
- */
-void Battery_UpdateCache(void);
 
 /**
  * @brief  LVGL信号强度指示器初始化 (与电池指示器一起初始化)
@@ -153,19 +147,15 @@ int8_t Signal_GetLevel(int32_t rssi);
 /* ========================== 太阳能直流总线电压 ========================== */
 
 /**
- * @brief  更新太阳能电压缓存 (在非LVGL任务中周期调用)
- * @note   采集 ADC1_IN9 (PB1), 分压比 R1=390kΩ R2=10kΩ = 40
- */
-void Solar_UpdateCache(void);
-
-/**
  * @brief  获取太阳能直流总线电压 (V)
+ * @note   内部直接采集ADC1_IN9 (PB1), 分压比48倍
  * @retval 电压值, 如 48.5
  */
 float Solar_GetVoltage(void);
 
 /**
  * @brief  更新home页太阳能卡片的电压显示 (由LVGL定时器调用)
+ * @note   内部直接采集ADC并更新UI, 无需单独调用Solar_UpdateCache
  */
 void Solar_Widget_Update(void);
 

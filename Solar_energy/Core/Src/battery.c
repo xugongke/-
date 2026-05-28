@@ -314,8 +314,6 @@ static lv_timer_t *status_bar_timer = NULL;
  */
 #define SOLAR_CALIBRATION       0.942f
 
-/* 太阳能电压缓存 (V), 由 Solar_UpdateCache() 写入 */
-static volatile float cached_solar_voltage = 0.0f;
 
 /**
  * @brief  读取太阳能直流总线ADC (ADC1_IN9, PB1)
@@ -340,43 +338,31 @@ static uint16_t Solar_ReadADC_Average(void)
 }
 
 /**
- * @brief  更新太阳能电压缓存 (在非LVGL任务中周期调用)
- */
-void Solar_UpdateCache(void)
-{
-    uint16_t raw = Solar_ReadADC_Average();
-    float vadc = ((float)raw / SOLAR_ADC_RESOLUTION) * SOLAR_ADC_VREF;
-    cached_solar_voltage = vadc * SOLAR_VOLTAGE_DIVIDER * SOLAR_CALIBRATION;
-}
-
-/**
  * @brief  获取太阳能直流总线电压 (V)
  * @retval 电压值, 如 48.5
  */
 float Solar_GetVoltage(void)
 {
-    return cached_solar_voltage;
+    uint16_t raw = Solar_ReadADC_Average();
+    float vadc = ((float)raw / SOLAR_ADC_RESOLUTION) * SOLAR_ADC_VREF;
+    return vadc * SOLAR_VOLTAGE_DIVIDER * SOLAR_CALIBRATION;
 }
 
 /**
  * @brief  更新home页太阳能卡片的电压显示
- * @note   由LVGL定时器回调调用, 只读缓存
+ * @note   直接采集ADC并更新UI, 由LVGL定时器回调调用
  */
 void Solar_Widget_Update(void)
 {
     if (guider_ui.screen_user_home_card_solar_val == NULL) return;
     if (!lv_obj_is_valid(guider_ui.screen_user_home_card_solar_val)) return;
 
-    float v = cached_solar_voltage;
+    float v = Solar_GetVoltage();
     char buf[32];
     snprintf(buf, sizeof(buf), "%.1fV", v);
     lv_label_set_text(guider_ui.screen_user_home_card_solar_val, buf);
 }
 
-/* 电池数据缓存 (由非LVGL任务通过 Battery_UpdateCache() 写入,
- * LVGL定时器通过 Battery_Widget_Update() 只读缓存) */
-static volatile uint8_t  cached_battery_pct = 100;
-static volatile uint8_t  cached_charge_status = 0;
 
 /**
  * @brief  将CSQ RSSI值映射到信号格数
@@ -392,22 +378,8 @@ int8_t Signal_GetLevel(int32_t rssi)
 }
 
 /**
- * @brief  更新电池数据缓存 (由非LVGL任务周期调用, 如StartDefaultTask)
- * @note   在非LVGL任务中执行阻塞的ADC采集, 将结果存入缓存,
- *         LVGL定时器回调只读缓存, 不做阻塞操作, 避免与其他任务的
- *         LVGL API调用产生竞态条件导致TLSF堆损坏。
- */
-void Battery_UpdateCache(void)
-{
-    uint16_t adc_raw = Battery_ReadADC_Average();
-    float voltage = Battery_ADC_ToVoltage(adc_raw);
-    cached_battery_pct = Battery_CalcSOC(voltage);
-    cached_charge_status = Battery_ReadChargeStatus();
-}
-
-/**
- * @brief  LVGL定时器回调 - 周期更新电池+信号UI显示
- * @note   只读取缓存数据更新UI, 不做阻塞ADC采集
+ * @brief  LVGL定时器回调 - 周期更新电池+信号+太阳能UI显示
+ * @note   直接采集ADC并更新UI, 所有操作在LVGL任务上下文中执行
  */
 static void status_bar_timer_cb(lv_timer_t *timer)
 {
@@ -420,9 +392,9 @@ static void status_bar_timer_cb(lv_timer_t *timer)
         return;
     }
 
-    Battery_Widget_Update();
-    Signal_Widget_Update();
-    Solar_Widget_Update();
+    Battery_Widget_Update();//更新电池指示器显示
+    Signal_Widget_Update();//更新信号强度显示
+    Solar_Widget_Update();//更新home页太阳能卡片的电压显示
 }
 
 /**
@@ -507,7 +479,9 @@ void Battery_Widget_Init(lv_obj_t *parent)
     }
     status_bar_timer = lv_timer_create(status_bar_timer_cb, 10000, NULL);
 //    lv_timer_ready(status_bar_timer);  /* 立即触发第一次更新 */
-		Battery_Widget_Update();
+    Battery_Widget_Update();//更新电池指示器显示
+    Signal_Widget_Update();//更新信号强度显示
+    Solar_Widget_Update();//更新home页太阳能卡片的电压显示
 }
 
 /**
@@ -531,9 +505,11 @@ void Battery_Widget_Update(void)
         return;
     }
 
-    /* 从缓存读取电池数据 (缓存由 Battery_UpdateCache() 在非LVGL任务中更新) */
-    uint8_t pct = cached_battery_pct;
-    uint8_t charge_status = cached_charge_status;
+    /* 直接采集ADC获取电池数据 */
+    uint16_t adc_raw = Battery_ReadADC_Average();
+    float voltage = Battery_ADC_ToVoltage(adc_raw);
+    uint8_t pct = Battery_CalcSOC(voltage);
+    uint8_t charge_status = Battery_ReadChargeStatus();
 
     /* ---- 更新填充条宽度 (电池内部可用宽度约20px) ---- */
     if (pct > 100) pct = 100;

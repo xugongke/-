@@ -483,8 +483,14 @@ static const char * alert_type_icon(alert_type_t t)
     }
 }
 
-/* 前向声明 */
+/* 编码/解码 告警项的user_data: 高4bit=alert_type, 低12bit=dev_idx */
+#define ALERT_ENCODE(dev_idx, type)  ((void*)(uintptr_t)(((type) << 12) | ((dev_idx) & 0xFFF)))
+#define ALERT_DECODE_IDX(ud)         ((int)(uintptr_t)(ud) & 0xFFF)
+#define ALERT_DECODE_TYPE(ud)        ((int)(uintptr_t)(ud) >> 12)
+
+    /* 前向声明 */
 static void alert_item_event_handler(lv_event_t *e);
+static void alert_dialog_btn_cb(lv_event_t *e);
 
 /**
  * @brief  创建单个告警项控件
@@ -556,34 +562,11 @@ static lv_obj_t * alert_create_item(lv_obj_t *parent, int dev_idx,
     /* 存储设备下标到 user_data，供后续操作使用 */
     lv_obj_set_user_data(item, (void*)(uintptr_t)dev_idx);
 
-    /* 告警项事件回调 */
-    lv_obj_add_event_cb(item, alert_item_event_handler, LV_EVENT_ALL, (void*)(uintptr_t)dev_idx);
+    /* 告警项事件回调, user_data编码: 高4bit=alert_type, 低12bit=dev_idx */
+    lv_obj_add_event_cb(item, alert_item_event_handler, LV_EVENT_ALL,
+                         ALERT_ENCODE(dev_idx, type));
 
     return item;
-}
-
-/**
- * @brief  告警项事件回调
- * @param  e  事件对象, user_data 为设备在 device_list 中的下标
- */
-static void alert_item_event_handler(lv_event_t *e)
-{
-    lv_event_code_t code = lv_event_get_code(e);
-
-    if (code == LV_EVENT_KEY)
-    {
-        uint32_t key = lv_event_get_key(e);
-        if (key == LV_KEY_ESC)
-        {
-            /* 返回首页 */
-            ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_home,
-                                  guider_ui.screen_user_home_del,
-                                  &guider_ui.screen_alert_del,
-                                  setup_scr_screen_user_home,
-                                  LV_SCR_LOAD_ANIM_NONE, 10, 10, true, true);
-        }
-        /* 后续可在此添加其他按键处理, 如 LV_KEY_ENTER 对选中设备操作 */
-    }
 }
 
 /**
@@ -723,6 +706,141 @@ static void alert_populate_list(void)
         lv_group_focus_obj(guider_ui.screen_alert);
     }
 }
+
+/**
+ * @brief  对话框按钮统一回调 (通过 lv_msgbox_get_active_btn 区分是/否)
+ *         btn index 0="否", 1="是"
+ */
+static void alert_dialog_btn_cb(lv_event_t *e)
+{
+    lv_obj_t *mbox = lv_event_get_user_data(e);
+    uint16_t btn_id = lv_msgbox_get_active_btn(mbox);
+		printf("btn_id:%d\r\n",btn_id);
+
+    if (btn_id == 1)  /* "是" - 清除故障 */
+    {
+        /* 从msgbox的user_data恢复 dev_idx 和 alert_type */
+        uintptr_t encoded = (uintptr_t)lv_obj_get_user_data(mbox);
+        int dev_idx  = ALERT_DECODE_IDX((void*)encoded);
+        int atype    = ALERT_DECODE_TYPE((void*)encoded);
+
+        /* 清除对应的错误位 */
+        if (dev_idx >= 0 && dev_idx < device_count)
+        {
+            switch ((alert_type_t)atype)
+            {
+                case ALERT_COMM_FAIL:    device_list[dev_idx].state.bits.comm_err     = 0;
+                                         device_list[dev_idx].comm_fail_cnt = 0;      break;
+                case ALERT_RELAY_ERR:    device_list[dev_idx].state.bits.relay_err    = 0; break;
+                case ALERT_TEMP_ERR:     device_list[dev_idx].state.bits.temp_err     = 0; break;
+                case ALERT_POWER_REVERSE:device_list[dev_idx].state.bits.power_reverse= 0; break;
+                default: break;
+            }
+        }
+
+        lv_msgbox_close(mbox);//关闭对话框
+
+        /* 刷新告警列表，这个函数会删除group中的对象并重新添加 */
+        alert_populate_list();
+    }
+    else  /* "否" - 仅关闭对话框 */
+    {
+        lv_msgbox_close(mbox);
+        
+        alert_populate_list();
+    }
+}
+
+/**
+ * @brief  告警项事件回调
+ * @param  e  事件对象, user_data编码: 高4bit=alert_type, 低12bit=dev_idx
+ */
+static void alert_item_event_handler(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+
+    if (code == LV_EVENT_KEY)
+    {
+        uint32_t key = lv_event_get_key(e);
+
+        if (key == LV_KEY_ESC)
+        {
+            /* 返回首页 */
+            ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_home,
+                                  guider_ui.screen_user_home_del,
+                                  &guider_ui.screen_alert_del,
+                                  setup_scr_screen_user_home,
+                                  LV_SCR_LOAD_ANIM_NONE, 10, 10, true, true);
+        }
+        else if (key == LV_KEY_ENTER)
+        {
+            /* 按下确认键 → 弹出确认对话框 */
+            int dev_idx = ALERT_DECODE_IDX(lv_event_get_user_data(e));
+            int atype   = ALERT_DECODE_TYPE(lv_event_get_user_data(e));
+
+            /* 构建提示文本 */
+            char msg_buf[80];
+            house_info_t house;
+            parse_addr(device_list[dev_idx].addr, &house);
+            lv_snprintf(msg_buf, sizeof(msg_buf),
+                        "是否手动清除故障?\n%s %d楼 %d单元 %d",
+                        alert_type_name((alert_type_t)atype),
+                        house.building, house.unit, house.room);
+
+            /* 创建 msgbox 对话框 */
+            static const char * btns[] = {"否 ", "是 ", ""};
+
+            lv_obj_t *mbox = lv_msgbox_create(NULL, NULL, msg_buf, btns, false);
+            lv_obj_set_style_bg_color(mbox, lv_color_hex(0xFFFFFF), 0);
+            lv_obj_set_style_bg_opa(mbox, LV_OPA_COVER, 0);
+            lv_obj_set_style_radius(mbox, 10, 0);
+            lv_obj_set_style_shadow_width(mbox, 20, 0);
+            lv_obj_set_style_text_font(mbox, &lv_font_SourceHanSerifSC_Regular_16, 0);
+            lv_obj_center(mbox);
+
+            /* 将 dev_idx+alert_type 编码存到 msgbox 的 user_data */
+            lv_obj_set_user_data(mbox, (void*)ALERT_ENCODE(dev_idx, atype));
+
+            /* 获取按钮组 */
+            lv_obj_t *btn_matrix = lv_msgbox_get_btns(mbox);
+            if (btn_matrix)
+            {
+                /* 按钮样式 */
+                static lv_style_t style_btn;
+                ui_init_style(&style_btn);
+                lv_style_set_radius(&style_btn, 6);
+                lv_style_set_bg_color(&style_btn, lv_color_hex(0xF5F5F5));
+                lv_style_set_bg_opa(&style_btn, LV_OPA_COVER);
+                lv_style_set_text_font(&style_btn, &lv_font_SourceHanSerifSC_Regular_16);
+                lv_style_set_border_width(&style_btn, 1);
+                lv_style_set_border_color(&style_btn, lv_color_hex(0xE0E0E0));
+                lv_style_set_border_opa(&style_btn, LV_OPA_COVER);
+                lv_obj_add_style(btn_matrix, &style_btn, LV_PART_ITEMS | LV_STATE_DEFAULT);
+
+                /* 聚焦样式 */
+                static lv_style_t style_btn_focused;
+                ui_init_style(&style_btn_focused);
+                lv_style_set_bg_color(&style_btn_focused, lv_color_hex(0x2196F3));
+                lv_style_set_bg_opa(&style_btn_focused, LV_OPA_COVER);
+                lv_style_set_text_color(&style_btn_focused, lv_color_hex(0xFFFFFF));
+                lv_style_set_border_width(&style_btn_focused, 0);
+                lv_obj_add_style(btn_matrix, &style_btn_focused, LV_PART_ITEMS | LV_STATE_FOCUSED);
+            }
+
+            /* 绑定按钮回调: 通过 btn_id 区分 "否"(0) / "是"(1) */
+            lv_obj_add_event_cb(mbox, alert_dialog_btn_cb, LV_EVENT_PRESSED,
+                                (void*)mbox);
+
+            lv_group_remove_all_objs(g_keypad_group);//清空group中的所有组件
+            /* 将消息框的按钮矩阵加入group以支持键盘操作 */
+            lv_group_add_obj(g_keypad_group, btn_matrix);
+            lv_group_focus_obj(btn_matrix);//设置初始焦点
+            lv_indev_set_group(indev_keypad, g_keypad_group);
+        }
+    }
+}
+
+
 
 static void screen_alert_event_handler (lv_event_t *e)
 {
