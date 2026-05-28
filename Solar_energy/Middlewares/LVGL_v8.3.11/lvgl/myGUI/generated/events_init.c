@@ -19,6 +19,7 @@
 #include "user_data_manager.h"
 #include "key.h"
 #include "device_manager.h"
+#include "battery.h"
 extern lv_indev_t * indev_keypad;
 lv_group_t * g_keypad_group;//创建全局group(可被焦点选中的对象集合)指针，在lv_init后分配空间
 
@@ -440,15 +441,7 @@ void events_init_screen_solar (lv_ui *ui)
 
 /* ======== Alert 告警页事件处理 ======== */
 
-/* 告警类型 (与 device_state_t 错误位对应) */
-typedef enum {
-    ALERT_COMM_FAIL = 0,    /* 通信故障 (bit2) */
-    ALERT_RELAY_ERR,        /* 继电器/开关异常 (bit5) */
-    ALERT_TEMP_ERR,         /* 温度异常 (bit6) */
-    ALERT_POWER_REVERSE,    /* 电源反接 (bit7) */
-} alert_type_t;
-
-#define ALERT_MAX_ITEMS 32  /* 告警列表最大项数 */
+/* 告警类型、最大项数已在 device_manager.h 中定义 */
 
 static const char * alert_type_name(alert_type_t t)
 {
@@ -570,88 +563,34 @@ static lv_obj_t * alert_create_item(lv_obj_t *parent, int dev_idx,
 }
 
 /**
- * @brief  遍历device_list，统计错误并填充告警列表
+ * @brief  根据预扫描数据填充告警列表
+ * @note   数据由 alert_scan_devices() 在 DevicePoll_Task 中预先生成
  */
 static void alert_populate_list(void)
 {
     lv_obj_clean(guider_ui.screen_alert_list);
     lv_group_remove_all_objs(g_keypad_group);
 
-    int comm_cnt = 0, relay_cnt = 0, temp_cnt = 0, power_cnt = 0;
-    int total = 0;      /* 已创建的告警项数 */
-    int err_total = 0;  /* 实际故障总数(含未显示的) */
-
-    for (uint16_t i = 0; i < device_count; i++)
+    /* 直接使用预扫描的告警项数组创建列表 */
+    for (int i = 0; i < g_alert_stats.item_count; i++)
     {
-        /* 只显示已入网设备 */
-        if (device_list[i].state.bits.valid == 0) continue;
+        int dev_idx = g_alert_items[i].dev_idx;
+        alert_type_t type = g_alert_items[i].type;
 
         /* 生成地址文本 */
         house_info_t house;
-        parse_addr(device_list[i].addr, &house);
+        parse_addr(device_list[dev_idx].addr, &house);
         char addr_txt[32];
         lv_snprintf(addr_txt, sizeof(addr_txt), "%d楼 %d单元 %d",
                     house.building, house.unit, house.room);
 
-        /* 通信异常 (bit2) */
-        if (device_list[i].state.bits.comm_err)
-        {
-            comm_cnt++;
-            err_total++;
-            if (total <= ALERT_MAX_ITEMS)
-            {
-                total++;
-                lv_obj_t *item = alert_create_item(guider_ui.screen_alert_list, i,
-                                                    ALERT_COMM_FAIL, addr_txt);
-                lv_group_add_obj(g_keypad_group, item);
-            }
-        }
-
-        /* 继电器异常 (bit5) */
-        if (device_list[i].state.bits.relay_err)
-        {
-            relay_cnt++;
-            err_total++;
-            if (total <= ALERT_MAX_ITEMS)
-            {
-                total++;
-                lv_obj_t *item = alert_create_item(guider_ui.screen_alert_list, i,
-                                                    ALERT_RELAY_ERR, addr_txt);
-                lv_group_add_obj(g_keypad_group, item);
-            }
-        }
-
-        /* 温度异常 (bit6) */
-        if (device_list[i].state.bits.temp_err)
-        {
-            temp_cnt++;
-            err_total++;
-            if (total <= ALERT_MAX_ITEMS)
-            {
-                total++;
-                lv_obj_t *item = alert_create_item(guider_ui.screen_alert_list, i,
-                                                    ALERT_TEMP_ERR, addr_txt);
-                lv_group_add_obj(g_keypad_group, item);
-            }
-        }
-
-        /* 电源反接 (bit7) */
-        if (device_list[i].state.bits.power_reverse)
-        {
-            power_cnt++;
-            err_total++;
-            if (total <= ALERT_MAX_ITEMS)
-            {
-                total++;
-                lv_obj_t *item = alert_create_item(guider_ui.screen_alert_list, i,
-                                                    ALERT_POWER_REVERSE, addr_txt);
-                lv_group_add_obj(g_keypad_group, item);
-            }
-        }
+        lv_obj_t *item = alert_create_item(guider_ui.screen_alert_list, dev_idx,
+                                            type, addr_txt);
+        lv_group_add_obj(g_keypad_group, item);
     }
 
     /* 如果故障总数超过列表最大显示项数，在列表底部添加警告提示 */
-    if (err_total > ALERT_MAX_ITEMS)
+    if (g_alert_stats.err_total > ALERT_MAX_ITEMS)
     {
         lv_obj_t *tip = lv_obj_create(guider_ui.screen_alert_list);
         lv_obj_remove_style_all(tip);
@@ -668,7 +607,7 @@ static void alert_populate_list(void)
         lv_obj_t *tip_lbl = lv_label_create(tip);
         char tip_txt[64];
         lv_snprintf(tip_txt, sizeof(tip_txt),
-                    LV_SYMBOL_WARNING " 故障设备过多(%d项)，请检查线路连接 ", err_total);
+                    LV_SYMBOL_WARNING " 故障设备过多(%d项)，请检查线路连接 ", g_alert_stats.err_total);
         lv_label_set_text(tip_lbl, tip_txt);
         lv_obj_set_style_text_color(tip_lbl, lv_color_hex(0xE65100), 0);
         lv_obj_set_style_text_font(tip_lbl, &lv_font_SourceHanSerifSC_Regular_12, 0);
@@ -676,25 +615,25 @@ static void alert_populate_list(void)
         lv_obj_align(tip_lbl, LV_ALIGN_CENTER, 0, 0);
     }
 
-    /* 更新统计栏标签 */
+    /* 更新统计栏标签 (直接使用预扫描统计) */
     char buf[32];
-    lv_snprintf(buf, sizeof(buf), LV_SYMBOL_CLOSE " 通信异常: %d", comm_cnt);
+    lv_snprintf(buf, sizeof(buf), LV_SYMBOL_CLOSE " 通信异常: %d", g_alert_stats.comm_cnt);
     lv_label_set_text(guider_ui.screen_alert_stat_comm, buf);
-    lv_snprintf(buf, sizeof(buf), LV_SYMBOL_BELL " 开关异常: %d", relay_cnt);
+    lv_snprintf(buf, sizeof(buf), LV_SYMBOL_BELL " 开关异常: %d", g_alert_stats.relay_cnt);
     lv_label_set_text(guider_ui.screen_alert_stat_relay, buf);
-    lv_snprintf(buf, sizeof(buf), LV_SYMBOL_WARNING " 温度异常: %d", temp_cnt);
+    lv_snprintf(buf, sizeof(buf), LV_SYMBOL_WARNING " 温度异常: %d", g_alert_stats.temp_cnt);
     lv_label_set_text(guider_ui.screen_alert_stat_temp, buf);
-    lv_snprintf(buf, sizeof(buf), LV_SYMBOL_WARNING " 电源反接: %d", power_cnt);
+    lv_snprintf(buf, sizeof(buf), LV_SYMBOL_WARNING " 电源反接: %d", g_alert_stats.power_cnt);
     lv_label_set_text(guider_ui.screen_alert_stat_power, buf);
 
     /* 更新总数角标 (显示真实故障总数，非截断后的数量) */
-    lv_snprintf(buf, sizeof(buf), "%d", err_total);
+    lv_snprintf(buf, sizeof(buf), "%d", g_alert_stats.err_total);
     lv_label_set_text(guider_ui.screen_alert_label_count, buf);
 
     lv_indev_set_group(indev_keypad, g_keypad_group);
 
     /* 聚焦第一个告警项 */
-    if (total > 0)
+    if (g_alert_stats.item_count > 0)
     {
         lv_obj_t *first = lv_obj_get_child(guider_ui.screen_alert_list, 0);
         if (first) lv_group_focus_obj(first);
@@ -740,8 +679,10 @@ static void alert_dialog_btn_cb(lv_event_t *e)
 
         lv_msgbox_close(mbox);//关闭对话框
 
-        /* 刷新告警列表，这个函数会删除group中的对象并重新添加 */
+        /* 重新扫描告警数据并刷新列表 */
+        alert_scan_devices();
         alert_populate_list();
+        Alert_Widget_Update();
     }
     else  /* "否" - 仅关闭对话框 */
     {

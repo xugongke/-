@@ -27,6 +27,81 @@ static uint8_t device_changed = 0;
 // 上位机忙碌标志: 1=上位机正在操作, 轮询暂停
 volatile uint8_t g_host_busy = 0;
 
+/* 告警预扫描全局数据 */
+alert_stats_t g_alert_stats = {0};
+alert_item_t  g_alert_items[ALERT_MAX_ITEMS] = {0};
+
+/**
+ * @brief  扫描所有设备状态, 统计告警并填充 g_alert_stats 和 g_alert_items
+ * @note   在 device_poll_all_status() 之后调用, 不涉及LVGL API
+ */
+void alert_scan_devices(void)
+{
+    alert_stats_t stats = {0};
+    int item_idx = 0;
+
+    for (uint16_t i = 0; i < device_count; i++)
+    {
+        /* 只统计已入网设备 */
+        if (device_list[i].state.bits.valid == 0) continue;
+
+        /* 通信异常 (bit2) */
+        if (device_list[i].state.bits.comm_err)
+        {
+            stats.comm_cnt++;
+            stats.err_total++;
+            if (item_idx < ALERT_MAX_ITEMS)
+            {
+                g_alert_items[item_idx].dev_idx = i;
+                g_alert_items[item_idx].type = ALERT_COMM_FAIL;
+                item_idx++;
+            }
+        }
+
+        /* 继电器异常 (bit5) */
+        if (device_list[i].state.bits.relay_err)
+        {
+            stats.relay_cnt++;
+            stats.err_total++;
+            if (item_idx < ALERT_MAX_ITEMS)
+            {
+                g_alert_items[item_idx].dev_idx = i;
+                g_alert_items[item_idx].type = ALERT_RELAY_ERR;
+                item_idx++;
+            }
+        }
+
+        /* 温度异常 (bit6) */
+        if (device_list[i].state.bits.temp_err)
+        {
+            stats.temp_cnt++;
+            stats.err_total++;
+            if (item_idx < ALERT_MAX_ITEMS)
+            {
+                g_alert_items[item_idx].dev_idx = i;
+                g_alert_items[item_idx].type = ALERT_TEMP_ERR;
+                item_idx++;
+            }
+        }
+
+        /* 电源反接 (bit7) */
+        if (device_list[i].state.bits.power_reverse)
+        {
+            stats.power_cnt++;
+            stats.err_total++;
+            if (item_idx < ALERT_MAX_ITEMS)
+            {
+                g_alert_items[item_idx].dev_idx = i;
+                g_alert_items[item_idx].type = ALERT_POWER_REVERSE;
+                item_idx++;
+            }
+        }
+    }
+
+    stats.item_count = item_idx;
+    g_alert_stats = stats;
+}
+
 // ================== 初始化 ==================
 void device_manager_init(void)
 {

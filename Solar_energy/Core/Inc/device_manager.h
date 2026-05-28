@@ -120,4 +120,48 @@ void device_poll_all_status(void);
 /* 上位机忙碌标志: 1=上位机正在操作(TCP已连接/RS485绑定中), 轮询暂停 */
 extern volatile uint8_t g_host_busy;
 
+// ================== 告警预扫描数据 ==================
+
+/**
+ * @brief 告警类型枚举 (与 device_state_t 错误位对应)
+ */
+typedef enum {
+    ALERT_COMM_FAIL = 0,    /* 通信故障 (bit2) */
+    ALERT_RELAY_ERR,        /* 继电器/开关异常 (bit5) */
+    ALERT_TEMP_ERR,         /* 温度异常 (bit6) */
+    ALERT_POWER_REVERSE,    /* 电源反接 (bit7) */
+} alert_type_t;
+
+#define ALERT_MAX_ITEMS 32  /* 告警列表最大项数 */
+
+/**
+ * @brief 告警统计结构体
+ */
+typedef struct {
+    int comm_cnt;    /* 通信异常设备数 */
+    int relay_cnt;   /* 继电器异常设备数 */
+    int temp_cnt;    /* 温度异常设备数 */
+    int power_cnt;   /* 电源反接设备数 */
+    int err_total;   /* 故障总数(含超出ALERT_MAX_ITEMS的) */
+    int item_count;  /* 实际告警项数 (≤ ALERT_MAX_ITEMS) */
+} alert_stats_t;
+
+/**
+ * @brief 单条告警记录 (设备下标 + 错误类型)
+ */
+typedef struct {
+    int dev_idx;          /* 设备在device_list中的下标 */
+    alert_type_t type;    /* 告警类型 */
+} alert_item_t;
+
+/* 全局告警数据 (由 alert_scan_devices() 填充, LVGL读取) */
+extern alert_stats_t g_alert_stats;
+extern alert_item_t  g_alert_items[ALERT_MAX_ITEMS];
+
+/**
+ * @brief 扫描所有设备状态, 统计告警并填充 g_alert_stats 和 g_alert_items
+ * @note  在 device_poll_all_status() 之后调用, 不涉及LVGL API
+ */
+void alert_scan_devices(void);
+
 #endif

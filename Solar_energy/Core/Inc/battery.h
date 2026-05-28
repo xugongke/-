@@ -170,6 +170,21 @@ float Solar_GetVoltage(void);
  */
 void Solar_Widget_Update(void);
 
+/* ========================== Home页卡片数据更新 ========================== */
+
+/**
+ * @brief  更新home页设备在线卡片的显示
+ * @note   显示格式: "在线数 / 总数"
+ *         在线数 = device_count - g_alert_stats.comm_cnt
+ */
+void Device_Widget_Update(void);
+
+/**
+ * @brief  更新home页告警卡片的显示
+ * @note   告警数 = g_alert_stats.err_total
+ */
+void Alert_Widget_Update(void);
+
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

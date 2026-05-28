@@ -24,6 +24,7 @@
 
 /* USER CODE BEGIN Includes */
 #include "gui_guider.h"
+#include "device_manager.h"
 /* USER CODE END Includes */
 
 /* ========================== 私有变量 ========================== */
@@ -422,6 +423,8 @@ static void status_bar_timer_cb(lv_timer_t *timer)
     Battery_Widget_Update();//更新电池指示器显示
     Signal_Widget_Update();//更新信号强度显示
     Solar_Widget_Update();//更新home页太阳能卡片的电压显示
+    Device_Widget_Update();//更新设备在线卡片显示
+    Alert_Widget_Update();//更新告警卡片显示
 }
 
 /**
@@ -509,6 +512,40 @@ void Battery_Widget_Init(lv_obj_t *parent)
     Battery_Widget_Update();//更新电池指示器显示
     Signal_Widget_Update();//更新信号强度显示
     Solar_Widget_Update();//更新home页太阳能卡片的电压显示
+    Device_Widget_Update();//更新设备在线卡片显示
+    Alert_Widget_Update();//更新告警卡片显示
+}
+
+/**
+ * @brief  更新home页设备在线卡片的显示
+ * @note   显示格式: "在线数 / 总数"
+ *         在线数 = device_count - g_alert_stats.comm_cnt
+ *         总数   = device_count
+ */
+void Device_Widget_Update(void)
+{
+    if (guider_ui.screen_user_home_card_device_val == NULL) return;
+    if (!lv_obj_is_valid(guider_ui.screen_user_home_card_device_val)) return;
+
+    uint16_t online = device_count - g_alert_stats.comm_cnt;
+    char buf[32];
+    snprintf(buf, sizeof(buf), "%d / %d", online, device_count);
+    lv_label_set_text(guider_ui.screen_user_home_card_device_val, buf);
+}
+
+/**
+ * @brief  更新home页告警卡片的显示
+ * @note   显示格式: 告警总数
+ *         告警数 = g_alert_stats.err_total
+ */
+void Alert_Widget_Update(void)
+{
+    if (guider_ui.screen_user_home_card_alert_val == NULL) return;
+    if (!lv_obj_is_valid(guider_ui.screen_user_home_card_alert_val)) return;
+
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%d", g_alert_stats.err_total);
+    lv_label_set_text(guider_ui.screen_user_home_card_alert_val, buf);
 }
 
 /**
