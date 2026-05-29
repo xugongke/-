@@ -310,10 +310,10 @@ static lv_timer_t *status_bar_timer = NULL;
  * @brief 太阳能电压校准系数
  * @note  校准方法: 施加已知电压V_actual, 读取显示电压V_display
  *        校准系数 = V_actual / V_display
- *        例: 实际32.5V, 显示34.5V → 校准系数 = 32.5/34.5 = 0.942
+ *        例: 实际30V, 显示28.2V → 校准系数 = 30/28.2 = 1.064
  *        设为 1.0 表示不校准
  */
-#define SOLAR_CALIBRATION       0.942f
+#define SOLAR_CALIBRATION       1.064f
 
 
 /* 太阳能电压缓存 (V), 由 Solar_UpdateCache() 写入 */
