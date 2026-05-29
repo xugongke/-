@@ -1,4 +1,14 @@
 #include "a7680c_mqtt.h"
+#include "cmsis_os.h"
+
+/* MQTT连接状态标志: 1=已连接, 0=未连接/断开 */
+volatile uint8_t g_mqtt_connected = 0;
+
+/* 连续发布失败计数器,用于判断是否需要重连 */
+static uint8_t mqtt_fail_count = 0;
+
+/* 连续发布失败阈值,超过此值触发重连 */
+#define MQTT_FAIL_THRESHOLD 3
 
 
 /**
@@ -53,6 +63,8 @@ uint8_t A7680C_MQTT_Connect(char *client, char *user, char *pass)
     }
 
     printf("MQTT: 连接成功\r\n");
+    g_mqtt_connected = 1;   /* 标记MQTT已连接 */
+    mqtt_fail_count = 0;    /* 重置失败计数 */
     return 1;
 }
 
@@ -154,5 +166,126 @@ uint8_t A7680C_MQTT_Disconnect(void)
  */
 uint8_t A7680C_MQTT_Stop(void)
 {
+    g_mqtt_connected = 0;
     return A7680C_SendAT("AT+CMQTTSTOP\r\n", "+CMQTTSTOP:0", 5000, NULL);
+}
+
+
+/**
+ * @brief  MQTT完整重连流程(Stop → Start → Connect)
+ * @note   在MQTT连接断开时调用,依次执行:
+ *         1. 停止MQTT服务(AT+CMQTTSTOP)
+ *         2. 启动MQTT服务(AT+CMQTTSTART=1)
+ *         3. 连接服务器(AT+CMQTTACCQ+CMQTTCFG+CMQTTCONNECT)
+ *         每步都有重试机制,确保重连成功
+ * @retval 1:成功 0:失败
+ */
+uint8_t A7680C_MQTT_Reconnect(void)
+{
+    printf("========== MQTT重连开始 ==========\r\n");
+    g_mqtt_connected = 0;
+    mqtt_fail_count = 0;
+
+    /* 步骤1: 先尝试优雅断开(可能已断开,失败也无所谓) */
+    A7680C_MQTT_Disconnect();
+    osDelay(1000);
+
+    /* 步骤2: 停止MQTT服务(可能已停止,失败也无所谓) */
+    A7680C_MQTT_Stop();
+    osDelay(1000);
+
+    /* 步骤3: 重新启动MQTT服务(最多重试3次) */
+    uint8_t start_ok = 0;
+    for (uint8_t i = 0; i < 3; i++)
+    {
+        if (A7680C_MQTT_Start() == AT_RESULT_OK)
+        {
+            start_ok = 1;
+            break;
+        }
+        printf("MQTT重连: START失败(第%d次), 2秒后重试\r\n", i + 1);
+        osDelay(2000);
+    }
+    if (!start_ok)
+    {
+        printf("MQTT重连: START连续3次失败,放弃\r\n");
+        return 0;
+    }
+
+    /* 步骤4: 重新连接服务器(最多重试3次) */
+    uint8_t conn_ok = 0;
+    for (uint8_t i = 0; i < 3; i++)
+    {
+        if (A7680C_MQTT_Connect(MQTT_CLIENT_ID, NULL, NULL) == AT_RESULT_OK)
+        {
+            conn_ok = 1;
+            break;
+        }
+        printf("MQTT重连: CONNECT失败(第%d次), 5秒后重试\r\n", i + 1);
+        osDelay(5000);
+    }
+    if (!conn_ok)
+    {
+        printf("MQTT重连: CONNECT连续3次失败,放弃\r\n");
+        return 0;
+    }
+
+    printf("========== MQTT重连成功 ==========\r\n");
+    return 1;
+}
+
+
+/**
+ * @brief  带自动重连的MQTT发布
+ * @note   封装了发布失败检测和自动重连逻辑:
+ *         - 发布成功: 重置失败计数
+ *         - 连续失败达到阈值(MQTT_FAIL_THRESHOLD): 自动触发重连
+ *         - 重连成功后会重试发布一次
+ * @param  topic: 主题字符串
+ * @param  msg:  消息payload(JSON字符串)
+ * @retval 1:成功 0:失败
+ */
+uint8_t A7680C_MQTT_Publish_Safe(char *topic, char *msg)
+{
+    /* 第一次尝试发布 */
+    uint8_t ret = A7680C_MQTT_Publish(topic, msg);
+
+    if (ret)
+    {
+        /* 发布成功,重置失败计数 */
+        mqtt_fail_count = 0;
+        return 1;
+    }
+
+    /* 发布失败,累加计数 */
+    mqtt_fail_count++;
+    printf("MQTT发布失败(连续第%d次), topic=%s\r\n", mqtt_fail_count, topic);
+
+    /* 连续失败达到阈值,触发重连 */
+    if (mqtt_fail_count >= MQTT_FAIL_THRESHOLD)
+    {
+        printf("MQTT连续%d次发布失败,判定连接已断开,开始自动重连\r\n", mqtt_fail_count);
+        mqtt_fail_count = 0;
+
+        if (A7680C_MQTT_Reconnect())
+        {
+            /* 重连成功,重试发布 */
+            printf("重连成功,重试发布: %s\r\n", topic);
+            ret = A7680C_MQTT_Publish(topic, msg);
+            if (ret)
+            {
+                printf("重试发布成功\r\n");
+            }
+            else
+            {
+                printf("重试发布仍然失败\r\n");
+            }
+        }
+        else
+        {
+            printf("MQTT自动重连失败,等待下次轮询再试\r\n");
+        }
+    }
+
+    return ret;
 }
