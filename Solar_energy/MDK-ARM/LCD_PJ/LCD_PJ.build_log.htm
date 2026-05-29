@@ -27,8 +27,32 @@ Project File Date:  05/28/2026
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 7 (build 960)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'LCD_PJ'
+compiling setup_scr_screen_user_list.c...
+"..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\setup_scr_screen_user_list.c": using precompiled header file "setup_scr_Startup_screen.pch"
+compiling setup_scr_screen_alert.c...
+"..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\setup_scr_screen_alert.c": using precompiled header file "setup_scr_Startup_screen.pch"
+..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\setup_scr_screen_alert.c(22): warning:  #177-D: function "alert_type_name"  was declared but never referenced
+  static const char * alert_type_name(alert_type_t t)
+..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\setup_scr_screen_alert.c(33): warning:  #177-D: function "alert_type_color"  was declared but never referenced
+  static lv_color_t alert_type_color(alert_type_t t)
+..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\setup_scr_screen_alert.c(44): warning:  #177-D: function "alert_type_icon"  was declared but never referenced
+  static const char * alert_type_icon(alert_type_t t)
+..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\setup_scr_screen_alert.c: 3 warnings, 0 errors
+compiling setup_scr_screen_user_detail.c...
+"..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\setup_scr_screen_user_detail.c": using precompiled header file "setup_scr_Startup_screen.pch"
+compiling setup_scr_screen_solar.c...
+"..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\setup_scr_screen_solar.c": using precompiled header file "setup_scr_Startup_screen.pch"
+compiling battery.c...
+"..\Core\Src\battery.c": using precompiled header file "battery.pch"
+compiling events_init.c...
+"..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\events_init.c": using precompiled header file "events_init.pch"
+compiling setup_scr_screen_user_home.c...
+"..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\setup_scr_screen_user_home.c": using precompiled header file "setup_scr_screen_user_home.pch"
+linking...
+Program Size: Code=276432 RO-data=372052 RW-data=6956 ZI-data=161628  
+FromELF: creating hex file...
 After Build - User command #1: C:\Keil_v5\ARM\ARMCC\bin\fromelf.exe --bin --output ./BIN/LCD_PJ.bin ./LCD_PJ/LCD_PJ.axf
-"LCD_PJ\LCD_PJ.axf" - 0 Error(s), 0 Warning(s).
+"LCD_PJ\LCD_PJ.axf" - 0 Error(s), 3 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -51,7 +75,7 @@ Package Vendor: Keil
 
    * Component: ARM::CMSIS:CORE:5.4.0
       Include file:  CMSIS/Core/Include/tz_context.h
-Build Time Elapsed:  00:00:03
+Build Time Elapsed:  00:00:10
 </pre>
 </body>
 </html>

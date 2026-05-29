@@ -458,10 +458,10 @@ void Battery_Widget_Init(lv_obj_t *parent)
     lv_obj_set_pos(bat_body, 2, 4);
     lv_obj_set_style_radius(bat_body, 3, 0);
     lv_obj_set_style_border_width(bat_body, 2, 0);
-    lv_obj_set_style_border_color(bat_body, lv_color_hex(0x333333), 0);
+    lv_obj_set_style_border_color(bat_body, lv_color_hex(0x8B949E), 0);
     lv_obj_set_style_border_opa(bat_body, LV_OPA_COVER, 0);
-    lv_obj_set_style_bg_color(bat_body, lv_color_hex(0xFFFFFF), 0);
-    lv_obj_set_style_bg_opa(bat_body, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_bg_color(bat_body, lv_color_hex(0x0D1117), 0);
+    lv_obj_set_style_bg_opa(bat_body, LV_OPA_COVER, 0);
     lv_obj_clear_flag(bat_body, LV_OBJ_FLAG_SCROLLABLE);
 
     /* ---- 3. 电池正极帽 (右侧小凸起) ---- */
@@ -470,7 +470,7 @@ void Battery_Widget_Init(lv_obj_t *parent)
     lv_obj_set_size(battery_widget.cap, 3, 10);
     lv_obj_set_pos(battery_widget.cap, 48, 9);
     lv_obj_set_style_radius(battery_widget.cap, 1, 0);
-    lv_obj_set_style_bg_color(battery_widget.cap, lv_color_hex(0x333333), 0);
+    lv_obj_set_style_bg_color(battery_widget.cap, lv_color_hex(0x8B949E), 0);
     lv_obj_set_style_bg_opa(battery_widget.cap, LV_OPA_COVER, 0);
     lv_obj_clear_flag(battery_widget.cap, LV_OBJ_FLAG_SCROLLABLE);
 
@@ -487,7 +487,7 @@ void Battery_Widget_Init(lv_obj_t *parent)
     /* ---- 5. 百分比文字 (在电池内部居中显示) ---- */
     battery_widget.label_pct = lv_label_create(bat_body);
     lv_label_set_text(battery_widget.label_pct, "100%");
-    lv_obj_set_style_text_color(battery_widget.label_pct, lv_color_hex(0x333333), 0);
+    lv_obj_set_style_text_color(battery_widget.label_pct, lv_color_hex(0xE6EDF3), 0);
     lv_obj_set_style_text_font(battery_widget.label_pct, &lv_font_montserratMedium_12, 0);
     lv_obj_align(battery_widget.label_pct, LV_ALIGN_CENTER, 0, 0);
 
@@ -684,8 +684,8 @@ void Signal_Widget_Update(void)
     if (signal_widget.cont == NULL || !lv_obj_is_valid(signal_widget.cont)) return;
 
     int8_t level = g_signal_level;
-    const lv_color_t color_on  = lv_color_hex(0x00cc66);   /* 激活: 绿色 */
-    const lv_color_t color_off = lv_color_hex(0xbbbbbb);   /* 未激活: 灰色 */
+    const lv_color_t color_on  = lv_color_hex(0x3FB950);   /* 激活: 亮绿 */
+    const lv_color_t color_off = lv_color_hex(0x30363D);   /* 未激活: 暗灰 */
 
     if (level < 0)
     {
