@@ -688,14 +688,7 @@ void ES1642_Task(void *argument)
 void RTC_Task(void *argument)
 {
   /* USER CODE BEGIN RTC_Task */
-	if (RX8025T_InitAndDisplay() == HAL_OK) 
-	{
-//		printf("外部RTC时钟通信成功\r\n");
-	}
-	else
-	{
-		printf("外部RTC时钟通信失败\r\n");
-	}
+	if (RX8025T_InitAndDisplay() != HAL_OK) printf("外部RTC时钟通信失败\r\n");
 
 	/* 等待LVGL UI初始化完成（由lvgl_task发送0x02标志） */
 	osThreadFlagsWait(0x02, osFlagsWaitAny, osWaitForever);
@@ -777,11 +770,11 @@ void DevicePoll_Task(void *argument)
   /* Infinite loop */
   for(;;)
   {
-//    if(simcard_ready == 1)
-//    {
+    if(simcard_ready == 1)
+    {
       device_poll_all_status();
-      alert_scan_devices();  /* 轮询后扫描告警数据 */
-//    }
+      alert_scan_devices();  /* 轮询后扫描告警数据，并更新卡片数据 */
+    }
     osDelay(60000);  /* 每60秒轮询一次 */
   }
   /* USER CODE END DevicePoll_Task */

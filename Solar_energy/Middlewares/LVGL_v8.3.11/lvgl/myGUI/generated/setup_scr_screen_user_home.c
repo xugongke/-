@@ -357,7 +357,7 @@ void setup_scr_screen_user_home(lv_ui *ui)
     ui->screen_user_home_label_2 = lv_label_create(ui->screen_user_home_cont_2);
     lv_label_set_text(ui->screen_user_home_label_2, "\xE7\x99\xBD\xE5\xA4\xA9 ");
     lv_obj_set_pos(ui->screen_user_home_label_2, 70, 30);
-    lv_obj_set_style_text_color(ui->screen_user_home_label_2, lv_color_hex(0x8B949E), 0);
+    lv_obj_set_style_text_color(ui->screen_user_home_label_2, lv_color_hex(0xE6EDF3), 0);
     lv_obj_set_style_text_font(ui->screen_user_home_label_2, &lv_font_SourceHanSerifSC_Regular_16, 0);
     lv_obj_set_style_text_opa(ui->screen_user_home_label_2, 255, 0);
     lv_obj_set_style_bg_opa(ui->screen_user_home_label_2, 0, 0);
@@ -369,7 +369,7 @@ void setup_scr_screen_user_home(lv_ui *ui)
         lv_obj_t *sys_label = lv_label_create(ui->screen_user_home);
         lv_label_set_text(sys_label, LV_SYMBOL_HOME" 太阳能智能监控系统 ");
         lv_obj_set_pos(sys_label, 12, 290);
-        lv_obj_set_style_text_color(sys_label, lv_color_hex(0x484F58), 0);
+        lv_obj_set_style_text_color(sys_label, lv_color_hex(0xE6EDF3), 0);
         lv_obj_set_style_text_font(sys_label, &lv_font_SourceHanSerifSC_Regular_16, 0);
         lv_obj_set_style_text_opa(sys_label, 200, 0);
         lv_obj_set_style_bg_opa(sys_label, 0, 0);

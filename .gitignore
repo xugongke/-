@@ -9,6 +9,7 @@
 *.bin
 *.elf
 *.obj
+*.csv
 
 # Keil project user settings
 *.uvoptx
