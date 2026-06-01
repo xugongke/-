@@ -537,7 +537,7 @@ static lv_obj_t * alert_create_item(lv_obj_t *parent, int dev_idx,
     lv_obj_t *icon = lv_label_create(item);
     lv_label_set_text(icon, alert_type_icon(type));
     lv_obj_set_style_text_color(icon, alert_type_color(type), 0);
-    lv_obj_set_style_text_font(icon, &lv_font_montserratMedium_16, 0);
+    lv_obj_set_style_text_font(icon, &lv_font_SourceHanSerifSC_Regular_16, 0);
     lv_obj_set_style_bg_opa(icon, 0, 0);
     lv_obj_set_pos(icon, 12, 4);
 

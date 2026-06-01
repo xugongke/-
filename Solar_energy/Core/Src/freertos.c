@@ -770,11 +770,11 @@ void DevicePoll_Task(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    if(simcard_ready == 1)
-    {
+//    if(simcard_ready == 1)
+//    {
       device_poll_all_status();
       alert_scan_devices();  /* 轮询后扫描告警数据，并更新卡片数据 */
-    }
+//    }
     osDelay(60000);  /* 每60秒轮询一次 */
   }
   /* USER CODE END DevicePoll_Task */

@@ -78,7 +78,7 @@ void setup_scr_screen_user_home(lv_ui *ui)
         lv_obj_t *icon_lbl = lv_label_create(header);
         lv_label_set_text(icon_lbl, LV_SYMBOL_CHARGE);
         lv_obj_set_style_text_color(icon_lbl, lv_color_hex(0xffffff), 0);
-        lv_obj_set_style_text_font(icon_lbl, &lv_font_montserratMedium_16, 0);
+        lv_obj_set_style_text_font(icon_lbl, &lv_font_SourceHanSerifSC_Regular_16, 0);
         lv_obj_set_style_bg_opa(icon_lbl, 0, 0);
         lv_obj_set_pos(icon_lbl, 10, 6);
 
@@ -102,7 +102,7 @@ void setup_scr_screen_user_home(lv_ui *ui)
         ui->screen_user_home_card_solar_val = lv_label_create(body);
         lv_label_set_text(ui->screen_user_home_card_solar_val, "0.0V");
         lv_obj_set_style_text_color(ui->screen_user_home_card_solar_val, lv_color_hex(0x58A6FF), 0);
-        lv_obj_set_style_text_font(ui->screen_user_home_card_solar_val, &lv_font_montserratMedium_16, 0);
+        lv_obj_set_style_text_font(ui->screen_user_home_card_solar_val, &lv_font_SourceHanSerifSC_Regular_16, 0);
         lv_obj_set_style_text_opa(ui->screen_user_home_card_solar_val, 255, 0);
         lv_obj_set_style_bg_opa(ui->screen_user_home_card_solar_val, 0, 0);
         lv_obj_set_style_text_align(ui->screen_user_home_card_solar_val, LV_TEXT_ALIGN_CENTER, 0);
@@ -141,7 +141,7 @@ void setup_scr_screen_user_home(lv_ui *ui)
         lv_obj_t *icon_lbl = lv_label_create(header);
         lv_label_set_text(icon_lbl, LV_SYMBOL_WIFI);
         lv_obj_set_style_text_color(icon_lbl, lv_color_hex(0xffffff), 0);
-        lv_obj_set_style_text_font(icon_lbl, &lv_font_montserratMedium_16, 0);
+        lv_obj_set_style_text_font(icon_lbl, &lv_font_SourceHanSerifSC_Regular_16, 0);
         lv_obj_set_style_bg_opa(icon_lbl, 0, 0);
         lv_obj_set_pos(icon_lbl, 10, 6);
 
@@ -164,7 +164,7 @@ void setup_scr_screen_user_home(lv_ui *ui)
         ui->screen_user_home_card_device_val = lv_label_create(body);
         lv_label_set_text(ui->screen_user_home_card_device_val, "0 / 0");
         lv_obj_set_style_text_color(ui->screen_user_home_card_device_val, lv_color_hex(0x3FB950), 0);
-        lv_obj_set_style_text_font(ui->screen_user_home_card_device_val, &lv_font_montserratMedium_16, 0);
+        lv_obj_set_style_text_font(ui->screen_user_home_card_device_val, &lv_font_SourceHanSerifSC_Regular_16, 0);
         lv_obj_set_style_text_opa(ui->screen_user_home_card_device_val, 255, 0);
         lv_obj_set_style_bg_opa(ui->screen_user_home_card_device_val, 0, 0);
         lv_obj_align(ui->screen_user_home_card_device_val, LV_ALIGN_CENTER, 0, 2);
@@ -202,7 +202,7 @@ void setup_scr_screen_user_home(lv_ui *ui)
         lv_obj_t *icon_lbl = lv_label_create(header);
         lv_label_set_text(icon_lbl, LV_SYMBOL_WARNING);
         lv_obj_set_style_text_color(icon_lbl, lv_color_hex(0xffffff), 0);
-        lv_obj_set_style_text_font(icon_lbl, &lv_font_montserratMedium_16, 0);
+        lv_obj_set_style_text_font(icon_lbl, &lv_font_SourceHanSerifSC_Regular_16, 0);
         lv_obj_set_style_bg_opa(icon_lbl, 0, 0);
         lv_obj_set_pos(icon_lbl, 10, 6);
 
@@ -225,7 +225,7 @@ void setup_scr_screen_user_home(lv_ui *ui)
         ui->screen_user_home_card_alert_val = lv_label_create(body);
         lv_label_set_text(ui->screen_user_home_card_alert_val, "0");
         lv_obj_set_style_text_color(ui->screen_user_home_card_alert_val, lv_color_hex(0xD29922), 0);
-        lv_obj_set_style_text_font(ui->screen_user_home_card_alert_val, &lv_font_montserratMedium_16, 0);
+        lv_obj_set_style_text_font(ui->screen_user_home_card_alert_val, &lv_font_SourceHanSerifSC_Regular_16, 0);
         lv_obj_set_style_text_opa(ui->screen_user_home_card_alert_val, 255, 0);
         lv_obj_set_style_bg_opa(ui->screen_user_home_card_alert_val, 0, 0);
         lv_obj_align(ui->screen_user_home_card_alert_val, LV_ALIGN_CENTER, 0, 2);
@@ -261,7 +261,7 @@ void setup_scr_screen_user_home(lv_ui *ui)
         lv_obj_t *_lbl = lv_label_create(var); \
         lv_label_set_text(_lbl, "0"); \
         lv_obj_set_style_text_color(_lbl, lv_color_hex(0xF0C040), 0); \
-        lv_obj_set_style_text_font(_lbl, &lv_font_montserrat_48, 0); \
+        lv_obj_set_style_text_font(_lbl, &lv_font_montserratMedium_48, 0); \
         lv_obj_align(_lbl, LV_ALIGN_CENTER, 0, -2); \
     } while(0)
 
@@ -298,7 +298,7 @@ void setup_scr_screen_user_home(lv_ui *ui)
     lv_obj_set_size(ui->screen_user_home_label_Date, 280, 20);
     lv_obj_set_pos(ui->screen_user_home_label_Date, 0, 74);
     lv_obj_set_style_text_color(ui->screen_user_home_label_Date, lv_color_hex(0x8B949E), 0);
-    lv_obj_set_style_text_font(ui->screen_user_home_label_Date, &lv_font_montserratMedium_16, 0);
+    lv_obj_set_style_text_font(ui->screen_user_home_label_Date, &lv_font_SourceHanSerifSC_Regular_16, 0);
     lv_obj_set_style_text_opa(ui->screen_user_home_label_Date, 255, 0);
     lv_obj_set_style_text_align(ui->screen_user_home_label_Date, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_set_style_bg_opa(ui->screen_user_home_label_Date, 0, 0);

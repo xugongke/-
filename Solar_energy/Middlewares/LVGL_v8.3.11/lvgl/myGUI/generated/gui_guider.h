@@ -101,10 +101,7 @@ void setup_scr_screen_user_detail(lv_ui *ui);
 void setup_scr_screen_solar(lv_ui *ui);
 void setup_scr_screen_alert(lv_ui *ui);
 LV_FONT_DECLARE(lv_font_SourceHanSerifSC_Regular_16)
-LV_FONT_DECLARE(lv_font_montserratMedium_16)
-LV_FONT_DECLARE(lv_font_montserratMedium_26)
-LV_FONT_DECLARE(lv_font_montserrat_48)
-LV_FONT_DECLARE(lv_font_montserratMedium_12)
+LV_FONT_DECLARE(lv_font_montserratMedium_48)
 LV_FONT_DECLARE(lv_font_SourceHanSerifSC_Regular_12)
 
 

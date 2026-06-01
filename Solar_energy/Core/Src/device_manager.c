@@ -540,28 +540,28 @@ void device_poll_all_status(void)
         /* 读取从机状态 */
         int ret = device_read_status_ex(i);
 
-        if (ret == 0)
-        {
-            /* 读取成功 */
-            snprintf(payload, sizeof(payload),
-                     "{\"t\":%d,\"v\":%d,\"dc\":%d,\"pr\":%d,\"ok\":1}",
-                     device_list[i].temperature, device_list[i].input_voltage,
-                     device_list[i].state.bits.dc_heating, device_list[i].state.bits.power_reverse);
-        }
-        else
-        {
-            /* 读取失败 */
-            snprintf(payload, sizeof(payload),
-                     "{\"t\":0,\"v\":0,\"dc\":0,\"pr\":0,\"ok\":0,\"err\":%d}",
-                     -ret);
-        }
+//        if (ret == 0)
+//        {
+//            /* 读取成功 */
+//            snprintf(payload, sizeof(payload),
+//                     "{\"t\":%d,\"v\":%d,\"dc\":%d,\"pr\":%d,\"ok\":1}",
+//                     device_list[i].temperature, device_list[i].input_voltage,
+//                     device_list[i].state.bits.dc_heating, device_list[i].state.bits.power_reverse);
+//        }
+//        else
+//        {
+//            /* 读取失败 */
+//            snprintf(payload, sizeof(payload),
+//                     "{\"t\":0,\"v\":0,\"dc\":0,\"pr\":0,\"ok\":0,\"err\":%d}",
+//                     -ret);
+//        }
 
-        /* 发布MQTT消息(带自动重连保护) */
-        uint8_t mqtt_ret = A7680C_MQTT_Publish_Safe(topic, payload);
-        if (mqtt_ret != AT_RESULT_OK)
-        {
-            printf("MQTT发布失败: %s\r\n", topic);
-        }
+//        /* 发布MQTT消息(带自动重连保护) */
+//        uint8_t mqtt_ret = A7680C_MQTT_Publish_Safe(topic, payload);
+//        if (mqtt_ret != AT_RESULT_OK)
+//        {
+//            printf("MQTT发布失败: %s\r\n", topic);
+//        }
 
         /* 设备间间隔200ms，避免载波通信冲突 */
         osDelay(200);

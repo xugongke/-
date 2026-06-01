@@ -85,7 +85,7 @@ void setup_scr_Startup_screen(lv_ui *ui)
      * ------------------------------------------------------- */
     lv_obj_t *label_main = lv_label_create(ui->Startup_screen);
     lv_label_set_text(label_main, "SUNPOEM");
-    lv_obj_set_style_text_font(label_main, &lv_font_montserrat_48,
+    lv_obj_set_style_text_font(label_main, &lv_font_montserratMedium_48,
                                LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_text_color(label_main, lv_color_hex(0xFFFFFF),
                                 LV_PART_MAIN|LV_STATE_DEFAULT);
@@ -137,7 +137,7 @@ void setup_scr_Startup_screen(lv_ui *ui)
      * ------------------------------------------------------- */
     lv_obj_t *label_sub = lv_label_create(ui->Startup_screen);
     lv_label_set_text(label_sub, "Solar Energy System");
-    lv_obj_set_style_text_font(label_sub, &lv_font_montserratMedium_16,
+    lv_obj_set_style_text_font(label_sub, &lv_font_SourceHanSerifSC_Regular_16,
                                LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_text_color(label_sub, lv_color_hex(0x8899AA),
                                 LV_PART_MAIN|LV_STATE_DEFAULT);
@@ -150,7 +150,7 @@ void setup_scr_Startup_screen(lv_ui *ui)
      * ------------------------------------------------------- */
     lv_obj_t *label_copy = lv_label_create(ui->Startup_screen);
     lv_label_set_text(label_copy, LV_SYMBOL_COPY " 2026 SUNPOEM");
-    lv_obj_set_style_text_font(label_copy, &lv_font_montserratMedium_12,
+    lv_obj_set_style_text_font(label_copy, &lv_font_SourceHanSerifSC_Regular_12,
                                LV_PART_MAIN|LV_STATE_DEFAULT);
     lv_obj_set_style_text_color(label_copy, lv_color_hex(0x3A4550),
                                 LV_PART_MAIN|LV_STATE_DEFAULT);

@@ -488,14 +488,14 @@ void Battery_Widget_Init(lv_obj_t *parent)
     battery_widget.label_pct = lv_label_create(bat_body);
     lv_label_set_text(battery_widget.label_pct, "100%");
     lv_obj_set_style_text_color(battery_widget.label_pct, lv_color_hex(0xE6EDF3), 0);
-    lv_obj_set_style_text_font(battery_widget.label_pct, &lv_font_montserratMedium_12, 0);
+    lv_obj_set_style_text_font(battery_widget.label_pct, &lv_font_SourceHanSerifSC_Regular_12, 0);
     lv_obj_align(battery_widget.label_pct, LV_ALIGN_CENTER, 0, 0);
 
     /* ---- 6. 充电图标 (默认隐藏, 在电池右侧) ---- */
     battery_widget.label_chg = lv_label_create(battery_widget.cont);
     lv_label_set_text(battery_widget.label_chg, LV_SYMBOL_CHARGE);
     lv_obj_set_style_text_color(battery_widget.label_chg, lv_color_hex(0xFF9800), 0);
-    lv_obj_set_style_text_font(battery_widget.label_chg, &lv_font_montserratMedium_12, 0);
+    lv_obj_set_style_text_font(battery_widget.label_chg, &lv_font_SourceHanSerifSC_Regular_12, 0);
     lv_obj_set_style_bg_opa(battery_widget.label_chg, 0, 0);
     lv_obj_set_pos(battery_widget.label_chg, 54, 8);
     lv_obj_add_flag(battery_widget.label_chg, LV_OBJ_FLAG_HIDDEN);
@@ -671,7 +671,7 @@ void Signal_Widget_Init(lv_obj_t *parent)
     signal_widget.label_x = lv_label_create(signal_widget.cont);
     lv_label_set_text(signal_widget.label_x, LV_SYMBOL_CLOSE);
     lv_obj_set_style_text_color(signal_widget.label_x, lv_color_hex(0xF44336), 0);
-    lv_obj_set_style_text_font(signal_widget.label_x, &lv_font_montserratMedium_12, 0);
+    lv_obj_set_style_text_font(signal_widget.label_x, &lv_font_SourceHanSerifSC_Regular_12, 0);
     lv_obj_align(signal_widget.label_x, LV_ALIGN_CENTER, 0, 0);
     lv_obj_add_flag(signal_widget.label_x, LV_OBJ_FLAG_HIDDEN);
 }

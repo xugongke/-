@@ -78,7 +78,7 @@ void setup_scr_screen_alert(lv_ui *ui)
         lv_obj_t *back = lv_label_create(h);
         lv_label_set_text(back, LV_SYMBOL_LEFT);
         lv_obj_set_style_text_color(back, lv_color_hex(0xF0C040), 0);
-        lv_obj_set_style_text_font(back, &lv_font_montserratMedium_16, 0);
+        lv_obj_set_style_text_font(back, &lv_font_SourceHanSerifSC_Regular_16, 0);
         lv_obj_set_style_bg_opa(back, 0, 0);
         lv_obj_set_pos(back, 14, 10);
 
@@ -100,7 +100,7 @@ void setup_scr_screen_alert(lv_ui *ui)
         ui->screen_alert_label_count = lv_label_create(h);
         lv_label_set_text(ui->screen_alert_label_count, "0");
         lv_obj_set_style_text_color(ui->screen_alert_label_count, lv_color_hex(0xD29922), 0);
-        lv_obj_set_style_text_font(ui->screen_alert_label_count, &lv_font_montserratMedium_16, 0);
+        lv_obj_set_style_text_font(ui->screen_alert_label_count, &lv_font_SourceHanSerifSC_Regular_16, 0);
         lv_obj_set_style_bg_opa(ui->screen_alert_label_count, 0, 0);
         lv_obj_align(ui->screen_alert_label_count, LV_ALIGN_RIGHT_MID, -14, 0);
     }

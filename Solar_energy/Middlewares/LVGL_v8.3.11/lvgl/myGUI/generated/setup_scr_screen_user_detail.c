@@ -37,7 +37,7 @@ static void detail_chart_draw_label_cb(lv_event_t *e)
     lv_draw_label_dsc_t lbl;
     lv_draw_label_dsc_init(&lbl);
     lbl.color = lv_color_hex(0x8B949E);
-    lbl.font = &lv_font_montserratMedium_12;
+    lbl.font = &lv_font_SourceHanSerifSC_Regular_12;
     lbl.align = LV_TEXT_ALIGN_CENTER;
 
     lv_point_t size;
@@ -78,7 +78,7 @@ void setup_scr_screen_user_detail(lv_ui *ui)
         lv_obj_t *back = lv_label_create(h);
         lv_label_set_text(back, LV_SYMBOL_LEFT);
         lv_obj_set_style_text_color(back, lv_color_hex(0xF0C040), 0);
-        lv_obj_set_style_text_font(back, &lv_font_montserratMedium_16, 0);
+        lv_obj_set_style_text_font(back, &lv_font_SourceHanSerifSC_Regular_16, 0);
         lv_obj_set_style_bg_opa(back, 0, 0);
         lv_obj_set_pos(back, 14, 10);
 
@@ -100,7 +100,7 @@ void setup_scr_screen_user_detail(lv_ui *ui)
         lv_obj_t *edit = lv_label_create(h);
         lv_label_set_text(edit, LV_SYMBOL_EDIT);
         lv_obj_set_style_text_color(edit, lv_color_hex(0x484F58), 0);
-        lv_obj_set_style_text_font(edit, &lv_font_montserratMedium_16, 0);
+        lv_obj_set_style_text_font(edit, &lv_font_SourceHanSerifSC_Regular_16, 0);
         lv_obj_set_style_bg_opa(edit, 0, 0);
         lv_obj_align(edit, LV_ALIGN_RIGHT_MID, -14, 0);
     }

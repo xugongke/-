@@ -46,7 +46,7 @@ void setup_scr_screen_user_list(lv_ui *ui)
         lv_obj_t *back_icon = lv_label_create(header);
         lv_label_set_text(back_icon, LV_SYMBOL_LEFT);
         lv_obj_set_style_text_color(back_icon, lv_color_hex(0xF0C040), 0);
-        lv_obj_set_style_text_font(back_icon, &lv_font_montserratMedium_16, 0);
+        lv_obj_set_style_text_font(back_icon, &lv_font_SourceHanSerifSC_Regular_16, 0);
         lv_obj_set_style_bg_opa(back_icon, 0, 0);
         lv_obj_set_pos(back_icon, 14, 11);
 
@@ -71,7 +71,7 @@ void setup_scr_screen_user_list(lv_ui *ui)
         lv_obj_t *count_icon = lv_label_create(header);
         lv_label_set_text(count_icon, LV_SYMBOL_WIFI);
         lv_obj_set_style_text_color(count_icon, lv_color_hex(0x484F58), 0);
-        lv_obj_set_style_text_font(count_icon, &lv_font_montserratMedium_16, 0);
+        lv_obj_set_style_text_font(count_icon, &lv_font_SourceHanSerifSC_Regular_16, 0);
         lv_obj_set_style_bg_opa(count_icon, 0, 0);
         lv_obj_align(count_icon, LV_ALIGN_RIGHT_MID, -14, 0);
     }
