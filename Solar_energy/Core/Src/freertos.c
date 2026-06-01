@@ -47,6 +47,7 @@
 #include "a7680c_http.h"
 #include "rs485_usart.h"
 #include "battery.h"
+#include "mppt.h"
 lv_ui  guider_ui;                     // 定义 界面对象
 extern lv_group_t * g_keypad_group;		//声明全局group
 WeatherCurrent_t weather_data = {0};//存储天气代码的结构体
@@ -701,6 +702,9 @@ void RTC_Task(void *argument)
 	printf("RTCTask: LVGL UI已就绪\r\n");
 	osDelay(1500);
 
+	/* MPPT模块初始化 (设备表已在lvgl_task中加载) */
+//	MPPT_Init();
+
 	/* 跳转到home界面 (获取互斥锁保护LVGL操作) */
 	if(lvgl_mutex) osMutexAcquire(lvgl_mutex, osWaitForever);
 	ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_home,
@@ -719,6 +723,10 @@ void RTC_Task(void *argument)
 		/* 更新电池和太阳能电压缓存 (ADC采集, 不涉及LVGL) */
 		Battery_UpdateCache();
 		Solar_UpdateCache();
+
+		/* MPPT 扰动观察法状态机 (每秒执行一次) */
+//		MPPT_Task();
+
     osDelay(1000);
   }
   /* USER CODE END RTC_Task */
