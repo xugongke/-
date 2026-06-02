@@ -98,7 +98,7 @@ uint8_t A7680C_SendAT_CGATT_SET(void)
  */
 uint8_t A7680C_SendAT_CGATT_READ(void)
 {
-    return A7680C_SendAT("AT+CGATT?\r\n", "+CGATT: 1", 500,NULL);
+    return A7680C_SendAT("AT+CGATT?\r\n", "+CGATT: 1", 2000,NULL);
 }
 
 /*

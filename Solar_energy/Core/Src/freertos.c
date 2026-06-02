@@ -38,6 +38,7 @@
 #include "fatfs.h"
 #include "custom.h"
 #include "a7680c.h"
+#include "a7680c_netmgr.h"
 #include "a7680c_at.h"
 #include "a7680c_mqtt.h"
 #include "rx8025t_example.h"
@@ -310,26 +311,16 @@ void MX_FREERTOS_Init(void) {
 
 /* USER CODE BEGIN Header_StartDefaultTask */
 /**
-  * @brief  A7680C模块管理任务（统一管理网络初始化、健康监控、信号显示）
+  * @brief  A7680C模块管理任务
   * @param  argument: Not used
   * @retval None
-  *
-  * 职责:
-  * 1. 首次上电: 依次执行 ATE0→CheckNetworkReady→GetNetworkTime→HTTP_Init→MQTT连接
-  * 2. 运行中: 每秒检测 CPIN+CGATT，网络异常累计10次则重启模块并重新初始化
-  * 3. 更新UI信号强度条和天气文字
+  * @note   网络初始化/健康检查逻辑已封装到 a7680c_netmgr.c
   */
-/* 网络就绪标志（供Weather_Task和DevicePoll_Task使用） */
-uint8_t simcard_ready = 0;
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
-	int32_t rssi,ber;
-	uint8_t Signal_buff[32];
-	int32_t fail_count = 0;
-	uint8_t need_init = 1;  /* 首次上电需要全量初始化 */
-	uint16_t online_check_count = 0;  /* 上网能力周期检查计数器 */
+	A7680C_NetManager_Init(weatherTimerHandle);
 
   /* Infinite loop */
   for(;;)
@@ -337,230 +328,11 @@ void StartDefaultTask(void *argument)
 		HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
 		HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
 
-		/*======================================================
-		 * 全量初始化（首次上电 或 模块重启后触发）
-		 * 依次执行: ATE0 → 等待网络就绪 → 同步时间 → HTTP → MQTT
-		 *======================================================*/
-		if (need_init)
+		uint32_t delay = A7680C_NetManager_Process();
+		if (delay > 0)
 		{
-			simcard_ready = 0;
-			fail_count = 0;
-			printf("========== A7680C全量初始化开始 ==========\r\n");
-
-			/* 关闭回显（必须确保成功，否则回显会干扰后续AT指令解析）
-			 * 模块刚上电时可能还未就绪，需要轮询等待 */
-			uint8_t ate0_ok = 0;
-			for (uint8_t ate_retry = 0; ate_retry < 30; ate_retry++)
-			{
-				if (A7680C_SendATE0() == AT_RESULT_OK)
-				{
-					ate0_ok = 1;
-//					printf("回显已关闭(第%d次尝试)\r\n", ate_retry + 1);
-					break;
-				}
-//				printf("等待回显关闭...(%d/30)\r\n", ate_retry + 1);
-				osDelay(1000);
-			}
-			if (!ate0_ok)
-			{
-				printf("警告: 30s内未能关闭回显\r\n");
-				simcard_ready = 0;
-				need_init = 1;  /* 保持init标志，下次循环继续尝试 */
-				A7680C_SendAT_CFUN();  /* 重启模块 */
-				osDelay(5000);
-				continue;
-			}
-
-			/* 轮询等待网络就绪（最多60秒）
-			 * CheckNetworkReady依次执行: CPIN→CGATT=1→CGATT?→CGDCONT
-			 * 四步全部通过才说明模块可以正常上网 */
-			uint8_t net_ok = 0;
-			for (uint8_t retry = 0; retry < 60; retry++)
-			{
-				if (A7680C_CheckNetworkReady() == AT_RESULT_OK)
-				{
-					net_ok = 1;
-//					printf("网络就绪(第%d次尝试)\r\n", retry + 1);
-					break;
-				}
-//				printf("等待网络就绪...(%d/60)\r\n", retry + 1);
-				osDelay(1000);
-			}
-
-			if (net_ok)
-			{
-				/* 同步网络时间到RTC芯片 */
-				uint8_t step;
-				if (A7680C_GetNetworkTime_Debug(&step) == AT_RESULT_OK)
-				{
-					printf("网络时间同步成功\r\n");
-				}
-				else
-				{
-					printf("网络时间同步失败, step:%d\r\n", step);
-				}
-
-				/* 初始化HTTP（用于天气获取） */
-				A7680C_HTTP_Init();
-
-				/* 初始化MQTT连接 */
-				printf("初始化MQTT连接...\r\n");
-				if (A7680C_MQTT_Start() != AT_RESULT_OK)
-				{
-					printf("MQTT START失败, 5秒后重试\r\n");
-					osDelay(5000);
-					A7680C_MQTT_Start();
-				}
-				if (A7680C_MQTT_Connect(MQTT_CLIENT_ID, NULL, NULL) != AT_RESULT_OK)
-				{
-					printf("MQTT CONNECT失败, 10秒后重试\r\n");
-					osDelay(10000);
-					A7680C_MQTT_Connect(MQTT_CLIENT_ID, NULL, NULL);
-				}
-
-				simcard_ready = 1;
-				need_init = 0;
-				
-				osTimerStart(weatherTimerHandle, 1000);//从网络获取一次天气
-				printf("========== A7680C全量初始化完成 ==========\r\n");
-			}
-			else
-			{
-				printf("60s内网络未就绪,稍后重试\r\n");
-				simcard_ready = 0;
-				need_init = 1;  /* 保持init标志，下次循环继续尝试 */
-				A7680C_SendAT_CFUN();  /* 重启模块 */
-				osDelay(5000);
-				continue;
-			}
+			osDelay(delay);
 		}
-
-		/*======================================================
-		 * 网络健康检查 + 信号等级采集
-		 * (UI显示由LVGL定时器自动完成, 这里只更新g_signal_level)
-		 *======================================================*/
-		if(lvgl_mutex) osMutexAcquire(lvgl_mutex, osWaitForever);
-		uint8_t home_visible = (guider_ui.screen_user_home != NULL &&
-		   lv_obj_is_valid(guider_ui.screen_user_home));
-		if(lvgl_mutex) osMutexRelease(lvgl_mutex);
-
-		if(home_visible)
-		{
-			/* 检测SIM卡 + 网络附着状态 */
-			uint8_t sim_ok = A7680C_SendAT_CPIN();
-			uint8_t net_ok = 0;
-
-			if(sim_ok == AT_RESULT_OK)
-			{
-				net_ok = A7680C_SendAT("AT+CGATT?\r\n", "+CGATT: 1", 2000, NULL);
-			}
-
-			if(sim_ok == AT_RESULT_OK && net_ok == AT_RESULT_OK)
-			{
-				/* 网络基本正常 */
-				fail_count = 0;
-
-				/* 周期性验证上网能力（每30秒用CLBS检查一次） */
-				online_check_count++;
-				if(online_check_count >= 30)
-				{
-					online_check_count = 0;
-					if(A7680C_SendAT("AT+CLBS=1\r\n", "+CLBS: 0", 5000, NULL) != AT_RESULT_OK)
-					{
-						printf("CLBS失败,SIM卡可能欠费无法上网\r\n");
-						simcard_ready = 0;
-					}
-					else
-					{
-						if(simcard_ready == 0)
-						{
-							printf("CLBS成功,上网能力恢复\r\n");
-							simcard_ready = 1;
-						}
-					}
-				}
-
-				/* 读取CSQ并更新全局信号等级 (LVGL定时器会自动刷新UI) */
-				if(A7680C_SendAT_CSQ(Signal_buff) == AT_RESULT_OK)
-				{
-					A7680C_ParseCSQ(Signal_buff, &rssi, &ber);
-					g_signal_level = Signal_GetLevel(rssi);
-				}
-			}
-			else
-			{
-				/* 网络异常：累计失败次数 */
-				fail_count++;
-				printf("网络异常(SIM=%d,CGATT=%d, fail=%d/10)\r\n", sim_ok, net_ok, fail_count);
-
-				g_signal_level = -1;  /* 无信号, LVGL定时器会显示X */
-
-				if(fail_count >= 10)
-				{
-					printf("网络连续10次异常,重启模块并重新初始化\r\n");
-					simcard_ready = 0;
-					A7680C_SendAT_CFUN();  /* 重启模块 */
-					need_init = 1;         /* 触发全量重新初始化 */
-					osDelay(5000);         /* 等待模块重启 */
-					continue;
-				}
-			}
-		}
-
-		/* 天气显示更新 (文字+彩色图标+昼夜指示) */
-		if(lvgl_mutex) osMutexAcquire(lvgl_mutex, osWaitForever);
-		if(lv_obj_is_valid(guider_ui.screen_user_home_label_1) &&
-		   lv_obj_is_valid(guider_ui.screen_user_home_label_2))
-		{
-				/* 更新天气文字 */
-				const char* Weather_buff = Weather_GetShortDesc(weather_data.weather_code);
-				lv_label_set_text(guider_ui.screen_user_home_label_1, Weather_buff);
-
-				/* 更新天气图标圆的颜色和内部符号 */
-				if(lv_obj_is_valid(guider_ui.screen_user_home_weather_icon))
-				{
-						uint32_t icon_color = Weather_GetIconColor(weather_data.weather_code);
-						lv_color_t color = lv_color_hex(icon_color);
-						lv_obj_set_style_bg_color(guider_ui.screen_user_home_weather_icon, color, 0);
-						lv_obj_set_style_shadow_color(guider_ui.screen_user_home_weather_icon, color, 0);
-
-						/* 更新圆内图标符号 (第一个子对象即图标label) */
-						uint32_t child_cnt = lv_obj_get_child_cnt(guider_ui.screen_user_home_weather_icon);
-						if(child_cnt > 0)
-						{
-								lv_obj_t *icon_sym = lv_obj_get_child(guider_ui.screen_user_home_weather_icon, 0);
-								if(icon_sym != NULL)
-								{
-										lv_label_set_text(icon_sym, Weather_GetSymbol(weather_data.weather_code));
-								}
-						}
-				}
-
-			/* 更新昼夜指示 (☀/☾ 图标 + 颜色) */
-				if(weather_data.is_day == 1)
-				{
-						lv_label_set_text(guider_ui.screen_user_home_label_2, "\xE7\x99\xBD\xE5\xA4\xA9 ");  /* 白天 */
-						if(lv_obj_is_valid(guider_ui.screen_user_home_daynight_dot))
-						{
-								lv_label_set_text(guider_ui.screen_user_home_daynight_dot, "\xE2\x98\x80");  /* ☀ */
-								lv_obj_set_style_text_color(guider_ui.screen_user_home_daynight_dot,
-										lv_color_hex(0xFFC107), 0);  /* 金色 */
-						}
-				}
-				else
-				{
-						lv_label_set_text(guider_ui.screen_user_home_label_2, "\xE5\xA4\x9C\xE6\x99\x9A ");  /* 夜晚 */
-						if(lv_obj_is_valid(guider_ui.screen_user_home_daynight_dot))
-						{
-								lv_label_set_text(guider_ui.screen_user_home_daynight_dot, "\xE2\x98\x81");  /* ☁ */
-								lv_obj_set_style_text_color(guider_ui.screen_user_home_daynight_dot,
-										lv_color_hex(0x5C6BC0), 0);  /* 靛蓝 */
-						}
-				}
-		}
-		if(lvgl_mutex) osMutexRelease(lvgl_mutex);
-
-    osDelay(1000);
   }
   /* USER CODE END StartDefaultTask */
 }

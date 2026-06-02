@@ -103,6 +103,7 @@ void setup_scr_screen_alert(lv_ui *ui);
 LV_FONT_DECLARE(lv_font_SourceHanSerifSC_Regular_16)
 LV_FONT_DECLARE(lv_font_montserratMedium_48)
 LV_FONT_DECLARE(lv_font_SourceHanSerifSC_Regular_12)
+LV_FONT_DECLARE(lv_font_weather_16)
 
 
 #ifdef __cplusplus

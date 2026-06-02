@@ -4,7 +4,6 @@
 #include <string.h>
 #include "a7680c.h"
 #include "lvgl.h"
-#include "weather_icons.h"
 
 // 默认 HTTP 配置
 static http_config_t g_http_config = {
@@ -254,7 +253,7 @@ const char* Weather_GetSymbol(int code)
         case 2:		return WEATHER_ICON_CLOUD;         /* 多云 - 云 */
         case 3:  	return WEATHER_ICON_CLOUD;         /* 阴天 - 云 */
         case 45:	return WEATHER_ICON_FOG;           /* 雾 - 雾霾 */
-        case 48: 	return WEATHER_ICON_HAZE;          /* 霾 - 霾 */
+        case 48: 	return WEATHER_ICON_FOG;          /* 霾 - 霾 */
         case 51: case 53: case 55:
         case 56: case 57:
         case 61:	return WEATHER_ICON_DROPLET;       /* 小雨 - 水滴 */

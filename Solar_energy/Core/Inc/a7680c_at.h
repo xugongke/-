@@ -36,4 +36,5 @@ uint8_t A7680C_SendAT_CSQ(uint8_t* data_buff);
 uint8_t A7680C_ParseCSQ(const uint8_t *at_parse_buf, int32_t *rssi, int32_t *ber);
 uint8_t A7680C_SendAT_CPIN(void);
 CLBS_PosTypeDef A7680C_ParseCLBS(char *buf);
+uint8_t A7680C_SendAT_CGATT_READ(void);
 #endif

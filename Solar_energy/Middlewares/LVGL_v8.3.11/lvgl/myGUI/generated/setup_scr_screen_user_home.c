@@ -22,7 +22,6 @@
 #include "lvgl.h"
 #include <stdio.h>
 #include "gui_guider.h"
-#include "weather_icons.h"
 #include "events_init.h"
 #include "widgets_init.h"
 #include "custom.h"
@@ -314,27 +313,13 @@ void setup_scr_screen_user_home(lv_ui *ui)
     lv_obj_set_style_bg_opa(ui->screen_user_home_cont_2, 0, 0);
     lv_obj_set_style_pad_all(ui->screen_user_home_cont_2, 0, 0);
 
-    /* 天气彩色圆 */
-    ui->screen_user_home_weather_icon = lv_obj_create(ui->screen_user_home_cont_2);
-    lv_obj_remove_style_all(ui->screen_user_home_weather_icon);
-    lv_obj_set_size(ui->screen_user_home_weather_icon, 38, 38);
-    lv_obj_set_pos(ui->screen_user_home_weather_icon, 10, 8);
-    lv_obj_set_style_radius(ui->screen_user_home_weather_icon, 19, 0);
-    lv_obj_set_style_bg_color(ui->screen_user_home_weather_icon, lv_color_hex(0xD29922), 0);
-    lv_obj_set_style_bg_opa(ui->screen_user_home_weather_icon, LV_OPA_COVER, 0);
-    lv_obj_set_style_shadow_width(ui->screen_user_home_weather_icon, 6, 0);
-    lv_obj_set_style_shadow_color(ui->screen_user_home_weather_icon, lv_color_hex(0xD29922), 0);
-    lv_obj_set_style_shadow_opa(ui->screen_user_home_weather_icon, 40, 0);
-    lv_obj_set_style_shadow_ofs_y(ui->screen_user_home_weather_icon, 2, 0);
-    lv_obj_clear_flag(ui->screen_user_home_weather_icon, LV_OBJ_FLAG_SCROLLABLE);
-    {
-        lv_obj_t *icon_sym = lv_label_create(ui->screen_user_home_weather_icon);
-        lv_label_set_text(icon_sym, WEATHER_ICON_SUN);
-        lv_obj_set_style_text_color(icon_sym, lv_color_hex(0xffffff), 0);
-        lv_obj_set_style_text_font(icon_sym, &lv_font_weather_30, 0);
-        lv_obj_set_style_bg_opa(icon_sym, 0, 0);
-        lv_obj_align(icon_sym, LV_ALIGN_CENTER, 0, 0);
-    }
+    /* 天气图标 (直接显示，无背景圆) */
+    ui->screen_user_home_weather_icon = lv_label_create(ui->screen_user_home_cont_2);
+    lv_label_set_text(ui->screen_user_home_weather_icon, WEATHER_ICON_SUN);
+    lv_obj_set_style_text_color(ui->screen_user_home_weather_icon, lv_color_hex(0xD29922), 0);
+    lv_obj_set_style_text_font(ui->screen_user_home_weather_icon, &lv_font_weather_16, 0);
+    lv_obj_set_style_bg_opa(ui->screen_user_home_weather_icon, 0, 0);
+    lv_obj_set_pos(ui->screen_user_home_weather_icon, 88, 4);
 
     /* 天气文字 */
     ui->screen_user_home_label_1 = lv_label_create(ui->screen_user_home_cont_2);
@@ -347,7 +332,7 @@ void setup_scr_screen_user_home(lv_ui *ui)
 
     /* 昼夜图标 */
     ui->screen_user_home_daynight_dot = lv_label_create(ui->screen_user_home_cont_2);
-    lv_label_set_text(ui->screen_user_home_daynight_dot, "\xE2\x98\x80");
+    lv_label_set_text(ui->screen_user_home_daynight_dot, LV_SYMBOL_CERTIFICATE);
     lv_obj_set_pos(ui->screen_user_home_daynight_dot, 52, 30);
     lv_obj_set_style_text_color(ui->screen_user_home_daynight_dot, lv_color_hex(0xF0C040), 0);
     lv_obj_set_style_text_font(ui->screen_user_home_daynight_dot, &lv_font_SourceHanSerifSC_Regular_16, 0);
@@ -355,7 +340,7 @@ void setup_scr_screen_user_home(lv_ui *ui)
 
     /* 昼夜文字标签 */
     ui->screen_user_home_label_2 = lv_label_create(ui->screen_user_home_cont_2);
-    lv_label_set_text(ui->screen_user_home_label_2, "\xE7\x99\xBD\xE5\xA4\xA9 ");
+    lv_label_set_text(ui->screen_user_home_label_2, "白天 ");
     lv_obj_set_pos(ui->screen_user_home_label_2, 70, 30);
     lv_obj_set_style_text_color(ui->screen_user_home_label_2, lv_color_hex(0xE6EDF3), 0);
     lv_obj_set_style_text_font(ui->screen_user_home_label_2, &lv_font_SourceHanSerifSC_Regular_16, 0);
@@ -367,7 +352,7 @@ void setup_scr_screen_user_home(lv_ui *ui)
      * ============================================================ */
     {
         lv_obj_t *sys_label = lv_label_create(ui->screen_user_home);
-        lv_label_set_text(sys_label, LV_SYMBOL_HOME" 太阳能智能监控系统 ");
+        lv_label_set_text(sys_label, LV_SYMBOL_HOME" 太阳能智能监控系统v1.0 ");
         lv_obj_set_pos(sys_label, 12, 290);
         lv_obj_set_style_text_color(sys_label, lv_color_hex(0xE6EDF3), 0);
         lv_obj_set_style_text_font(sys_label, &lv_font_SourceHanSerifSC_Regular_16, 0);

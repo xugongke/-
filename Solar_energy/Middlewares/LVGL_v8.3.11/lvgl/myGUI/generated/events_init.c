@@ -82,6 +82,7 @@ static void screen_user_home_card_solar_event_handler (lv_event_t *e)
         if(_body) { lv_obj_set_size(_body, 146, 70); lv_obj_set_pos(_body, 2, 36); }
     }
     else if (code == LV_EVENT_DEFOCUSED) {
+        lv_obj_set_style_border_color(guider_ui.screen_user_home_card_solar, lv_color_hex(0x30363D), 0);
         lv_obj_set_style_border_width(guider_ui.screen_user_home_card_solar, 1, 0);
         lv_obj_set_style_shadow_width(guider_ui.screen_user_home_card_solar, 10, 0);
         lv_obj_set_style_shadow_opa(guider_ui.screen_user_home_card_solar, 30, 0);
@@ -117,6 +118,7 @@ static void screen_user_home_card_device_event_handler (lv_event_t *e)
         if(_body) { lv_obj_set_size(_body, 146, 70); lv_obj_set_pos(_body, 2, 36); }
     }
     else if (code == LV_EVENT_DEFOCUSED) {
+        lv_obj_set_style_border_color(guider_ui.screen_user_home_card_device, lv_color_hex(0x30363D), 0);
         lv_obj_set_style_border_width(guider_ui.screen_user_home_card_device, 1, 0);
         lv_obj_set_style_shadow_width(guider_ui.screen_user_home_card_device, 10, 0);
         lv_obj_set_style_shadow_opa(guider_ui.screen_user_home_card_device, 30, 0);
@@ -152,6 +154,7 @@ static void screen_user_home_card_alert_event_handler (lv_event_t *e)
         if(_body) { lv_obj_set_size(_body, 146, 70); lv_obj_set_pos(_body, 2, 36); }
     }
     else if (code == LV_EVENT_DEFOCUSED) {
+        lv_obj_set_style_border_color(guider_ui.screen_user_home_card_alert, lv_color_hex(0x30363D), 0);
         lv_obj_set_style_border_width(guider_ui.screen_user_home_card_alert, 1, 0);
         lv_obj_set_style_shadow_width(guider_ui.screen_user_home_card_alert, 10, 0);
         lv_obj_set_style_shadow_opa(guider_ui.screen_user_home_card_alert, 30, 0);

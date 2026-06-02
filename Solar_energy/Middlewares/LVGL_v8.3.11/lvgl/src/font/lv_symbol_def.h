@@ -176,6 +176,14 @@ extern "C" {
 #define LV_SYMBOL_CALL            "\xEF\x82\x95" /*61589, 0xF095*/
 #endif
 
+#if !defined LV_SYMBOL_CERTIFICATE
+#define LV_SYMBOL_CERTIFICATE     "\xEF\x82\xA3" /*61603, 0xF0A3*/
+#endif
+
+#if !defined LV_SYMBOL_TABLE
+#define LV_SYMBOL_TABLE           "\xEF\x83\x80" /*61632, 0xF0C0*/
+#endif
+
 #if !defined LV_SYMBOL_CUT
 #define LV_SYMBOL_CUT             "\xEF\x83\x84" /*61636, 0xF0C4*/
 #endif
@@ -218,6 +226,10 @@ extern "C" {
 
 #if !defined LV_SYMBOL_FILE
 #define LV_SYMBOL_FILE            "\xEF\x85\x9B" /*61787, 0xF158*/
+#endif
+
+#if !defined LV_SYMBOL_MOON
+#define LV_SYMBOL_MOON            "\xEF\x86\x86" /*61830, 0xF186*/
 #endif
 
 #if !defined LV_SYMBOL_WIFI
@@ -277,6 +289,20 @@ extern "C" {
 #define LV_SYMBOL_DUMMY           "\xEF\xA3\xBF"
 #endif
 
+#define WEATHER_ICON_SUN           "\xEE\x80\x80"  /* U+E000 - sunny (fa-sun) */
+#define WEATHER_ICON_CLOUD_SUN     "\xEE\x80\x81"  /* U+E001 - partly cloudy (fa-cloud-sun) */
+#define WEATHER_ICON_CLOUD         "\xEE\x80\x82"  /* U+E002 - cloudy / overcast (fa-cloud) */
+#define WEATHER_ICON_FOG           "\xEE\x80\x83"  /* U+E003 - fog (fa-smog) */
+#define WEATHER_ICON_HAZE          "\xEE\x80\x84"  /* U+E004 - haze (fa-smog variant) */
+#define WEATHER_ICON_DROPLET       "\xEE\x80\x85"  /* U+E005 - light rain / drizzle / shower (fa-droplet) */
+#define WEATHER_ICON_CLOUD_RAIN    "\xEE\x80\x86"  /* U+E006 - moderate rain (fa-cloud-rain) */
+#define WEATHER_ICON_HEAVY_RAIN    "\xEE\x80\x87"  /* U+E007 - heavy rain (fa-cloud-showers-heavy) */
+#define WEATHER_ICON_SNOWFLAKE     "\xEE\x80\x88"  /* U+E008 - snow (fa-snowflake) */
+#define WEATHER_ICON_CLOUD_BOLT    "\xEE\x80\x89"  /* U+E009 - thunderstorm (fa-cloud-bolt) */
+#define WEATHER_ICON_BOLT          "\xEE\x80\x8A"  /* U+E00A - hail (fa-bolt) */
+#define WEATHER_ICON_WIND          "\xEE\x80\x8B"  /* U+E00B - wind (reserve) (fa-wind) */
+#define WEATHER_ICON_MOON          "\xEE\x80\x8D"  /* U+E00D - clear night (fa-moon) */
+
 /*
  * The following list is generated using
  * cat src/font/lv_symbol_def.h | sed -E -n 's/^#define\s+LV_(SYMBOL_\w+).*".*$/    _LV_STR_\1,/p'
@@ -319,6 +345,8 @@ enum {
     _LV_STR_SYMBOL_DIRECTORY,
     _LV_STR_SYMBOL_UPLOAD,
     _LV_STR_SYMBOL_CALL,
+    _LV_STR_SYMBOL_CERTIFICATE,
+    _LV_STR_SYMBOL_TABLE,
     _LV_STR_SYMBOL_CUT,
     _LV_STR_SYMBOL_COPY,
     _LV_STR_SYMBOL_SAVE,
@@ -330,6 +358,7 @@ enum {
     _LV_STR_SYMBOL_KEYBOARD,
     _LV_STR_SYMBOL_GPS,
     _LV_STR_SYMBOL_FILE,
+    _LV_STR_SYMBOL_MOON,
     _LV_STR_SYMBOL_WIFI,
     _LV_STR_SYMBOL_BATTERY_FULL,
     _LV_STR_SYMBOL_BATTERY_3,

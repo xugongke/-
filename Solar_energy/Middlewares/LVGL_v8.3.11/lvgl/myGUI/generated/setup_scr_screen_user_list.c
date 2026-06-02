@@ -69,7 +69,7 @@ void setup_scr_screen_user_list(lv_ui *ui)
 
         /* 右侧WiFi图标 */
         lv_obj_t *count_icon = lv_label_create(header);
-        lv_label_set_text(count_icon, LV_SYMBOL_WIFI);
+        lv_label_set_text(count_icon, LV_SYMBOL_TABLE);
         lv_obj_set_style_text_color(count_icon, lv_color_hex(0x484F58), 0);
         lv_obj_set_style_text_font(count_icon, &lv_font_SourceHanSerifSC_Regular_16, 0);
         lv_obj_set_style_bg_opa(count_icon, 0, 0);

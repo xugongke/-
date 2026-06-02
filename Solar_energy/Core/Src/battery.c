@@ -25,6 +25,7 @@
 /* USER CODE BEGIN Includes */
 #include "gui_guider.h"
 #include "device_manager.h"
+#include "a7680c_http.h"
 /* USER CODE END Includes */
 
 /* ========================== 私有变量 ========================== */
@@ -376,6 +377,9 @@ void Solar_Widget_Update(void)
 }
 
 
+/* 天气数据 (由 Weather_Task 通过 HTTP 写入, LVGL定时器只读) */
+extern WeatherCurrent_t weather_data;
+
 /* 电池数据缓存 (由 Battery_UpdateCache() 写入,
  * LVGL定时器通过 Battery_Widget_Update() 只读缓存) */
 static volatile uint8_t  cached_battery_pct = 100;
@@ -425,6 +429,7 @@ static void status_bar_timer_cb(lv_timer_t *timer)
     Solar_Widget_Update();//更新home页太阳能卡片的电压显示
     Device_Widget_Update();//更新设备在线卡片显示
     Alert_Widget_Update();//更新告警卡片显示
+    Weather_Widget_Update();//更新天气容器显示
 }
 
 /**
@@ -514,6 +519,7 @@ void Battery_Widget_Init(lv_obj_t *parent)
     Solar_Widget_Update();//更新home页太阳能卡片的电压显示
     Device_Widget_Update();//更新设备在线卡片显示
     Alert_Widget_Update();//更新告警卡片显示
+    Weather_Widget_Update();//更新天气容器显示
 }
 
 /**
@@ -546,6 +552,54 @@ void Alert_Widget_Update(void)
     char buf[16];
     snprintf(buf, sizeof(buf), "%d", g_alert_stats.err_total);
     lv_label_set_text(guider_ui.screen_user_home_card_alert_val, buf);
+}
+
+/**
+ * @brief  更新home页天气容器中的组件 (文字+图标+昼夜指示)
+ * @note   只读 weather_data 全局变量更新UI, 由LVGL定时器回调调用
+ */
+void Weather_Widget_Update(void)
+{
+    if (!lv_obj_is_valid(guider_ui.screen_user_home_label_1) ||
+        !lv_obj_is_valid(guider_ui.screen_user_home_label_2))
+    {
+        return;
+    }
+
+    /* 更新天气文字 */
+    const char* Weather_buff = Weather_GetShortDesc(weather_data.weather_code);
+    lv_label_set_text(guider_ui.screen_user_home_label_1, Weather_buff);
+
+    /* 更新天气图标 (直接是label) */
+    if (lv_obj_is_valid(guider_ui.screen_user_home_weather_icon))
+    {
+        uint32_t icon_color = Weather_GetIconColor(weather_data.weather_code);
+        lv_color_t color = lv_color_hex(icon_color);
+        lv_obj_set_style_text_color(guider_ui.screen_user_home_weather_icon, color, 0);
+        lv_label_set_text(guider_ui.screen_user_home_weather_icon, Weather_GetSymbol(weather_data.weather_code));
+    }
+
+    /* 更新昼夜指示 (☀/☾ 图标 + 颜色) */
+    if (weather_data.is_day == 1)
+    {
+        lv_label_set_text(guider_ui.screen_user_home_label_2, "白天 ");  /* 白天 */
+        if (lv_obj_is_valid(guider_ui.screen_user_home_daynight_dot))
+        {
+            lv_label_set_text(guider_ui.screen_user_home_daynight_dot, LV_SYMBOL_CERTIFICATE);  /* ☀ */
+            lv_obj_set_style_text_color(guider_ui.screen_user_home_daynight_dot,
+                    lv_color_hex(0xFFC107), 0);  /* 金色 */
+        }
+    }
+    else
+    {
+        lv_label_set_text(guider_ui.screen_user_home_label_2, "夜晚 ");  /* 夜晚 */
+        if (lv_obj_is_valid(guider_ui.screen_user_home_daynight_dot))
+        {
+            lv_label_set_text(guider_ui.screen_user_home_daynight_dot, LV_SYMBOL_MOON);  /* ☽ */
+            lv_obj_set_style_text_color(guider_ui.screen_user_home_daynight_dot,
+                    lv_color_hex(0x5C6BC0), 0);  /* 靛蓝 */
+        }
+    }
 }
 
 /**

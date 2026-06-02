@@ -185,6 +185,12 @@ void Device_Widget_Update(void);
  */
 void Alert_Widget_Update(void);
 
+/**
+ * @brief  更新home页天气容器中的组件 (文字+图标+昼夜指示)
+ * @note   只读 weather_data 全局变量更新UI, 由LVGL定时器回调调用
+ */
+void Weather_Widget_Update(void);
+
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
