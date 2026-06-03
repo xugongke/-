@@ -276,8 +276,8 @@
               </OCR_RVCT3>
               <OCR_RVCT4>
                 <Type>1</Type>
-                <StartAddress>0x8000000</StartAddress>
-                <Size>0x100000</Size>
+                <StartAddress>0x8080000</StartAddress>
+                <Size>0x80000</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
                 <Type>1</Type>
@@ -880,6 +880,11 @@
               <FileName>mppt.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Core\Src\mppt.c</FilePath>
+            </File>
+            <File>
+              <FileName>bank_switch.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\bank_switch.c</FilePath>
             </File>
           </Files>
         </Group>

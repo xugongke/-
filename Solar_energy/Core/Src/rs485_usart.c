@@ -8,6 +8,7 @@
 #include "host_comm.h"
 #include "es1642_usage_guide.h"
 #include "device_manager.h"
+#include "bank_switch.h"
 
 /* ===================== 接收缓冲区定义 ===================== */
 __attribute__((section("RW_IRAM1")))// 放到普通 SRAM（0x20000000）
@@ -171,6 +172,7 @@ void Process_USART1_Data(uint8_t *data, uint16_t len)
     
     // TODO: 在这里添加USART1的数据解析逻辑
     // 例如：Modbus协议解析、自定义协议解析等
+		BANK_ProcessCommand((const char *)data);
 }
 
 void Process_USART6_Data(uint8_t *data, uint16_t len)

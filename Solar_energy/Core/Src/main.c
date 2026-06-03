@@ -38,6 +38,7 @@
 #include "lv_port_disp.h"
 #include "rs485_usart.h"
 #include "battery.h"
+#include "bank_switch.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -90,7 +91,6 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -126,6 +126,9 @@ int main(void)
 	Solar_UpdateCache();//更新一次太阳能电压缓存
 	//注册搬运图像数据完成回调函数
 	HAL_DMA_RegisterCallback(&hdma_memtomem_dma2_stream4, HAL_DMA_XFER_CPLT_CB_ID, LVGL_LCD_FSMC_DMA_pCallback);
+
+	/* 打印双Bank信息，用于验证Bank切换是否成功 */
+	BANK_PrintInfo();
   /* USER CODE END 2 */
 
   /* Init scheduler */
