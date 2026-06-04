@@ -4,11 +4,16 @@
 #include "wiz_interface.h"
 #include <stdio.h>
 #include <stdint.h>
-#include "interrupt.h" 
+#include "interrupt.h"
+#include "FreeRTOS.h"
+#include "semphr.h"
 
 extern SPI_HandleTypeDef hspi1;
 extern UART_HandleTypeDef huart1;
 extern TIM_HandleTypeDef htim2;
+
+/* W5500中断信号量 (user_main.c中创建) */
+extern SemaphoreHandle_t w5500_int_sem;
 
 /**
  * @brief   SPI 选择 wizchip
@@ -133,6 +138,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     {
         wizchip_ISR();
         __HAL_GPIO_EXTI_CLEAR_IT(GPIO_Pin);
+
+        /* 释放信号量, 唤醒W5500任务处理中断事件 */
+        if (w5500_int_sem != NULL)
+        {
+            BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+            xSemaphoreGiveFromISR(w5500_int_sem, &xHigherPriorityTaskWoken);
+            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+        }
     }
 }
-

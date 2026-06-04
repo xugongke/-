@@ -9,6 +9,7 @@
 
 #include "cmsis_os.h"
 #include "stream_buffer.h"
+#include "semphr.h"
 #include "main.h"
 
 /* ==================== 网络配置 ==================== */
@@ -26,6 +27,9 @@ static uint8_t ethernet_buf[ETHERNET_BUF_MAX_SIZE] = {0};
 
 /* ==================== 流缓冲区 ==================== */
 StreamBufferHandle_t tcp_stream_buf = NULL;
+
+/* ==================== W5500中断信号量 ==================== */
+SemaphoreHandle_t w5500_int_sem = NULL;
 
 /* ==================== 帧解析器 ==================== */
 static FrameParser_t frame_parser;
@@ -261,25 +265,44 @@ void W5500_Task(void *argument)
         Error_Handler();
     }
 
+    /* 创建W5500中断信号量 (二值信号量, 初始为空) */
+    w5500_int_sem = xSemaphoreCreateBinary();
+    if (w5500_int_sem == NULL)
+    {
+        printf("W5500 interrupt semaphore create failed!\r\n");
+        Error_Handler();
+    }
+
     /* 初始化帧解析器 */
     frame_parser_init(&frame_parser);
 
-    /* Infinite loop */
+    /* Infinite loop
+     *
+     * 流程:
+     * 1. 阻塞等待信号量 (EXTI中断释放)
+     * 2. W5500中断发生 → wizchip_ISR()记录中断类型 → 释放信号量
+     * 3. 任务被唤醒 → loopback_tcps_interrupt() 处理中断事件
+     *    - 连接/断开事件: 管理TCP状态
+     *    - 数据接收事件: recv() → 写入Stream Buffer
+     * 4. 从Stream Buffer读取数据 → 喂给帧解析状态机
+     */
     for (;;)
     {
-        uint8_t recv_buf[128];
-        size_t received_bytes = xStreamBufferReceive(tcp_stream_buf,
-                                                     recv_buf,
-                                                     sizeof(recv_buf),
-                                                     pdMS_TO_TICKS(1000));
+        /* 阻塞等待W5500中断信号量, 超时1秒 */
+        xSemaphoreTake(w5500_int_sem, pdMS_TO_TICKS(1000));
 
-        if (received_bytes > 0)
+        /* 处理W5500中断事件 (连接管理 + 数据接收 → 写入Stream Buffer) */
+        loopback_tcps_interrupt(SOCKET_ID, ethernet_buf, local_port);
+
+        /* 从Stream Buffer中取出数据, 喂给帧解析状态机 (非阻塞, 一次全部读完) */
+        uint8_t recv_buf[128];
+        size_t received_bytes;
+        while ((received_bytes = xStreamBufferReceive(tcp_stream_buf,
+                                                       recv_buf,
+                                                       sizeof(recv_buf),
+                                                       0)) > 0)
         {
-            /* 喂给帧解析状态机 */
             frame_parser_feed(&frame_parser, recv_buf, (uint16_t)received_bytes);
         }
-
-        /* 处理TCP连接状态管理 (放在主循环中以非阻塞方式运行) */
-        loopback_tcps_interrupt(SOCKET_ID, ethernet_buf, local_port);
     }
 }
