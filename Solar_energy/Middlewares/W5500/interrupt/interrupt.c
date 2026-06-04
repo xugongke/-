@@ -1,17 +1,17 @@
 #include "interrupt.h"
-#include "socket.h" // Use socket
+#include "socket.h"
 #include "wiz_interface.h"
 #include <stdio.h>
-#include "string.h"
+#include <string.h>
 #include "main.h"
-#include "device_manager.h"
-#include "es1642_usage_guide.h"
+#include "stream_buffer.h"
 #include "host_comm.h"
+#include "device_manager.h"
 
-#define ETHERNET_BUF_MAX_SIZE (1024 * 2) // Send and receive cache size
-#define INTERRUPT_DEBUG
+#define ETHERNET_BUF_MAX_SIZE (1024 * 2)
+
 #if (_WIZCHIP_ == W5500)
-#define IR_SOCK(ch) (0x01 << ch) /**< check socket interrupt */
+#define IR_SOCK(ch) (0x01 << ch)
 #endif
 
 enum SN_STATUS
@@ -20,8 +20,15 @@ enum SN_STATUS
     ready_status,
     connected_status,
 };
-static uint8_t I_STATUS[_WIZCHIP_SOCK_NUM_];
+
+static uint8_t I_STATUS[_WIZCHIP_SOCK_NUM_] = {0};
 static uint8_t ch_status[_WIZCHIP_SOCK_NUM_] = {0};
+
+/* TCP连接状态标志 (供其他模块查询) */
+volatile uint8_t g_tcp_connected = 0;
+
+/* 外部流缓冲区句柄 (user_main.c中创建) */
+extern StreamBufferHandle_t tcp_stream_buf;
 
 /**
  * @brief   确定中断类型并将值存储在 I_STATUS 中
@@ -53,9 +60,11 @@ void wizchip_ISR(void)
 }
 
 /**
- * @brief   TCP 服务器中断模式回环
- * @param   none
- * @return  none
+ * @brief   TCP服务器连接状态管理 + 原始数据接收
+ * @param   sn:   socket编号
+ * @param   buf:  接收缓冲区 (仅用于断开时读取残留数据)
+ * @param   port: 监听端口
+ * @note    接收到的数据直接送入流缓冲区，不在此处做协议解析
  */
 void loopback_tcps_interrupt(uint8_t sn, uint8_t *buf, uint16_t port)
 {
@@ -63,14 +72,12 @@ void loopback_tcps_interrupt(uint8_t sn, uint8_t *buf, uint16_t port)
     uint8_t destip[4];
     uint16_t destport;
 
+    /* ---- Socket关闭处理 ---- */
     if (I_STATUS[sn] == SOCK_CLOSED)
     {
-
         if (!ch_status[sn])
         {
-#ifdef INTERRUPT_DEBUG
             printf("%d:TCP server start\r\n", sn);
-#endif
             ch_status[sn] = ready_status;
 
             if (socket(sn, Sn_MR_TCP, port, 0x00) != sn)
@@ -79,52 +86,49 @@ void loopback_tcps_interrupt(uint8_t sn, uint8_t *buf, uint16_t port)
             }
             else
             {
-#ifdef INTERRUPT_DEBUG
                 printf("%d:Socket opened\r\n", sn);
-#endif
                 listen(sn);
-#ifdef INTERRUPT_DEBUG
                 printf("%d:Listen, TCP server loopback, port [%d]\r\n", sn, port);
-#endif
             }
         }
     }
+
+    /* ---- 新连接 ---- */
     if (I_STATUS[sn] & Sn_IR_CON)
     {
         getSn_DIPR(sn, destip);
         destport = getSn_DPORT(sn);
-#ifdef INTERRUPT_DEBUG
-        printf("%d:Connected - %d.%d.%d.%d : %d\r\n", sn, destip[0], destip[1], destip[2], destip[3], destport);
+        printf("%d:Connected - %d.%d.%d.%d : %d\r\n",
+               sn, destip[0], destip[1], destip[2], destip[3], destport);
 
-#endif
         ch_status[sn] = connected_status;
-        g_host_busy = 1;  /* TCP上位机已连接，暂停轮询 */
+        g_tcp_connected = 1;
+        g_host_busy = 1;
         I_STATUS[sn] &= ~(Sn_IR_CON);
     }
 
+    /* ---- 断开连接 ---- */
     if (I_STATUS[sn] & Sn_IR_DISCON)
     {
         printf("%d:套接字已断开\r\n", sn);
-        g_host_busy = 0;  /* TCP上位机断开，恢复轮询 */
-        tcp_clear_search_socket();  /* 断开时清除搜索socket */
+        g_tcp_connected = 0;
+        g_host_busy = 0;
+        tcp_clear_search_socket();
+
+        /* 读取并丢弃RX缓冲区中的残留数据 */
         if ((getSn_RX_RSR(sn)) > 0)
         {
             len = getSn_RX_RSR(sn);
-
             if (len > ETHERNET_BUF_MAX_SIZE)
-            {
                 len = ETHERNET_BUF_MAX_SIZE;
-            }
             recv(sn, buf, len);
-            buf[len] = 0x00;
-            printf("%d:recv data:%s\r\n", sn, buf);
-            I_STATUS[sn] &= ~(Sn_IR_RECV);
         }
         disconnect(sn);
         ch_status[sn] = closed_status;
         I_STATUS[sn] &= ~(Sn_IR_DISCON);
     }
 
+    /* ---- 数据接收: 仅转发原始字节到流缓冲区 ---- */
     if (I_STATUS[sn] & Sn_IR_RECV)
     {
 #if (_WIZCHIP_ == W5100S)
@@ -140,54 +144,23 @@ void loopback_tcps_interrupt(uint8_t sn, uint8_t *buf, uint16_t port)
 #elif (_WIZCHIP_ == W5500)
         setIMR(0xff);
 #endif
-        if ((getSn_RX_RSR(sn)) > 0)//正常通信时的实时数据接收
+
+        if ((getSn_RX_RSR(sn)) > 0)
         {
             len = getSn_RX_RSR(sn);
-
             if (len > ETHERNET_BUF_MAX_SIZE)
-            {
                 len = ETHERNET_BUF_MAX_SIZE;
-            }
             len = recv(sn, buf, len);
-            buf[len] = 0x00;
-            printf("%d:recv data:%s\r\n", sn, buf);
-						
-						
-						if (strncmp((char*)buf, "LIST", 4) == 0)
-						{
-								tcp_send_device_list(sn);
-								return;
-						}
-						if (strncmp((char*)buf, "BIND,", 5) == 0)//进行修改通信地址并入网
-						{
-								tcp_handle_bind_cmd(sn,(const char *)buf);
-								return;
-						}
-						if (strncmp((char*)buf, "SEARCH_START", 12) == 0)//启动设备搜索
-						{
-								tcp_set_search_socket(sn);
-								int ret = ES1642_StartSearch(0, ES1642_SEARCH_RULE_ALL);  /* depth=0(自动), rule=搜索所有设备 */
-								if(ret != 0)
-								{
-									send(sn, (uint8_t *)"给模块发送启动搜索命令失败\n", sizeof("给模块发送启动搜索命令失败\n"));
-								}
-								/* OK在es1642_on_frame_received中收到ES1642响应后发送 */
-								return;
-						}
-						if (strncmp((char*)buf, "SEARCH_STOP", 11) == 0)//停止设备搜索
-						{
-								int ret = ES1642_StopSearch();
-								if(ret != 0)
-								{
-									send(sn, (uint8_t *)"给模块发送停止搜索命令失败\n", sizeof("给模块发送停止搜索命令失败\n"));
-								}
-								/* SEARCH_DONE在es1642_on_frame_received中收到ES1642响应后发送 */
-								return;
-						}
-						
+
+            /* 将原始字节流送入Stream Buffer */
+            if (tcp_stream_buf != NULL && len > 0)
+            {
+                xStreamBufferSend(tcp_stream_buf, buf, len, 0);
+            }
         }
     }
 
+    /* ---- 发送完成 ---- */
     if (I_STATUS[sn] & Sn_IR_SENDOK)
     {
         I_STATUS[sn] &= ~(Sn_IR_SENDOK);
