@@ -4,7 +4,6 @@
 #include "wiz_interface.h"
 #include <stdio.h>
 #include <stdint.h>
-#include "interrupt.h"
 #include "FreeRTOS.h"
 #include "semphr.h"
 
@@ -136,7 +135,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
     if (GPIO_Pin == W5500_INT_Pin)
     {
-        wizchip_ISR();
         __HAL_GPIO_EXTI_CLEAR_IT(GPIO_Pin);
 
         /* 释放信号量, 唤醒W5500任务处理中断事件 */

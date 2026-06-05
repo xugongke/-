@@ -3804,11 +3804,6 @@
               <FilePath>..\Middlewares\W5500\wiz_platform\wiz_platform.c</FilePath>
             </File>
             <File>
-              <FileName>interrupt.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Middlewares\W5500\interrupt\interrupt.c</FilePath>
-            </File>
-            <File>
               <FileName>tcp_cmd_handler.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Middlewares\W5500\user_main\tcp_cmd_handler.c</FilePath>

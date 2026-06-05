@@ -23,6 +23,7 @@
 #include "key.h"
 #include "lv_group.h"
 #include "tim.h"
+#include "gui_guider.h"
 /*********************
  *      DEFINES
  *********************/
@@ -353,6 +354,16 @@ static void keypad_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
                 act_key = LV_KEY_DOWN;//down
                 break;
 				/* 这里可以添加更多操作符 */
+        }
+
+        /* Home页面: 禁用 NEXT/PREV 自动焦点切换, 仅用 LEFT/RIGHT 切换卡片 */
+        if(act_key == LV_KEY_NEXT || act_key == LV_KEY_PREV) {
+            lv_obj_t *act_scr = lv_disp_get_scr_act(NULL);
+            if(act_scr != NULL && act_scr == guider_ui.screen_user_home) {
+                data->state = LV_INDEV_STATE_REL;  /* 视为已释放, 避免残留 PRESSED 状态 */
+                data->key = 0;
+                return;
+            }
         }
 
         last_key = act_key;

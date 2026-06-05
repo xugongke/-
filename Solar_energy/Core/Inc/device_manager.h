@@ -117,9 +117,6 @@ int device_read_status_ex(int dev_index);
  */
 void device_poll_all_status(void);
 
-/* 上位机忙碌标志: 1=上位机正在操作(TCP已连接/RS485绑定中), 轮询暂停 */
-extern volatile uint8_t g_host_busy;
-
 // ================== 告警预扫描数据 ==================
 
 /**

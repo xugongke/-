@@ -4,7 +4,6 @@
 #include <string.h>
 #include "wizchip_conf.h"
 #include "wiz_interface.h"
-#include "interrupt.h"
 #include "socket.h"
 
 #include "cmsis_os.h"
@@ -23,7 +22,10 @@ wiz_NetInfo default_net_info = {
     .dhcp = NETINFO_DHCP
 };
 
-static uint16_t tcp_port = 8080;
+/* 上位机服务器IP和端口 */
+static uint8_t  server_ip[4] = {192, 168, 6, 196};
+static uint16_t server_port  = 22222;
+
 static uint8_t ethernet_buf[ETHERNET_BUF_MAX_SIZE] = {0};
 
 /* ==================== 流缓冲区 ==================== */
@@ -35,12 +37,8 @@ SemaphoreHandle_t w5500_int_sem = NULL;
 /* ==================== 帧解析器 ==================== */
 static FrameParser_t frame_parser;
 
-/* ==================== UDP发现相关 ==================== */
-static uint8_t udp_buf[64];
-static uint16_t udp_remote_port;
-
-/* ==================== 外部变量 (interrupt.c中定义) ==================== */
-extern volatile uint8_t g_tcp_connected;
+/* ==================== 连接状态标志 ==================== */
+volatile uint8_t g_tcp_connected = 0;
 
 /* ================================================================
  *  CRC16-CCITT 软件实现 (反射版本, 与上位机一致)
@@ -126,7 +124,7 @@ void frame_parser_reset(FrameParser_t *parser)
  * @brief   帧解析状态机 - 逐字节消费流数据
  *
  * 协议格式: [0x0D][TYPE][CMD][LEN_H][LEN_L][DATA...][CRC_H][CRC_L][0x0E]
- * CRC范围: TYPE + CMD + LEN_H + LEN_L + DATA...
+ * CRC范围: 帧头 + TYPE + CMD + LEN_H + LEN_L + DATA...
  */
 static void frame_parser_process_byte(FrameParser_t *parser, uint8_t byte)
 {
@@ -138,7 +136,6 @@ static void frame_parser_process_byte(FrameParser_t *parser, uint8_t byte)
             if (byte == FRAME_HEADER)
             {
                 parser->state = FRAME_STATE_WAIT_TYPE;
-                /* 重置其他字段 */
                 parser->frame_type = 0;
                 parser->frame_cmd = 0;
                 parser->length_idx = 0;
@@ -184,7 +181,6 @@ static void frame_parser_process_byte(FrameParser_t *parser, uint8_t byte)
 
                 if (parser->data_len == 0)
                 {
-                    /* 数据长度为0, 跳过数据域, 直接进入CRC接收 */
                     parser->state = FRAME_STATE_WAIT_CRC;
                     parser->crc_idx = 0;
                 }
@@ -204,14 +200,13 @@ static void frame_parser_process_byte(FrameParser_t *parser, uint8_t byte)
 
             if (parser->data_index >= parser->data_len)
             {
-                /* 数据域接收完成, 进入CRC接收 */
                 parser->state = FRAME_STATE_WAIT_CRC;
                 parser->crc_idx = 0;
             }
             break;
         }
 
-        /* ---- 状态6: 等待CRC16校验 (2字节, 大端序) ---- */
+        /* ---- 状态6: 等待CRC16校验 (2字节, 小端序) ---- */
         case FRAME_STATE_WAIT_CRC:
         {
             parser->crc_buf[parser->crc_idx++] = byte;
@@ -228,9 +223,7 @@ static void frame_parser_process_byte(FrameParser_t *parser, uint8_t byte)
         {
             if (byte == FRAME_TAIL)
             {
-                /* ★ 帧尾匹配, 校验CRC ★ */
-
-                /* 增量式CRC计算: 帧头 + 帧类型 + 命令字 + 长度 + 数据域 (与上位机一致) */
+                /* CRC校验: 帧头 + 帧类型 + 命令字 + 长度 + 数据域 */
                 uint16_t calc_crc = 0x0000;
                 calc_crc = (calc_crc >> 8) ^ crc16_table[(calc_crc ^ FRAME_HEADER) & 0xFF];
                 calc_crc = (calc_crc >> 8) ^ crc16_table[(calc_crc ^ parser->frame_type) & 0xFF];
@@ -241,13 +234,12 @@ static void frame_parser_process_byte(FrameParser_t *parser, uint8_t byte)
                 {
                     calc_crc = (calc_crc >> 8) ^ crc16_table[(calc_crc ^ parser->data_buf[i]) & 0xFF];
                 }
-                /* CRC以小端序存储 (与上位机x86一致) */
+                /* CRC以小端序存储 */
                 uint16_t recv_crc = (uint16_t)parser->crc_buf[0] |
                                     ((uint16_t)parser->crc_buf[1] << 8);
 
                 if (calc_crc == recv_crc)
                 {
-                    /* CRC校验通过, 回调处理 */
                     tcp_frame_handler(parser->frame_type,
                                       parser->frame_cmd,
                                       parser->data_buf,
@@ -265,10 +257,7 @@ static void frame_parser_process_byte(FrameParser_t *parser, uint8_t byte)
                        FRAME_TAIL, byte);
             }
 
-            /* 无论成功失败, 重置解析器 */
             frame_parser_reset(parser);
-
-            /* 如果当前字节恰好是新帧头 */
             if (byte == FRAME_HEADER)
             {
                 parser->state = FRAME_STATE_WAIT_TYPE;
@@ -291,33 +280,11 @@ void frame_parser_feed(FrameParser_t *parser, const uint8_t *data, uint16_t len)
 }
 
 /* ================================================================
- *  用户回调 - 在此实现命令分发逻辑
+ *  帧组装与发送
  * ================================================================ */
 
 /**
- * @brief   帧接收完成回调
- * @param   type: 帧类型
- * @param   cmd:  命令字
- * @param   data: 数据域指针
- * @param   len:  数据域长度
- */
-void tcp_frame_handler(uint8_t type, uint8_t cmd, const uint8_t *data, uint16_t len)
-{
-    /* 命令分发: 交给 tcp_cmd_handler 处理 */
-    tcp_dispatch_frame(type, cmd, data, len);
-}
-
-/**
- * @brief   按帧协议格式组装并发送数据
- * @param   type: 帧类型
- * @param   cmd:  命令字
- * @param   data: 数据域指针
- * @param   len:  数据域长度
- *
- * 发送格式: [0x0D][TYPE][CMD][LEN_H][LEN_L][DATA...][CRC_H][CRC_L][0x0E]
- */
-/**
- * @brief   按帧协议格式组装数据到指定缓冲区 (内部共用)
+ * @brief   按帧协议格式组装数据到指定缓冲区
  * @param   buf:  输出缓冲区
  * @param   type: 帧类型
  * @param   cmd:  命令字
@@ -350,6 +317,17 @@ static uint16_t build_frame(uint8_t *buf, uint8_t type, uint8_t cmd,
     return idx;
 }
 
+/**
+ * @brief   帧接收完成回调
+ */
+void tcp_frame_handler(uint8_t type, uint8_t cmd, const uint8_t *data, uint16_t len)
+{
+    tcp_dispatch_frame(type, cmd, data, len);
+}
+
+/**
+ * @brief   按帧协议格式组装并发送数据到TCP服务器
+ */
 void tcp_send_frame(uint8_t type, uint8_t cmd, const uint8_t *data, uint16_t len)
 {
     if (!g_tcp_connected)
@@ -363,87 +341,93 @@ void tcp_send_frame(uint8_t type, uint8_t cmd, const uint8_t *data, uint16_t len
 }
 
 /* ================================================================
- *  UDP设备发现处理
+ *  TCP客户端连接管理
  * ================================================================ */
 
 /**
- * @brief   检查是否为合法发现请求帧
- * @param   data: 收到的UDP数据
- * @param   len:  数据长度
- * @return  1=合法发现请求, 0=不是
+ * @brief   尝试连接上位机TCP服务器
+ * @return  0=成功, -1=失败
  */
-static int is_discover_frame(const uint8_t *data, uint16_t len)
+static int tcp_client_connect(void)
 {
-    /* 完整帧长度: 1(头)+1(type)+1(cmd)+2(len)+2(crc)+1(tail) = 8字节 */
-    if (len != 8)
-        return 0;
+    printf("TCP connecting to %d.%d.%d.%d:%d...\r\n",
+           server_ip[0], server_ip[1], server_ip[2], server_ip[3], server_port);
 
-    /* 检查帧头 */
-    if (data[0] != FRAME_HEADER)
-        return 0;
+    /* 先关闭socket */
+    close(TCP_SOCKET_ID);
 
-    /* 检查帧类型和命令字 */
-    if (data[1] != FRAME_TYPE_REQUEST || data[2] != 0x01)
-        return 0;
+    /* 打开TCP socket */
+    if (socket(TCP_SOCKET_ID, Sn_MR_TCP, 0, 0x00) != TCP_SOCKET_ID)
+    {
+        printf("Socket open failed\r\n");
+        return -1;
+    }
 
-    /* 检查数据域长度为0 */
-    if (data[3] != 0x00 || data[4] != 0x00)
-        return 0;
+    /* 连接服务器 */
+    if (connect(TCP_SOCKET_ID, server_ip, server_port) != SOCK_OK)
+    {
+        printf("Connect failed\r\n");
+        close(TCP_SOCKET_ID);
+        return -1;
+    }
 
-    /* 检查CRC */
-    uint16_t calc_crc = crc16_ccitt(&data[0], 5);  /* CRC范围: header+type+cmd+len */
-    uint16_t recv_crc = (uint16_t)data[5] | ((uint16_t)data[6] << 8);
-    if (calc_crc != recv_crc)
-        return 0;
-
-    /* 检查帧尾 */
-    if (data[7] != FRAME_TAIL)
-        return 0;
-
-    return 1;
+    printf("TCP connected\r\n");
+    g_tcp_connected = 1;
+    return 0;
 }
 
+/* ================================================================
+ *  TCP客户端事件处理
+ * ================================================================ */
+
 /**
- * @brief   处理UDP发现请求 (Socket 0)
- * @note    收到广播帧后, 验证CRC, 回复设备IP+TCP端口
- *
- *  响应数据域: [IP[4]][TCP端口H][TCP端口L] = 6字节
+ * @brief   处理Socket 1的中断事件
+ * @note    与loopback_tcps_interrupt类似, 但为客户端模式
  */
-void udp_discover_handler(void)
+static void tcp_client_process(void)
 {
     uint16_t len;
-    uint8_t remote_ip[4];
-    uint16_t remote_port;
 
-    len = getSn_RX_RSR(SOCKET_ID);
-    if (len == 0)
-        return;
-    if (len > sizeof(udp_buf))
-        len = sizeof(udp_buf);
+    /* 检查连接状态 */
+    uint8_t sr = getSn_SR(TCP_SOCKET_ID);
 
-    /* UDP接收: 获取发送方IP和端口 */
-    len = recvfrom(SOCKET_ID, udp_buf, len, remote_ip, &remote_port);
-    if (len == 0)
-        return;
+    if (sr == SOCK_ESTABLISHED)
+    {
+        if (!g_tcp_connected)
+        {
+            g_tcp_connected = 1;
+            printf("TCP client: connected\r\n");
+        }
 
-    printf("UDP recv from %d.%d.%d.%d:%d, len=%d\r\n",
-           remote_ip[0], remote_ip[1], remote_ip[2], remote_ip[3], remote_port, len);
+        /* 读取数据 */
+        len = getSn_RX_RSR(TCP_SOCKET_ID);
+        if (len > 0)
+        {
+            if (len > ETHERNET_BUF_MAX_SIZE)
+                len = ETHERNET_BUF_MAX_SIZE;
+            len = recv(TCP_SOCKET_ID, ethernet_buf, len);
 
-    /* 已建立TCP连接, 不再回复UDP广播 */
-    if (g_tcp_connected)
-        return;
-
-    /* 验证是否为合法的设备发现帧 */
-    if (!is_discover_frame(udp_buf, len))
-        return;
-
-    /* 组帧并发送UDP回复 (数据域长度为0) */
-    uint8_t send_frame[32];
-    uint16_t frame_len = build_frame(send_frame, FRAME_TYPE_RESPONSE,
-                                     0x01, NULL, 0);
-
-    sendto(SOCKET_ID, send_frame, frame_len, remote_ip, remote_port);
-    printf("UDP discover reply sent\r\n");
+            if (tcp_stream_buf != NULL && len > 0)
+            {
+                xStreamBufferSend(tcp_stream_buf, ethernet_buf, len, 0);
+            }
+        }
+    }
+    else if (sr == SOCK_CLOSE_WAIT)
+    {
+        disconnect(TCP_SOCKET_ID);
+        g_tcp_connected = 0;
+        printf("TCP client: close wait, disconnecting\r\n");
+    }
+    else if (sr == SOCK_CLOSED)
+    {
+        if (g_tcp_connected)
+        {
+            g_tcp_connected = 0;
+            printf("TCP client: disconnected\r\n");
+        }
+        /* 不在此处重连, 由主循环处理 */
+    }
 }
 
 /* ================================================================
@@ -453,18 +437,15 @@ void udp_discover_handler(void)
 void W5500_Task(void *argument)
 {
     /* wizchip 初始化 */
-    printf("W5500 stream buffer + frame parser example\r\n");
+    printf("W5500 TCP client\r\n");
     wizchip_initialize();
 
     /* 设置网络信息 */
     network_init(ethernet_buf, &default_net_info);
-    setSIMR(0xff);              /* 启用所有Socket中断 */
-    setSn_IMR(SOCKET_ID, 0x0f);     /* Socket 0 (UDP) 中断 */
-    setSn_IMR(TCP_SOCKET_ID, 0x0f); /* Socket 1 (TCP) 中断 */
 
-    /* 初始化 Socket 0 为UDP (设备发现) */
-    printf("Socket 0: UDP discover, port %d\r\n", UDP_DISCOVER_PORT);
-    socket(SOCKET_ID, Sn_MR_UDP, UDP_DISCOVER_PORT, 0x00);
+    /* 启用Socket中断 */
+    setSIMR(0xff);
+    setSn_IMR(TCP_SOCKET_ID, 0x0f);
 
     /* 创建流缓冲区 */
     tcp_stream_buf = xStreamBufferCreate(TCP_STREAM_BUF_SIZE, 1);
@@ -485,28 +466,25 @@ void W5500_Task(void *argument)
     /* 初始化帧解析器 */
     frame_parser_init(&frame_parser);
 
-    /* Infinite loop
-     *
-     * 流程:
-     * 1. 阻塞等待信号量 (EXTI中断释放)
-     * 2. W5500中断发生 → wizchip_ISR()记录中断类型 → 释放信号量
-     * 3. 任务被唤醒 → loopback_tcps_interrupt() 处理中断事件
-     *    - 连接/断开事件: 管理TCP状态
-     *    - 数据接收事件: recv() → 写入Stream Buffer
-     * 4. 从Stream Buffer读取数据 → 喂给帧解析状态机 (超时0, 不阻塞)
-     */
+    /* 尝试连接上位机服务器 */
+    tcp_client_connect();
+
+    /* Infinite loop */
     for (;;)
     {
-        /* 阻塞等待W5500中断信号量, 超时1秒 */
-        xSemaphoreTake(w5500_int_sem, pdMS_TO_TICKS(1000));
+        /* 阻塞等待W5500中断信号量, 超时3秒 (也用于断线重连检测) */
+        xSemaphoreTake(w5500_int_sem, pdMS_TO_TICKS(3000));
 
-        /* 处理 Socket 0: UDP设备发现 */
-        udp_discover_handler();
+        /* 处理TCP客户端事件 (连接/断开/数据接收) */
+        tcp_client_process();
 
-        /* 处理 Socket 1: TCP服务器 (连接管理 + 数据接收 → 写入Stream Buffer) */
-        loopback_tcps_interrupt(TCP_SOCKET_ID, ethernet_buf, tcp_port);
+        /* 断线重连 */
+        if (!g_tcp_connected)
+        {
+            tcp_client_connect();
+        }
 
-        /* 从Stream Buffer中取出数据, 喂给帧解析状态机 (非阻塞, 一次全部读完) */
+        /* 从Stream Buffer中取出数据, 喂给帧解析状态机 (非阻塞) */
         uint8_t recv_buf[128];
         size_t received_bytes;
         while ((received_bytes = xStreamBufferReceive(tcp_stream_buf,

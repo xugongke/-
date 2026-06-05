@@ -294,7 +294,6 @@
 "lcd_pj\user_main.o"
 "lcd_pj\wiz_interface.o"
 "lcd_pj\wiz_platform.o"
-"lcd_pj\interrupt.o"
 "lcd_pj\tcp_cmd_handler.o"
 "lcd_pj\a7680c.o"
 "lcd_pj\a7680c_at.o"

@@ -28,6 +28,30 @@ static uint8_t s_home_focus_card = 1;  /* 默认设备在线卡片 */
 
 /* ======== Home 页事件处理 ======== */
 
+/**
+ * @brief  Home页面卡片按键处理 (LV_EVENT_KEY)
+ *         将 LV_KEY_LEFT / LV_KEY_RIGHT 映射为 group 内的焦点切换,
+ *         而非使用默认的 LV_KEY_NEXT / LV_KEY_PREV。
+ *         同时阻止事件继续传播, 防止 LVGL 对卡片内容进行滚动。
+ */
+static void screen_user_home_card_key_handler(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if (code != LV_EVENT_KEY) return;
+
+    uint32_t key = lv_event_get_key(e);
+    if (key == LV_KEY_LEFT) {
+        lv_group_focus_prev(g_keypad_group);
+        lv_event_stop_processing(e);
+        lv_event_stop_bubbling(e);
+    }
+    else if (key == LV_KEY_RIGHT) {
+        lv_group_focus_next(g_keypad_group);
+        lv_event_stop_processing(e);
+        lv_event_stop_bubbling(e);
+    }
+}
+
 static void screen_user_home_event_handler (lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
@@ -39,6 +63,19 @@ static void screen_user_home_event_handler (lv_event_t *e)
         lv_group_add_obj(g_keypad_group, guider_ui.screen_user_home_card_solar);
         lv_group_add_obj(g_keypad_group, guider_ui.screen_user_home_card_device);
         lv_group_add_obj(g_keypad_group, guider_ui.screen_user_home_card_alert);
+        //为每张卡片注册 LEFT/RIGHT 按键回调 (仅注册一次, 避免重复)
+        {
+            static bool s_card_key_cb_added = false;
+            if (!s_card_key_cb_added) {
+                lv_obj_add_event_cb(guider_ui.screen_user_home_card_solar,
+                                    screen_user_home_card_key_handler, LV_EVENT_KEY, NULL);
+                lv_obj_add_event_cb(guider_ui.screen_user_home_card_device,
+                                    screen_user_home_card_key_handler, LV_EVENT_KEY, NULL);
+                lv_obj_add_event_cb(guider_ui.screen_user_home_card_alert,
+                                    screen_user_home_card_key_handler, LV_EVENT_KEY, NULL);
+                s_card_key_cb_added = true;
+            }
+        }
         //将按键添加进焦点组
         lv_indev_set_group(indev_keypad, g_keypad_group);
         //恢复上次聚焦的卡片

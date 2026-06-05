@@ -178,7 +178,6 @@ void Process_USART1_Data(uint8_t *data, uint16_t len)
 void Process_USART6_Data(uint8_t *data, uint16_t len)
 {
 		/* 上位机通信期间暂停轮询避免干扰 */
-		g_host_busy = 1;
     printf("========== USART6 收到数据 (长度: %d) ==========\r\n", len);
     /* 命令解析 - 与TCP命令格式保持一致 */
 
@@ -186,14 +185,12 @@ void Process_USART6_Data(uint8_t *data, uint16_t len)
     {
         /* 读取设备列表 */
         rs485_send_device_list();
-				g_host_busy = 0;
         return;
     }
 
     if (strncmp((char *)data, "BIND,", 5) == 0)
     {
         rs485_handle_bind_cmd((const char *)data);
-				g_host_busy = 0;
         return;
     }
 
@@ -207,7 +204,6 @@ void Process_USART6_Data(uint8_t *data, uint16_t len)
 					rs485_usart6_send((const uint8_t *)"给模块发送启动搜索命令失败\n", strlen("给模块发送启动搜索命令失败\n"));
 				}
         /* OK在es1642_on_frame_received中收到ES1642响应后发送 */
-				g_host_busy = 0;
         return;
     }
 
@@ -220,13 +216,11 @@ void Process_USART6_Data(uint8_t *data, uint16_t len)
 					rs485_usart6_send((const uint8_t *)"给模块发送停止搜索命令失败\n", strlen("给模块发送停止搜索命令失败\n"));
 				}
         /* SEARCH_DONE在es1642_on_frame_received中收到ES1642响应后发送 */
-				g_host_busy = 0;
         return;
     }
 
     /* 未知命令 */
     rs485_usart6_send((const uint8_t *)"ERR,未知命令\n", strlen("ERR,未知命令\n"));
-		g_host_busy = 0;
 }
 
 void Process_UART4_Data(uint8_t *data, uint16_t len)

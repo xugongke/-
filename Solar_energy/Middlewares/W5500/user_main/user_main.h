@@ -3,9 +3,7 @@
 
 #include "stdint.h"
 
-#define SOCKET_ID 0             /* UDP发现 Socket */
-#define TCP_SOCKET_ID 1         /* TCP服务器 Socket */
-#define UDP_DISCOVER_PORT 8888  /* UDP广播监听端口 */
+#define TCP_SOCKET_ID 0         /* TCP客户端 Socket */
 #define ETHERNET_BUF_MAX_SIZE (1024 * 2)
 #define TCP_STREAM_BUF_SIZE   (1024 * 4)  /* TCP流缓冲区大小 */
 

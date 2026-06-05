@@ -24,9 +24,6 @@ uint16_t device_count = 0;
 // 标志：设备是否有变化（用于减少SD写入）
 static uint8_t device_changed = 0;
 
-// 上位机忙碌标志: 1=上位机正在操作, 轮询暂停
-volatile uint8_t g_host_busy = 0;
-
 /* 告警预扫描全局数据 */
 alert_stats_t g_alert_stats = {0};
 alert_item_t  g_alert_items[ALERT_MAX_ITEMS] = {0};
@@ -506,13 +503,6 @@ void device_poll_all_status(void)
     if (g_es1642_searching)
     {
         printf("正在搜索设备，跳过本次轮询\r\n");
-        return;
-    }
-
-    /* 上位机正在操作时暂停轮询，避免干扰入网等操作 */
-    if (g_host_busy)
-    {
-        printf("上位机正在操作，跳过本次轮询\r\n");
         return;
     }
 
