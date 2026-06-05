@@ -3,43 +3,56 @@
 
 #include "stdint.h"
 
-#define SOCKET_ID 0
+#define SOCKET_ID 0             /* UDP发现 Socket */
+#define TCP_SOCKET_ID 1         /* TCP服务器 Socket */
+#define UDP_DISCOVER_PORT 8888  /* UDP广播监听端口 */
 #define ETHERNET_BUF_MAX_SIZE (1024 * 2)
 #define TCP_STREAM_BUF_SIZE   (1024 * 4)  /* TCP流缓冲区大小 */
 
-/* ==================== 帧协议配置 (根据实际协议修改) ==================== */
-#define FRAME_HEADER_0       0xAA         /* 帧头第1字节 */
-#define FRAME_HEADER_1       0x55         /* 帧头第2字节 */
-#define FRAME_HEADER_LEN     2            /* 帧头长度 */
-#define FRAME_LENGTH_LEN     2            /* 数据域长度字段字节数(大端序) */
-#define FRAME_TAIL_0         0x0D         /* 帧尾第1字节 */
-#define FRAME_TAIL_1         0x0A         /* 帧尾第2字节 */
-#define FRAME_TAIL_LEN       2            /* 帧尾长度 */
-#define FRAME_MAX_DATA_LEN   512          /* 数据域最大长度 */
-
-/* ==================== loopback_tcps_interrupt 事件标志 ==================== */
-#define TCPS_EVT_CONNECTED     0x01
-#define TCPS_EVT_DISCONNECTED  0x02
-#define TCPS_EVT_DATA_RECV     0x04
+/* ==================== 帧协议配置 ====================
+ *
+ * 帧格式: [帧头][帧类型][命令字][数据长度][数据域][CRC16][帧尾]
+ *   帧头:     0x0D (1字节)
+ *   帧类型:   1字节 (0x00=请求, 0x01=响应, 0x02=错误)
+ *   命令字:   1字节
+ *   数据长度: 2字节 (大端序, 高字节在前)
+ *   数据域:   N字节 (N = 数据长度)
+ *   CRC16:   2字节 (小端序, CRC范围: 帧头+帧类型+命令字+数据长度+数据域)
+ *   帧尾:     0x0E (1字节)
+ */
+#define FRAME_HEADER        0x0D         /* 帧头 */
+#define FRAME_TAIL          0x0E         /* 帧尾 */
+#define FRAME_TYPE_LEN      1            /* 帧类型长度 */
+#define FRAME_CMD_LEN       1            /* 命令字长度 */
+#define FRAME_LENGTH_LEN    2            /* 数据域长度字段字节数 */
+#define FRAME_CRC_LEN       2            /* CRC16校验长度 */
+#define FRAME_MAX_DATA_LEN  512          /* 数据域最大长度 */
 
 /* ==================== 帧解析状态机 ==================== */
 typedef enum {
-    FRAME_STATE_WAIT_HEADER = 0,   /* 等待帧头 */
-    FRAME_STATE_WAIT_LENGTH,       /* 等待数据长度 */
+    FRAME_STATE_WAIT_HEADER = 0,   /* 等待帧头 0x0D */
+    FRAME_STATE_WAIT_TYPE,         /* 等待帧类型 */
+    FRAME_STATE_WAIT_CMD,          /* 等待命令字 */
+    FRAME_STATE_WAIT_LENGTH,       /* 等待数据长度 (2字节) */
     FRAME_STATE_WAIT_DATA,         /* 等待数据域 */
-    FRAME_STATE_WAIT_TAIL,         /* 等待帧尾 */
+    FRAME_STATE_WAIT_CRC,          /* 等待CRC16校验 (2字节) */
+    FRAME_STATE_WAIT_TAIL,         /* 等待帧尾 0x0E */
 } FrameState_t;
 
 typedef struct {
     FrameState_t state;
-    uint8_t  header_idx;           /* 帧头接收索引 */
-    uint8_t  length_idx;           /* 长度字段接收索引 */
-    uint16_t data_len;             /* 解析出的数据长度 */
-    uint16_t data_index;           /* 数据域当前接收索引 */
-    uint8_t  tail_idx;             /* 帧尾接收索引 */
+    uint8_t  frame_type;            /* 帧类型 */
+    uint8_t  frame_cmd;             /* 命令字 */
+    uint8_t  length_idx;            /* 长度字段接收索引 */
+    uint16_t data_len;              /* 解析出的数据长度 */
+    uint16_t data_index;            /* 数据域当前接收索引 */
+    uint8_t  crc_idx;               /* CRC字段接收索引 */
     uint8_t  length_buf[FRAME_LENGTH_LEN];
+    uint8_t  crc_buf[FRAME_CRC_LEN];
     uint8_t  data_buf[FRAME_MAX_DATA_LEN];
 } FrameParser_t;
+
+/* ==================== 函数声明 ==================== */
 
 /**
  * @brief   W5500任务函数
@@ -66,17 +79,29 @@ void frame_parser_feed(FrameParser_t *parser, const uint8_t *data, uint16_t len)
 
 /**
  * @brief   帧接收完成回调 (用户在此函数中实现命令分发)
+ * @param   type: 帧类型
+ * @param   cmd:  命令字
  * @param   data: 数据域指针
  * @param   len:  数据域长度
- * @note    请根据实际协议在此函数中解析数据域并执行对应命令
  */
-void tcp_frame_handler(const uint8_t *data, uint16_t len);
+void tcp_frame_handler(uint8_t type, uint8_t cmd, const uint8_t *data, uint16_t len);
 
 /**
- * @brief   按帧协议格式发送数据到TCP客户端
+ * @brief   按帧协议格式组装并发送数据到TCP客户端
+ * @param   type: 帧类型
+ * @param   cmd:  命令字
  * @param   data: 数据域指针
  * @param   len:  数据域长度
  */
-void tcp_send_frame(const uint8_t *data, uint16_t len);
+void tcp_send_frame(uint8_t type, uint8_t cmd, const uint8_t *data, uint16_t len);
+
+/**
+ * @brief   CRC16-CCITT反射版本计算 (与上位机Qt版本一致)
+ *          多项式0x1021, 初始值0x0000, 输入输出反射
+ * @param   data: 数据指针
+ * @param   len:  数据长度
+ * @return  CRC16值
+ */
+uint16_t crc16_ccitt(const uint8_t *data, uint16_t len);
 
 #endif

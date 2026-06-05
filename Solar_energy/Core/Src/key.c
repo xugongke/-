@@ -6,6 +6,8 @@
 #include "device_manager.h"
 #include "battery.h"
 #include "events_init.h"
+#include "tcp_cmd_handler.h"
+
 
 /* ====== 用户可调参数 ====== */
 #define KEY_SCAN_PERIOD_MS     10u
@@ -157,7 +159,8 @@ void screen_user_list_item_event_handler(lv_event_t *e)
 				
         if(key == LV_KEY_DOWN)
         {
-
+					printf("down!!!\r\n");
+					tcp_resp_device_list();
         }
 				
         if(key == LV_KEY_ESC)//ESC键，返回首页

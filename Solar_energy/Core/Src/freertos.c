@@ -491,7 +491,6 @@ void RTC_Task(void *argument)
 
 		/* MPPT 扰动观察法状态机 (每秒执行一次) */
 //		MPPT_Task();
-
     osDelay(1000);
   }
   /* USER CODE END RTC_Task */
@@ -572,3 +571,4 @@ void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
     for(;;);
 }
 /* USER CODE END Application */
+

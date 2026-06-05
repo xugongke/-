@@ -20,6 +20,7 @@
 #include "main.h"
 #include "cmsis_os.h"
 #include "adc.h"
+#include "crc.h"
 #include "dma.h"
 #include "fatfs.h"
 #include "i2c.h"
@@ -119,6 +120,7 @@ int main(void)
   MX_USART6_UART_Init();
   MX_ADC3_Init();
   MX_ADC1_Init();
+  MX_CRC_Init();
   /* USER CODE BEGIN 2 */
 	Battery_Init();
 	RS485_USART_Init_All();
