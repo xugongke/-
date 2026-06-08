@@ -28,6 +28,9 @@ lv_group_t * g_keypad_group;//创建全局group(可被焦点选中的对象集�
 /* 记录home页面最后聚焦的卡片 (0=太阳能, 1=设备在线, 2=告警) */
 static uint8_t s_home_focus_card = 1;  /* 默认设备在线卡片 */
 
+/* 按键重映射标志: 1=需要将NEXT/PREV重映射为DOWN/UP (Home页面和TCP设置页面) */
+volatile uint8_t g_need_key_remap = 0;
+
 /* ======== Home 页事件处理 ======== */
 
 /* (已移除 s_home_focus_on_cont3，焦点状态通过 group 成员管理) */
@@ -145,6 +148,7 @@ static void screen_user_home_event_handler (lv_event_t *e)
     switch (code) {
     case LV_EVENT_SCREEN_LOADED:
     {
+        g_need_key_remap = 1;  /* Home页面需要NEXT/PREV重映射 */
         lv_group_remove_all_objs(g_keypad_group);//清空group中的所有组件
         //给group添加3个数据卡片 (cont_3 不加入group, 焦点由回调手动控制)
         lv_group_add_obj(g_keypad_group, guider_ui.screen_user_home_card_solar);
@@ -472,6 +476,7 @@ static void screen_user_list_event_handler (lv_event_t *e)
     switch (code) {
     case LV_EVENT_SCREEN_LOADED:
     {
+        g_need_key_remap = 0;  /* 列表页面不需要重映射, NEXT/PREV走默认group导航 */
         /* 根据 s_last_user_no 计算应该显示的页码 */
         if(device_count > 0 && s_last_user_no < device_count) {
             s_list_page = s_last_user_no / LIST_PAGE_SIZE;
@@ -519,6 +524,7 @@ static void screen_user_detail_event_handler (lv_event_t *e)
     }
     case LV_EVENT_SCREEN_LOADED:
     {
+        g_need_key_remap = 0;  /* 用户详情页面不需要重映射 */
         lv_group_remove_all_objs(g_keypad_group);//清空group中的所有组件
         //给group添加新组件
         lv_group_add_obj(g_keypad_group, guider_ui.screen_user_detail);
@@ -556,6 +562,7 @@ static void screen_solar_event_handler (lv_event_t *e)
     }
     case LV_EVENT_SCREEN_LOADED:
     {
+        g_need_key_remap = 0;  /* 太阳能详情页面不需要重映射 */
         lv_group_remove_all_objs(g_keypad_group);
         lv_group_add_obj(g_keypad_group, guider_ui.screen_solar);
         lv_indev_set_group(indev_keypad, g_keypad_group);
@@ -936,6 +943,7 @@ static void screen_alert_event_handler (lv_event_t *e)
     }
     case LV_EVENT_SCREEN_LOADED:
     {
+        g_need_key_remap = 0;  /* 告警页面不需要重映射 */
         alert_populate_list();
         break;
     }
@@ -1026,6 +1034,12 @@ static void tcp_save(void)
     /* 更新首页显示 */
     lv_snprintf(ip_buf, sizeof(ip_buf), "%d.%d.%d.%d ", ip[0], ip[1], ip[2], ip[3]);
     lv_snprintf(port_buf, sizeof(port_buf), "%d ", port);
+
+    ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_home,
+                            guider_ui.screen_user_home_del,
+                            &guider_ui.screen_tcp_setting_del,
+                            setup_scr_screen_user_home,
+                            LV_SCR_LOAD_ANIM_NONE, 10, 10, true, true);
 }
 
 /**
@@ -1081,6 +1095,7 @@ static void screen_tcp_setting_event_handler(lv_event_t *e)
     switch (code) {
     case LV_EVENT_SCREEN_LOADED:
     {
+        g_need_key_remap = 1;  /* TCP设置页面需要NEXT/PREV重映射 */
         /* 从当前 server_ip/server_port 读取并填充输入框 */
         uint8_t ip[4];
         uint16_t port;

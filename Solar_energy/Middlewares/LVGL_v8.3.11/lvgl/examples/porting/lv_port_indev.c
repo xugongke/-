@@ -362,14 +362,14 @@ static void keypad_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
          * 将 NEXT/PREV 重映射为 UP/DOWN (LVGL 不会对 UP/DOWN 做自动焦点切换),
          * 然后由 events_init.c 中的 key handler 自行处理焦点跳转。
          */
-        if(act_key == LV_KEY_NEXT || act_key == LV_KEY_PREV) {
-            lv_obj_t *act_scr = lv_disp_get_scr_act(NULL);
-            /* Home页面: 将NEXT/PREV重映射为DOWN/UP, 由key handler自行处理焦点跳转 */
-            /* TCP设置页面: 将NEXT/PREV重映射为DOWN/UP, 使物理方向键能在键盘btnmatrix内部导航 */
-            if(act_scr != NULL && (act_scr == guider_ui.screen_user_home
-                                   || act_scr == guider_ui.screen_tcp_setting)) {
-                if(act_key == LV_KEY_NEXT)      act_key = LV_KEY_DOWN;  /* ↓键 → DOWN */
-                else if(act_key == LV_KEY_PREV) act_key = LV_KEY_UP;    /* ↑键 → UP */
+        if(act_key == LV_KEY_NEXT || act_key == LV_KEY_PREV) 
+        {
+            /* 使用全局标志判断是否需要重映射, 避免lv_scr_act()在屏幕切换动画期间返回旧页面 */
+            extern volatile uint8_t g_need_key_remap;  /* 在events_init.c中定义 */
+            if(g_need_key_remap) 
+            {
+                if(act_key == LV_KEY_NEXT)      act_key = LV_KEY_DOWN;
+                else if(act_key == LV_KEY_PREV) act_key = LV_KEY_UP;
             }
         }
 
