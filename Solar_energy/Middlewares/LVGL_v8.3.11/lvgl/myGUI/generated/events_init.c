@@ -919,9 +919,7 @@ static void alert_item_event_handler(lv_event_t *e)
         }
     }
 }
-
-
-
+//告警页面事件初始化函数
 static void screen_alert_event_handler (lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
@@ -951,19 +949,44 @@ void events_init_screen_alert (lv_ui *ui)
     lv_obj_add_event_cb(ui->screen_alert, screen_alert_event_handler, LV_EVENT_ALL, ui);
 }
 
-/* ======== TCP Setting 页事件处理 (使用LVGL内置lv_keyboard) ======== */
+/* ======== TCP 设置 页事件处理 (使用LVGL内置lv_keyboard) ======== */
 
 #define TCP_IP_MAX_LEN  15
 #define TCP_PORT_MAX_LEN 5
 
 /**
- * @brief  OK按钮回调: 解析IP/Port并保存
+ * @brief  当前活跃的输入框 (0=IP, 1=Port)
  */
-static void tcp_ok_btn_event_handler(lv_event_t *e)
-{
-    lv_event_code_t code = lv_event_get_code(e);
-    if (code != LV_EVENT_CLICKED) return;
+static uint8_t s_tcp_active_field = 0;
 
+/**
+ * @brief  切换键盘关联的textarea并更新光标显示
+ */
+static void tcp_switch_textarea(void)
+{
+    s_tcp_active_field ^= 1;  /* 0↔1 切换 */
+    if (s_tcp_active_field == 0) {
+        /* 切换到IP */
+        lv_keyboard_set_textarea(guider_ui.screen_tcp_setting_kb,
+                                 guider_ui.screen_tcp_setting_ta_ip);
+        lv_obj_add_state(guider_ui.screen_tcp_setting_ta_ip, LV_STATE_FOCUSED);
+        lv_obj_clear_state(guider_ui.screen_tcp_setting_ta_port, LV_STATE_FOCUSED);
+        lv_textarea_set_cursor_click_pos(guider_ui.screen_tcp_setting_ta_ip, true);
+    } else {
+        /* 切换到Port */
+        lv_keyboard_set_textarea(guider_ui.screen_tcp_setting_kb,
+                                 guider_ui.screen_tcp_setting_ta_port);
+        lv_obj_add_state(guider_ui.screen_tcp_setting_ta_port, LV_STATE_FOCUSED);
+        lv_obj_clear_state(guider_ui.screen_tcp_setting_ta_ip, LV_STATE_FOCUSED);
+        lv_textarea_set_cursor_click_pos(guider_ui.screen_tcp_setting_ta_port, true);
+    }
+}
+
+/**
+ * @brief  保存IP/Port并返回首页
+ */
+static void tcp_save(void)
+{
     const char *ip_str = lv_textarea_get_text(guider_ui.screen_tcp_setting_ta_ip);
     const char *port_str = lv_textarea_get_text(guider_ui.screen_tcp_setting_ta_port);
 
@@ -1003,46 +1026,53 @@ static void tcp_ok_btn_event_handler(lv_event_t *e)
     /* 更新首页显示 */
     lv_snprintf(ip_buf, sizeof(ip_buf), "%d.%d.%d.%d ", ip[0], ip[1], ip[2], ip[3]);
     lv_snprintf(port_buf, sizeof(port_buf), "%d ", port);
-
-    /* 返回首页 */
-    ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_home,
-                          guider_ui.screen_user_home_del,
-                          &guider_ui.screen_tcp_setting_del,
-                          setup_scr_screen_user_home,
-                          LV_SCR_LOAD_ANIM_NONE, 10, 10, true, true);
 }
 
 /**
- * @brief  textarea聚焦事件: 切换键盘关联的textarea
+ * @brief  ESC键处理: 物理ESC键按下时返回首页
  */
-static void tcp_ta_event_handler(lv_event_t *e)
+static void tcp_kb_esc_handler(lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
-    if (code == LV_EVENT_FOCUSED) {
-        /* 将键盘关联到当前聚焦的textarea */
-        lv_keyboard_set_textarea(guider_ui.screen_tcp_setting_kb,
-                                 lv_event_get_target(e));
-    }
-}
-
-/**
- * @brief  键盘ESC按钮事件: 返回首页不保存
- */
-static void tcp_kb_event_handler(lv_event_t *e)
-{
-    lv_event_code_t code = lv_event_get_code(e);
-    if (code == LV_EVENT_READY) {
-        /* 键盘OK按钮按下 → 执行确认 */
-        tcp_ok_btn_event_handler(e);
-    }
-    else if (code == LV_EVENT_CANCEL) {
-        /* 键盘ESC按钮按下 → 返回首页 */
+    if(code != LV_EVENT_KEY) return;
+    uint32_t key = lv_event_get_key(e);
+    if(key == LV_KEY_ESC) {
         ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_home,
                               guider_ui.screen_user_home_del,
                               &guider_ui.screen_tcp_setting_del,
                               setup_scr_screen_user_home,
                               LV_SCR_LOAD_ANIM_NONE, 10, 10, true, true);
     }
+}
+
+/**
+ * @brief  自定义键盘事件处理 (替换默认的 lv_keyboard_def_event_cb)
+ *         在默认处理之前拦截 LV_SYMBOL_SAVE 和 LV_SYMBOL_OK
+ *         其他按键交给默认处理器处理
+ */
+static void tcp_kb_custom_handler(lv_event_t *e)
+{
+    lv_obj_t *kb = lv_event_get_target(e);
+    uint16_t btn_id = lv_btnmatrix_get_selected_btn(kb);
+    if(btn_id == LV_BTNMATRIX_BTN_NONE) return;
+
+    const char *txt = lv_btnmatrix_get_btn_text(kb, btn_id);
+    if(txt == NULL) return;
+
+    /* 拦截 LV_SYMBOL_SAVE → 保存IP/Port并返回首页 */
+    if(strcmp(txt, LV_SYMBOL_SAVE) == 0) {
+        tcp_save();
+        return;  /* 不调用默认处理器, 避免插入文本 */
+    }
+
+    /* 拦截 LV_SYMBOL_OK → 切换IP/Port输入焦点 */
+    if(strcmp(txt, LV_SYMBOL_OK) == 0) {
+        tcp_switch_textarea();
+        return;  /* 不调用默认处理器, 避免发送LV_EVENT_READY */
+    }
+
+    /* 其他按键: 交给默认处理器处理 (数字、小数点、退格、方向键等) */
+    lv_keyboard_def_event_cb(e);
 }
 
 static void screen_tcp_setting_event_handler(lv_event_t *e)
@@ -1064,27 +1094,28 @@ static void screen_tcp_setting_event_handler(lv_event_t *e)
         lv_textarea_set_text(guider_ui.screen_tcp_setting_ta_ip, ip_str);
         lv_textarea_set_text(guider_ui.screen_tcp_setting_ta_port, port_str);
 
-        /* 将焦点交给键盘 (使用物理按键导航键盘) */
+        /* 只将键盘加入group, textarea不加入 (由键盘直接控制输入) */
         lv_group_remove_all_objs(g_keypad_group);
         lv_group_add_obj(g_keypad_group, guider_ui.screen_tcp_setting_kb);
-        lv_group_add_obj(g_keypad_group, guider_ui.screen_tcp_setting_ta_ip);
-        lv_group_add_obj(g_keypad_group, guider_ui.screen_tcp_setting_ta_port);
         lv_indev_set_group(indev_keypad, g_keypad_group);
 
-        /* 初始焦点在IP输入框 */
-        lv_group_focus_obj(guider_ui.screen_tcp_setting_ta_ip);
+        /* 初始关联到IP输入框, 显示光标 */
+        s_tcp_active_field = 0;
+        lv_keyboard_set_textarea(guider_ui.screen_tcp_setting_kb,
+                                 guider_ui.screen_tcp_setting_ta_ip);
+        lv_obj_add_state(guider_ui.screen_tcp_setting_ta_ip, LV_STATE_FOCUSED);
+        lv_obj_clear_state(guider_ui.screen_tcp_setting_ta_port, LV_STATE_FOCUSED);
+        lv_textarea_set_cursor_click_pos(guider_ui.screen_tcp_setting_ta_ip, true);
 
-        /* textarea聚焦事件 → 切换键盘关联 */
-        lv_obj_add_event_cb(guider_ui.screen_tcp_setting_ta_ip,
-                            tcp_ta_event_handler, LV_EVENT_FOCUSED, NULL);
-        lv_obj_add_event_cb(guider_ui.screen_tcp_setting_ta_port,
-                            tcp_ta_event_handler, LV_EVENT_FOCUSED, NULL);
+        /* 移除默认键盘事件处理器, 替换为自定义处理器 */
+        lv_obj_remove_event_cb(guider_ui.screen_tcp_setting_kb,
+                               lv_keyboard_def_event_cb);
+        lv_obj_add_event_cb(guider_ui.screen_tcp_setting_kb,
+                            tcp_kb_custom_handler, LV_EVENT_VALUE_CHANGED, NULL);
 
-        /* 键盘READY/CANCEL事件 */
+        /* ESC键返回首页 */
         lv_obj_add_event_cb(guider_ui.screen_tcp_setting_kb,
-                            tcp_kb_event_handler, LV_EVENT_READY, NULL);
-        lv_obj_add_event_cb(guider_ui.screen_tcp_setting_kb,
-                            tcp_kb_event_handler, LV_EVENT_CANCEL, NULL);
+                            tcp_kb_esc_handler, LV_EVENT_KEY, NULL);
 
         break;
     }

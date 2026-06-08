@@ -11,7 +11,7 @@
 
 /* ====== 用户可调参数 ====== */
 #define KEY_SCAN_PERIOD_MS     10u
-#define KEY_DEBOUNCE_MS        35u   // 消抖时间（建议 20~50ms）
+#define KEY_DEBOUNCE_MS        50u   // 消抖时间（建议 20~50ms）
 #define KEY_DEBOUNCE_TICKS  ((KEY_DEBOUNCE_MS + KEY_SCAN_PERIOD_MS - 1u) / KEY_SCAN_PERIOD_MS)
 #if (KEY_DEBOUNCE_TICKS < 1)
 #undef KEY_DEBOUNCE_TICKS

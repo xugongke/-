@@ -58,7 +58,7 @@ void tcp_dispatch_frame(uint8_t type, uint8_t cmd, const uint8_t *data, uint16_t
             break;
 
         case CMD_BIND_DEVICE:
-            /* 绑定设备: 数据域 = [MAC[6]][楼栋][单元][房号H][房号L] = 10字节 */
+            /* 绑定设备: 数据域 = [MAC[6]][楼栋][单元][房号L][房号H] = 10字节 */
             tcp_resp_bind_device(data, len);
             break;
 
@@ -88,15 +88,16 @@ void tcp_dispatch_frame(uint8_t type, uint8_t cmd, const uint8_t *data, uint16_t
  *
  * 响应帧数据域格式 (CMD=0x03在帧头命令字字段, 不在数据域中):
  *   第1包 (包头):
- *     [0x00=首包标志][总设备数H][总设备数L]
- *     + [本包设备数H][本包设备数L]
+ *     [0x00=首包标志][总设备数L][总设备数H]
+ *     + [本包设备数L][本包设备数H]
  *     + device_t[0..N-1] 原始字节
  *
  *   后续包:
- *     [包序号(1~total)][总设备数H][总设备数L]
- *     + [本包设备数H][本包设备数L]
+ *     [包序号(1~total)][总设备数L][总设备数H]
+ *     + [本包设备数L][本包设备数H]
  *     + device_t[0..N-1] 原始字节
  *
+ * 多字节字段均为小端序
  * 每个设备占 sizeof(device_t)=18 字节, 每包最多28个设备
  * 数据域最大 = 1(seq) + 2(total) + 2(count) + 28*18 = 509 ≤ 512
  */
@@ -111,10 +112,10 @@ void tcp_resp_device_list(void)
         /* 空列表: 发送首包, 设备数为0 */
         uint8_t resp[5];
         resp[0] = 0x00;                              /* 首包标志 */
-        resp[1] = (uint8_t)(total_devices >> 8);      /* 总设备数H */
-        resp[2] = (uint8_t)(total_devices & 0xFF);    /* 总设备数L */
-        resp[3] = 0x00;                               /* 本包设备数H */
-        resp[4] = 0x00;                               /* 本包设备数L */
+        resp[1] = (uint8_t)(total_devices & 0xFF);    /* 总设备数L */
+        resp[2] = (uint8_t)(total_devices >> 8);      /* 总设备数H */
+        resp[3] = 0x00;                               /* 本包设备数L */
+        resp[4] = 0x00;                               /* 本包设备数H */
         tcp_send_frame(FRAME_TYPE_RESPONSE, CMD_GET_DEVICE_LIST, resp, 5);
         return;
     }
@@ -139,13 +140,13 @@ void tcp_resp_device_list(void)
         /* 包序号 (0=首包) */
         resp[idx++] = seq;
 
-        /* 总设备数 */
-        resp[idx++] = (uint8_t)(total_devices >> 8);
+        /* 总设备数 (小端序) */
         resp[idx++] = (uint8_t)(total_devices & 0xFF);
+        resp[idx++] = (uint8_t)(total_devices >> 8);
 
-        /* 本包设备数 */
-        resp[idx++] = (uint8_t)(count >> 8);
+        /* 本包设备数 (小端序) */
         resp[idx++] = (uint8_t)(count & 0xFF);
+        resp[idx++] = (uint8_t)(count >> 8);
 
         /* 拷贝设备原始数据 */
         for (uint16_t d = 0; d < count; d++)
@@ -169,7 +170,7 @@ void tcp_resp_device_list(void)
 /**
  * @brief   处理绑定设备命令
  *
- * 请求数据域: [MAC[6]][楼栋][单元][房号H][房号L] (10字节)
+ * 请求数据域: [MAC[6]][楼栋][单元][房号L][房号H] (10字节, 房号小端序)
  * 成功响应:   数据域=[0x00=成功]
  * 失败响应:   错误帧 数据域=[ERR_CODE]
  */
@@ -185,7 +186,7 @@ void tcp_resp_bind_device(const uint8_t *data, uint16_t len)
     const uint8_t *mac      = &data[0];   /* MAC地址 */
     uint8_t  building       = data[6];    /* 楼栋 */
     uint8_t  unit           = data[7];    /* 单元 */
-    uint16_t room           = ((uint16_t)data[8] << 8) | data[9]; /* 房号(大端) */
+    uint16_t room           = (uint16_t)data[8] | ((uint16_t)data[9] << 8); /* 房号(小端序) */
 
     /* 将用户住址转换成通信地址 */
     uint8_t addr[6];

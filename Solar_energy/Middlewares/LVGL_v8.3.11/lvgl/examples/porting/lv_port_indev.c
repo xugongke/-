@@ -364,7 +364,10 @@ static void keypad_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
          */
         if(act_key == LV_KEY_NEXT || act_key == LV_KEY_PREV) {
             lv_obj_t *act_scr = lv_disp_get_scr_act(NULL);
-            if(act_scr != NULL && act_scr == guider_ui.screen_user_home) {
+            /* Home页面: 将NEXT/PREV重映射为DOWN/UP, 由key handler自行处理焦点跳转 */
+            /* TCP设置页面: 将NEXT/PREV重映射为DOWN/UP, 使物理方向键能在键盘btnmatrix内部导航 */
+            if(act_scr != NULL && (act_scr == guider_ui.screen_user_home
+                                   || act_scr == guider_ui.screen_tcp_setting)) {
                 if(act_key == LV_KEY_NEXT)      act_key = LV_KEY_DOWN;  /* ↓键 → DOWN */
                 else if(act_key == LV_KEY_PREV) act_key = LV_KEY_UP;    /* ↑键 → UP */
             }

@@ -57,7 +57,7 @@ void setup_scr_screen_tcp_setting(lv_ui *ui)
     lv_obj_set_pos(ip_label, 10, 44);
 
     ui->screen_tcp_setting_ta_ip = lv_textarea_create(ui->screen_tcp_setting);
-    lv_obj_set_size(ui->screen_tcp_setting_ta_ip, 180, 26);
+    lv_obj_set_size(ui->screen_tcp_setting_ta_ip, 180, 20);
     lv_obj_set_pos(ui->screen_tcp_setting_ta_ip, 38, 38);
     lv_textarea_set_one_line(ui->screen_tcp_setting_ta_ip, true);
     lv_textarea_set_max_length(ui->screen_tcp_setting_ta_ip, 15);
@@ -68,8 +68,14 @@ void setup_scr_screen_tcp_setting(lv_ui *ui)
     lv_obj_set_style_text_font(ui->screen_tcp_setting_ta_ip, &lv_font_SourceHanSerifSC_Regular_16, 0);
     lv_obj_set_style_border_color(ui->screen_tcp_setting_ta_ip, lv_color_hex(0x30363D), 0);
     lv_obj_set_style_border_width(ui->screen_tcp_setting_ta_ip, 1, 0);
-    /* 隐藏光标闪烁, 更像标签 */
-    lv_obj_set_style_anim_time(ui->screen_tcp_setting_ta_ip, 0, LV_PART_CURSOR | LV_STATE_FOCUSED);
+    /* 光标样式: 细竖线 */
+    lv_obj_set_style_anim_time(ui->screen_tcp_setting_ta_ip, 500, LV_PART_CURSOR | LV_STATE_FOCUSED);
+    lv_obj_set_style_bg_opa(ui->screen_tcp_setting_ta_ip, LV_OPA_TRANSP, LV_PART_CURSOR | LV_STATE_FOCUSED);
+    lv_obj_set_style_border_width(ui->screen_tcp_setting_ta_ip, 2, LV_PART_CURSOR | LV_STATE_FOCUSED);
+    lv_obj_set_style_border_color(ui->screen_tcp_setting_ta_ip, lv_color_hex(0x58A6FF), LV_PART_CURSOR | LV_STATE_FOCUSED);
+    lv_obj_set_style_border_opa(ui->screen_tcp_setting_ta_ip, LV_OPA_COVER, LV_PART_CURSOR | LV_STATE_FOCUSED);
+    lv_textarea_set_cursor_pos(ui->screen_tcp_setting_ta_ip, 0);
+    lv_obj_add_flag(ui->screen_tcp_setting_ta_ip, LV_OBJ_FLAG_CLICK_FOCUSABLE);
 
     /* ============================================================
      *  Port输入框
@@ -82,7 +88,7 @@ void setup_scr_screen_tcp_setting(lv_ui *ui)
     lv_obj_set_pos(port_label, 230, 44);
 
     ui->screen_tcp_setting_ta_port = lv_textarea_create(ui->screen_tcp_setting);
-    lv_obj_set_size(ui->screen_tcp_setting_ta_port, 90, 26);
+    lv_obj_set_size(ui->screen_tcp_setting_ta_port, 90, 20);
     lv_obj_set_pos(ui->screen_tcp_setting_ta_port, 272, 38);
     lv_textarea_set_one_line(ui->screen_tcp_setting_ta_port, true);
     lv_textarea_set_max_length(ui->screen_tcp_setting_ta_port, 5);
@@ -93,15 +99,14 @@ void setup_scr_screen_tcp_setting(lv_ui *ui)
     lv_obj_set_style_text_font(ui->screen_tcp_setting_ta_port, &lv_font_SourceHanSerifSC_Regular_16, 0);
     lv_obj_set_style_border_color(ui->screen_tcp_setting_ta_port, lv_color_hex(0x30363D), 0);
     lv_obj_set_style_border_width(ui->screen_tcp_setting_ta_port, 1, 0);
-
-    /* textarea聚焦样式 (蓝色边框表示当前活动) */
-    static lv_style_t style_ta_focused;
-    ui_init_style(&style_ta_focused);
-    lv_style_set_border_color(&style_ta_focused, lv_color_hex(0x58A6FF));
-    lv_style_set_border_width(&style_ta_focused, 2);
-    lv_style_set_border_opa(&style_ta_focused, LV_OPA_COVER);
-    lv_obj_add_style(ui->screen_tcp_setting_ta_ip, &style_ta_focused, LV_PART_MAIN | LV_STATE_FOCUSED);
-    lv_obj_add_style(ui->screen_tcp_setting_ta_port, &style_ta_focused, LV_PART_MAIN | LV_STATE_FOCUSED);
+    /* 光标样式: 细竖线 */
+    lv_obj_set_style_anim_time(ui->screen_tcp_setting_ta_port, 500, LV_PART_CURSOR | LV_STATE_FOCUSED);
+    lv_obj_set_style_bg_opa(ui->screen_tcp_setting_ta_port, LV_OPA_TRANSP, LV_PART_CURSOR | LV_STATE_FOCUSED);
+    lv_obj_set_style_border_width(ui->screen_tcp_setting_ta_port, 2, LV_PART_CURSOR | LV_STATE_FOCUSED);
+    lv_obj_set_style_border_color(ui->screen_tcp_setting_ta_port, lv_color_hex(0x58A6FF), LV_PART_CURSOR | LV_STATE_FOCUSED);
+    lv_obj_set_style_border_opa(ui->screen_tcp_setting_ta_port, LV_OPA_COVER, LV_PART_CURSOR | LV_STATE_FOCUSED);
+    lv_textarea_set_cursor_pos(ui->screen_tcp_setting_ta_port, 0);
+    lv_obj_add_flag(ui->screen_tcp_setting_ta_port, LV_OBJ_FLAG_CLICK_FOCUSABLE);
 
     /* ============================================================
      *  LVGL内置键盘 (填满屏幕底部: y=72, h=248)
@@ -109,7 +114,26 @@ void setup_scr_screen_tcp_setting(lv_ui *ui)
      * ============================================================ */
     ui->screen_tcp_setting_kb = lv_keyboard_create(ui->screen_tcp_setting);
     lv_obj_set_size(ui->screen_tcp_setting_kb, 480, 248);
-    lv_obj_set_pos(ui->screen_tcp_setting_kb, 0, 10);
+    lv_obj_set_pos(ui->screen_tcp_setting_kb, 0, 5);
+    /* 自定义数字键盘布局:
+     * LV_SYMBOL_SAVE   → 保存IP/Port并返回首页
+     * LV_SYMBOL_OK     → 切换IP/Port输入焦点
+     */
+    static const char * custom_num_map[] = {
+        "1", "2", "3", LV_SYMBOL_SAVE, "\n",
+        "4", "5", "6", LV_SYMBOL_OK, "\n",
+        "7", "8", "9", LV_SYMBOL_BACKSPACE, "\n",
+        ".", "0", LV_SYMBOL_LEFT, LV_SYMBOL_RIGHT, ""
+    };
+    static const lv_btnmatrix_ctrl_t custom_num_ctrl[] = {
+        1, 1, 1, LV_KEYBOARD_CTRL_BTN_FLAGS | 1,
+        1, 1, 1, LV_KEYBOARD_CTRL_BTN_FLAGS | 1,
+        1, 1, 1, 1,
+        1, 1, 1, 1
+    };
+    lv_keyboard_set_map(ui->screen_tcp_setting_kb, LV_KEYBOARD_MODE_NUMBER,
+                        custom_num_map, custom_num_ctrl);
+
     lv_keyboard_set_mode(ui->screen_tcp_setting_kb, LV_KEYBOARD_MODE_NUMBER);
     /* 默认关联到IP输入框 */
     lv_keyboard_set_textarea(ui->screen_tcp_setting_kb, ui->screen_tcp_setting_ta_ip);

@@ -123,7 +123,7 @@ void frame_parser_reset(FrameParser_t *parser)
 /**
  * @brief   帧解析状态机 - 逐字节消费流数据
  *
- * 协议格式: [0x0D][TYPE][CMD][LEN_H][LEN_L][DATA...][CRC_H][CRC_L][0x0E]
+ * 协议格式: [0x0D][TYPE][CMD][LEN_L][LEN_H][DATA...][CRC_L][CRC_H][0x0E]
  * CRC范围: 帧头 + TYPE + CMD + LEN_H + LEN_L + DATA...
  */
 static void frame_parser_process_byte(FrameParser_t *parser, uint8_t byte)
@@ -163,15 +163,16 @@ static void frame_parser_process_byte(FrameParser_t *parser, uint8_t byte)
             break;
         }
 
-        /* ---- 状态4: 等待数据长度 (2字节, 大端序) ---- */
+        /* ---- 状态4: 等待数据长度 (2字节, 小端序) ---- */
         case FRAME_STATE_WAIT_LENGTH:
         {
             parser->length_buf[parser->length_idx++] = byte;
 
             if (parser->length_idx >= FRAME_LENGTH_LEN)
             {
-                parser->data_len = ((uint16_t)parser->length_buf[0] << 8) |
-                                   ((uint16_t)parser->length_buf[1]);
+                /* len low + len high (little-endian) */
+                parser->data_len = (uint16_t)parser->length_buf[0] |
+                                   ((uint16_t)parser->length_buf[1] << 8);
 
                 if (parser->data_len > FRAME_MAX_DATA_LEN)
                 {
@@ -224,16 +225,19 @@ static void frame_parser_process_byte(FrameParser_t *parser, uint8_t byte)
             if (byte == FRAME_TAIL)
             {
                 /* CRC校验: 帧头 + 帧类型 + 命令字 + 长度 + 数据域 */
-                uint16_t calc_crc = 0x0000;
-                calc_crc = (calc_crc >> 8) ^ crc16_table[(calc_crc ^ FRAME_HEADER) & 0xFF];
-                calc_crc = (calc_crc >> 8) ^ crc16_table[(calc_crc ^ parser->frame_type) & 0xFF];
-                calc_crc = (calc_crc >> 8) ^ crc16_table[(calc_crc ^ parser->frame_cmd)  & 0xFF];
-                calc_crc = (calc_crc >> 8) ^ crc16_table[(calc_crc ^ parser->length_buf[0]) & 0xFF];
-                calc_crc = (calc_crc >> 8) ^ crc16_table[(calc_crc ^ parser->length_buf[1]) & 0xFF];
-                for (uint16_t i = 0; i < parser->data_len; i++)
+                uint8_t crc_src[5 + FRAME_MAX_DATA_LEN];
+                uint16_t crc_src_len = 0;
+                crc_src[crc_src_len++] = FRAME_HEADER;
+                crc_src[crc_src_len++] = parser->frame_type;
+                crc_src[crc_src_len++] = parser->frame_cmd;
+                crc_src[crc_src_len++] = parser->length_buf[0];
+                crc_src[crc_src_len++] = parser->length_buf[1];
+                if (parser->data_len > 0)
                 {
-                    calc_crc = (calc_crc >> 8) ^ crc16_table[(calc_crc ^ parser->data_buf[i]) & 0xFF];
+                    memcpy(&crc_src[crc_src_len], parser->data_buf, parser->data_len);
+                    crc_src_len += parser->data_len;
                 }
+                uint16_t calc_crc = crc16_ccitt(crc_src, crc_src_len);
                 /* CRC以小端序存储 */
                 uint16_t recv_crc = (uint16_t)parser->crc_buf[0] |
                                     ((uint16_t)parser->crc_buf[1] << 8);
@@ -300,8 +304,8 @@ static uint16_t build_frame(uint8_t *buf, uint8_t type, uint8_t cmd,
     buf[idx++] = FRAME_HEADER;
     buf[idx++] = type;
     buf[idx++] = cmd;
-    buf[idx++] = (uint8_t)(len >> 8);
-    buf[idx++] = (uint8_t)(len & 0xFF);
+    buf[idx++] = (uint8_t)(len & 0xFF);        /* len low */
+    buf[idx++] = (uint8_t)((len >> 8) & 0xFF); /* len high */
 
     if (len > 0 && data != NULL)
     {
@@ -451,9 +455,13 @@ void tcp_set_server_addr(const uint8_t ip[4], uint16_t port)
 {
     memcpy(server_ip, ip, 4);
     server_port = port;
-    /* 标记为断开, W5500_Task 主循环会自动重连到新地址 */
-    g_tcp_connected = 0;
-    close(TCP_SOCKET_ID);
+    if(g_tcp_connected)
+    {
+        /* 触发断线重连 */
+        disconnect(TCP_SOCKET_ID);
+        g_tcp_connected = 0;
+        printf("TCP 客户端：服务器地址已更新，正在重连...\r\n");
+    }
 }
 
 void W5500_Task(void *argument)
