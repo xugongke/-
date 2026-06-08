@@ -23,8 +23,8 @@ wiz_NetInfo default_net_info = {
 };
 
 /* 上位机服务器IP和端口 */
-static uint8_t  server_ip[4] = {192, 168, 6, 196};
-static uint16_t server_port  = 22222;
+uint8_t  server_ip[4] = {192, 168, 6, 196};
+uint16_t server_port  = 22222;
 
 static uint8_t ethernet_buf[ETHERNET_BUF_MAX_SIZE] = {0};
 
@@ -350,7 +350,7 @@ void tcp_send_frame(uint8_t type, uint8_t cmd, const uint8_t *data, uint16_t len
  */
 static int tcp_client_connect(void)
 {
-    printf("TCP connecting to %d.%d.%d.%d:%d...\r\n",
+    printf("TCP 连接到 %d.%d.%d.%d:%d...\r\n",
            server_ip[0], server_ip[1], server_ip[2], server_ip[3], server_port);
 
     /* 先关闭socket */
@@ -359,19 +359,19 @@ static int tcp_client_connect(void)
     /* 打开TCP socket */
     if (socket(TCP_SOCKET_ID, Sn_MR_TCP, 0, 0x00) != TCP_SOCKET_ID)
     {
-        printf("Socket open failed\r\n");
+        printf("套接字打开失败\r\n");
         return -1;
     }
 
     /* 连接服务器 */
     if (connect(TCP_SOCKET_ID, server_ip, server_port) != SOCK_OK)
     {
-        printf("Connect failed\r\n");
+        printf("连接失败\r\n");
         close(TCP_SOCKET_ID);
         return -1;
     }
 
-    printf("TCP connected\r\n");
+    printf("TCP 已连接\r\n");
     g_tcp_connected = 1;
     return 0;
 }
@@ -396,7 +396,7 @@ static void tcp_client_process(void)
         if (!g_tcp_connected)
         {
             g_tcp_connected = 1;
-            printf("TCP client: connected\r\n");
+            printf("TCP 已连接\r\n");
         }
 
         /* 读取数据 */
@@ -417,14 +417,14 @@ static void tcp_client_process(void)
     {
         disconnect(TCP_SOCKET_ID);
         g_tcp_connected = 0;
-        printf("TCP client: close wait, disconnecting\r\n");
+        printf("TCP 客户端：关闭等待，正在断开连接\r\n");
     }
     else if (sr == SOCK_CLOSED)
     {
         if (g_tcp_connected)
         {
             g_tcp_connected = 0;
-            printf("TCP client: disconnected\r\n");
+            printf("TCP 客户端：已断开连接\r\n");
         }
         /* 不在此处重连, 由主循环处理 */
     }
@@ -433,6 +433,28 @@ static void tcp_client_process(void)
 /* ================================================================
  *  W5500 主任务
  * ================================================================ */
+
+/**
+ * @brief   获取当前服务器IP和端口
+ */
+void tcp_get_server_addr(uint8_t ip[4], uint16_t *port)
+{
+    memcpy(ip, server_ip, 4);
+    *port = server_port;
+}
+
+/**
+ * @brief   设置新的服务器IP和端口
+ * @note    设置后会在 W5500_Task 主循环中自动触发断线重连
+ */
+void tcp_set_server_addr(const uint8_t ip[4], uint16_t port)
+{
+    memcpy(server_ip, ip, 4);
+    server_port = port;
+    /* 标记为断开, W5500_Task 主循环会自动重连到新地址 */
+    g_tcp_connected = 0;
+    close(TCP_SOCKET_ID);
+}
 
 void W5500_Task(void *argument)
 {

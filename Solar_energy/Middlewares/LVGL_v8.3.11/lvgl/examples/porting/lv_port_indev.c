@@ -356,13 +356,17 @@ static void keypad_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
 				/* 这里可以添加更多操作符 */
         }
 
-        /* Home页面: 禁用 NEXT/PREV 自动焦点切换, 仅用 LEFT/RIGHT 切换卡片 */
+        /* Home页面特殊处理:
+         * LV_KEY_NEXT/LV_KEY_PREV 会被 LVGL 内部直接处理 (lv_group_focus_next/prev)
+         * 且发生在事件回调之前, 无法通过事件回调阻止。
+         * 将 NEXT/PREV 重映射为 UP/DOWN (LVGL 不会对 UP/DOWN 做自动焦点切换),
+         * 然后由 events_init.c 中的 key handler 自行处理焦点跳转。
+         */
         if(act_key == LV_KEY_NEXT || act_key == LV_KEY_PREV) {
             lv_obj_t *act_scr = lv_disp_get_scr_act(NULL);
             if(act_scr != NULL && act_scr == guider_ui.screen_user_home) {
-                data->state = LV_INDEV_STATE_REL;  /* 视为已释放, 避免残留 PRESSED 状态 */
-                data->key = 0;
-                return;
+                if(act_key == LV_KEY_NEXT)      act_key = LV_KEY_DOWN;  /* ↓键 → DOWN */
+                else if(act_key == LV_KEY_PREV) act_key = LV_KEY_UP;    /* ↑键 → UP */
             }
         }
 

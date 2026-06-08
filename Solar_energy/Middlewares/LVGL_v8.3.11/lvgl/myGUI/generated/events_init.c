@@ -9,6 +9,7 @@
 
 #include "events_init.h"
 #include <stdio.h>
+#include <string.h>
 #include "lvgl.h"
 
 #if LV_USE_GUIDER_SIMULATOR && LV_USE_FREERTOS
@@ -20,6 +21,7 @@
 #include "key.h"
 #include "device_manager.h"
 #include "battery.h"
+#include "user_main.h"
 extern lv_indev_t * indev_keypad;
 lv_group_t * g_keypad_group;//创建全局group(可被焦点选中的对象集合)指针，在lv_init后分配空间
 
@@ -28,11 +30,14 @@ static uint8_t s_home_focus_card = 1;  /* 默认设备在线卡片 */
 
 /* ======== Home 页事件处理 ======== */
 
+/* (已移除 s_home_focus_on_cont3，焦点状态通过 group 成员管理) */
+
 /**
- * @brief  Home页面卡片按键处理 (LV_EVENT_KEY)
- *         将 LV_KEY_LEFT / LV_KEY_RIGHT 映射为 group 内的焦点切换,
- *         而非使用默认的 LV_KEY_NEXT / LV_KEY_PREV。
- *         同时阻止事件继续传播, 防止 LVGL 对卡片内容进行滚动。
+ * @brief  Home页面: 卡片按键处理
+ *         LV_KEY_LEFT / LV_KEY_RIGHT → 在3张卡片间切换 (跳过cont_3)
+ *         LV_KEY_UP (原↑键, 在lv_port_indev中由PREV重映射) → 跳到 cont_3
+ *         LV_KEY_DOWN (原↓键, 由NEXT重映射) → 阻止
+ *         cont_3 不在 group 中, 所以 UP/DOWN/LEFT/RIGHT 都不会自动移动焦点。
  */
 static void screen_user_home_card_key_handler(lv_event_t *e)
 {
@@ -40,16 +45,98 @@ static void screen_user_home_card_key_handler(lv_event_t *e)
     if (code != LV_EVENT_KEY) return;
 
     uint32_t key = lv_event_get_key(e);
+
+    /* 记录当前聚焦的卡片索引 */
+    lv_obj_t *focused = lv_group_get_focused(g_keypad_group);
+    if (focused == guider_ui.screen_user_home_card_solar)      s_home_focus_card = 0;
+    else if (focused == guider_ui.screen_user_home_card_device) s_home_focus_card = 1;
+    else if (focused == guider_ui.screen_user_home_card_alert)  s_home_focus_card = 2;
+
     if (key == LV_KEY_LEFT) {
-        lv_group_focus_prev(g_keypad_group);
+        /* 在3张卡片间反向循环 (不经过cont_3) */
+        if (s_home_focus_card == 0) lv_group_focus_obj(guider_ui.screen_user_home_card_alert);
+        else if (s_home_focus_card == 1) lv_group_focus_obj(guider_ui.screen_user_home_card_solar);
+        else lv_group_focus_obj(guider_ui.screen_user_home_card_device);
         lv_event_stop_processing(e);
         lv_event_stop_bubbling(e);
     }
     else if (key == LV_KEY_RIGHT) {
-        lv_group_focus_next(g_keypad_group);
+        /* 在3张卡片间正向循环 (不经过cont_3) */
+        if (s_home_focus_card == 0) lv_group_focus_obj(guider_ui.screen_user_home_card_device);
+        else if (s_home_focus_card == 1) lv_group_focus_obj(guider_ui.screen_user_home_card_alert);
+        else lv_group_focus_obj(guider_ui.screen_user_home_card_solar);
         lv_event_stop_processing(e);
         lv_event_stop_bubbling(e);
     }
+    else if (key == LV_KEY_UP) {
+        /* UP (原↑键/PREV): 跳到 cont_3 (顶部状态栏) */
+        /* 将 cont_3 加入 group 并聚焦, 同时移除卡片以正确触发 DEFOCUSED */
+        lv_obj_add_flag(guider_ui.screen_user_home_cont_3, LV_OBJ_FLAG_CLICKABLE);
+        lv_obj_clear_flag(guider_ui.screen_user_home_cont_3, LV_OBJ_FLAG_SCROLLABLE);
+        lv_group_add_obj(g_keypad_group, guider_ui.screen_user_home_cont_3);
+        lv_group_focus_obj(guider_ui.screen_user_home_cont_3);
+        lv_group_remove_obj(guider_ui.screen_user_home_card_solar);
+        lv_group_remove_obj(guider_ui.screen_user_home_card_device);
+        lv_group_remove_obj(guider_ui.screen_user_home_card_alert);
+        /* cont_3 高亮样式 */
+        lv_obj_set_style_border_width(guider_ui.screen_user_home_cont_3, 2, 0);
+        lv_obj_set_style_border_color(guider_ui.screen_user_home_cont_3, lv_color_hex(0x58A6FF), 0);
+        lv_obj_set_style_border_opa(guider_ui.screen_user_home_cont_3, LV_OPA_COVER, 0);
+        lv_event_stop_processing(e);
+        lv_event_stop_bubbling(e);
+    }
+    else if (key == LV_KEY_DOWN) {
+        /* DOWN (原↓键/NEXT): 阻止, 不做任何操作 */
+        lv_event_stop_processing(e);
+        lv_event_stop_bubbling(e);
+    }
+}
+
+/**
+ * @brief  Home页面: cont_3 (顶部状态栏) 按键处理
+ *         LV_KEY_DOWN (原↓键/NEXT) → 回到上次聚焦的卡片
+ *         其他按键 → 阻止
+ */
+static void screen_user_home_cont3_key_handler(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if (code != LV_EVENT_KEY) return;
+
+    uint32_t key = lv_event_get_key(e);
+
+    if (key == LV_KEY_DOWN) {
+        /* NEXT: 从 cont_3 回到上次聚焦的卡片 */
+        lv_obj_set_style_border_width(guider_ui.screen_user_home_cont_3, 1, 0);
+        lv_obj_set_style_border_color(guider_ui.screen_user_home_cont_3, lv_color_hex(0x30363D), 0);
+        lv_obj_set_style_border_opa(guider_ui.screen_user_home_cont_3, 80, 0);
+
+        /* 移除 cont_3, 重新添加 3 张卡片, 聚焦到上次记忆的卡片 */
+        lv_group_remove_obj(guider_ui.screen_user_home_cont_3);
+        lv_group_add_obj(g_keypad_group, guider_ui.screen_user_home_card_solar);
+        lv_group_add_obj(g_keypad_group, guider_ui.screen_user_home_card_device);
+        lv_group_add_obj(g_keypad_group, guider_ui.screen_user_home_card_alert);
+
+        lv_obj_t *cards[] = {
+            guider_ui.screen_user_home_card_solar,
+            guider_ui.screen_user_home_card_device,
+            guider_ui.screen_user_home_card_alert
+        };
+        if(s_home_focus_card < 3) {
+            lv_group_focus_obj(cards[s_home_focus_card]);
+        } else {
+            lv_group_focus_obj(guider_ui.screen_user_home_card_device);
+        }
+    }
+    else if (key == LV_KEY_ENTER) {
+        /* ENTER: 进入TCP服务器设置页 */
+        lv_obj_set_style_border_width(guider_ui.screen_user_home_cont_3, 1, 0);
+        lv_obj_set_style_border_color(guider_ui.screen_user_home_cont_3, lv_color_hex(0x30363D), 0);
+        lv_obj_set_style_border_opa(guider_ui.screen_user_home_cont_3, 80, 0);
+        ui_load_scr_animation(&guider_ui, &guider_ui.screen_tcp_setting, guider_ui.screen_tcp_setting_del, &guider_ui.screen_user_home_del, setup_scr_screen_tcp_setting, LV_SCR_LOAD_ANIM_NONE, 10, 10, false, false);
+    }
+    /* 吞掉所有按键, 防止影响其他对象 */
+    lv_event_stop_processing(e);
+    lv_event_stop_bubbling(e);
 }
 
 static void screen_user_home_event_handler (lv_event_t *e)
@@ -59,21 +146,26 @@ static void screen_user_home_event_handler (lv_event_t *e)
     case LV_EVENT_SCREEN_LOADED:
     {
         lv_group_remove_all_objs(g_keypad_group);//清空group中的所有组件
-        //给group添加3个数据卡片
+        //给group添加3个数据卡片 (cont_3 不加入group, 焦点由回调手动控制)
         lv_group_add_obj(g_keypad_group, guider_ui.screen_user_home_card_solar);
         lv_group_add_obj(g_keypad_group, guider_ui.screen_user_home_card_device);
         lv_group_add_obj(g_keypad_group, guider_ui.screen_user_home_card_alert);
-        //为每张卡片注册 LEFT/RIGHT 按键回调 (仅注册一次, 避免重复)
+        //为卡片和cont_3注册按键回调 (仅注册一次, 避免重复)
         {
-            static bool s_card_key_cb_added = false;
-            if (!s_card_key_cb_added) {
+            static bool s_home_key_cb_added = false;
+            if (!s_home_key_cb_added) {
                 lv_obj_add_event_cb(guider_ui.screen_user_home_card_solar,
                                     screen_user_home_card_key_handler, LV_EVENT_KEY, NULL);
                 lv_obj_add_event_cb(guider_ui.screen_user_home_card_device,
                                     screen_user_home_card_key_handler, LV_EVENT_KEY, NULL);
                 lv_obj_add_event_cb(guider_ui.screen_user_home_card_alert,
                                     screen_user_home_card_key_handler, LV_EVENT_KEY, NULL);
-                s_card_key_cb_added = true;
+                /* cont_3 按键回调 (cont_3 不在group中, 但需要CLICKABLE接收按键事件) */
+                lv_obj_add_flag(guider_ui.screen_user_home_cont_3, LV_OBJ_FLAG_CLICKABLE);
+                lv_obj_clear_flag(guider_ui.screen_user_home_cont_3, LV_OBJ_FLAG_SCROLLABLE);
+                lv_obj_add_event_cb(guider_ui.screen_user_home_cont_3,
+                                    screen_user_home_cont3_key_handler, LV_EVENT_KEY, NULL);
+                s_home_key_cb_added = true;
             }
         }
         //将按键添加进焦点组
@@ -857,6 +949,153 @@ static void screen_alert_event_handler (lv_event_t *e)
 void events_init_screen_alert (lv_ui *ui)
 {
     lv_obj_add_event_cb(ui->screen_alert, screen_alert_event_handler, LV_EVENT_ALL, ui);
+}
+
+/* ======== TCP Setting 页事件处理 (使用LVGL内置lv_keyboard) ======== */
+
+#define TCP_IP_MAX_LEN  15
+#define TCP_PORT_MAX_LEN 5
+
+/**
+ * @brief  OK按钮回调: 解析IP/Port并保存
+ */
+static void tcp_ok_btn_event_handler(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if (code != LV_EVENT_CLICKED) return;
+
+    const char *ip_str = lv_textarea_get_text(guider_ui.screen_tcp_setting_ta_ip);
+    const char *port_str = lv_textarea_get_text(guider_ui.screen_tcp_setting_ta_port);
+
+    /* 解析IP */
+    uint8_t ip[4] = {0};
+    uint16_t port = 0;
+    uint8_t octet = 0, val = 0, has_val = 0;
+    for (uint16_t i = 0; i <= strlen(ip_str) && octet < 4; i++) {
+        if (ip_str[i] >= '0' && ip_str[i] <= '9') {
+            val = val * 10 + (ip_str[i] - '0');
+            has_val = 1;
+        } else {
+            if (has_val) {
+                ip[octet++] = val;
+                val = 0;
+                has_val = 0;
+            }
+        }
+    }
+
+    /* 解析Port */
+    for (uint16_t i = 0; i < strlen(port_str); i++) {
+        if (port_str[i] >= '0' && port_str[i] <= '9') {
+            port = port * 10 + (port_str[i] - '0');
+        }
+    }
+
+    /* 基本校验 */
+    if (octet < 4 || port == 0) {
+        printf("TCP设置无效: IP段=%d, Port=%d\r\n", octet, port);
+        return;
+    }
+
+    printf("TCP设置: %d.%d.%d.%d:%d\r\n", ip[0], ip[1], ip[2], ip[3], port);
+    tcp_set_server_addr(ip, port);
+
+    /* 更新首页显示 */
+    lv_snprintf(ip_buf, sizeof(ip_buf), "%d.%d.%d.%d ", ip[0], ip[1], ip[2], ip[3]);
+    lv_snprintf(port_buf, sizeof(port_buf), "%d ", port);
+
+    /* 返回首页 */
+    ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_home,
+                          guider_ui.screen_user_home_del,
+                          &guider_ui.screen_tcp_setting_del,
+                          setup_scr_screen_user_home,
+                          LV_SCR_LOAD_ANIM_NONE, 10, 10, true, true);
+}
+
+/**
+ * @brief  textarea聚焦事件: 切换键盘关联的textarea
+ */
+static void tcp_ta_event_handler(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if (code == LV_EVENT_FOCUSED) {
+        /* 将键盘关联到当前聚焦的textarea */
+        lv_keyboard_set_textarea(guider_ui.screen_tcp_setting_kb,
+                                 lv_event_get_target(e));
+    }
+}
+
+/**
+ * @brief  键盘ESC按钮事件: 返回首页不保存
+ */
+static void tcp_kb_event_handler(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if (code == LV_EVENT_READY) {
+        /* 键盘OK按钮按下 → 执行确认 */
+        tcp_ok_btn_event_handler(e);
+    }
+    else if (code == LV_EVENT_CANCEL) {
+        /* 键盘ESC按钮按下 → 返回首页 */
+        ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_home,
+                              guider_ui.screen_user_home_del,
+                              &guider_ui.screen_tcp_setting_del,
+                              setup_scr_screen_user_home,
+                              LV_SCR_LOAD_ANIM_NONE, 10, 10, true, true);
+    }
+}
+
+static void screen_tcp_setting_event_handler(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    switch (code) {
+    case LV_EVENT_SCREEN_LOADED:
+    {
+        /* 从当前 server_ip/server_port 读取并填充输入框 */
+        uint8_t ip[4];
+        uint16_t port;
+        tcp_get_server_addr(ip, &port);
+
+        char ip_str[TCP_IP_MAX_LEN + 1];
+        char port_str[TCP_PORT_MAX_LEN + 1];
+        lv_snprintf(ip_str, sizeof(ip_str), "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+        lv_snprintf(port_str, sizeof(port_str), "%d", port);
+
+        lv_textarea_set_text(guider_ui.screen_tcp_setting_ta_ip, ip_str);
+        lv_textarea_set_text(guider_ui.screen_tcp_setting_ta_port, port_str);
+
+        /* 将焦点交给键盘 (使用物理按键导航键盘) */
+        lv_group_remove_all_objs(g_keypad_group);
+        lv_group_add_obj(g_keypad_group, guider_ui.screen_tcp_setting_kb);
+        lv_group_add_obj(g_keypad_group, guider_ui.screen_tcp_setting_ta_ip);
+        lv_group_add_obj(g_keypad_group, guider_ui.screen_tcp_setting_ta_port);
+        lv_indev_set_group(indev_keypad, g_keypad_group);
+
+        /* 初始焦点在IP输入框 */
+        lv_group_focus_obj(guider_ui.screen_tcp_setting_ta_ip);
+
+        /* textarea聚焦事件 → 切换键盘关联 */
+        lv_obj_add_event_cb(guider_ui.screen_tcp_setting_ta_ip,
+                            tcp_ta_event_handler, LV_EVENT_FOCUSED, NULL);
+        lv_obj_add_event_cb(guider_ui.screen_tcp_setting_ta_port,
+                            tcp_ta_event_handler, LV_EVENT_FOCUSED, NULL);
+
+        /* 键盘READY/CANCEL事件 */
+        lv_obj_add_event_cb(guider_ui.screen_tcp_setting_kb,
+                            tcp_kb_event_handler, LV_EVENT_READY, NULL);
+        lv_obj_add_event_cb(guider_ui.screen_tcp_setting_kb,
+                            tcp_kb_event_handler, LV_EVENT_CANCEL, NULL);
+
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+void events_init_screen_tcp_setting(lv_ui *ui)
+{
+    lv_obj_add_event_cb(ui->screen_tcp_setting, screen_tcp_setting_event_handler, LV_EVENT_ALL, ui);
 }
 
 void events_init(lv_ui *ui)

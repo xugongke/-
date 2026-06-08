@@ -81,6 +81,7 @@ void init_scr_del_flag(lv_ui *ui)
     ui->screen_user_detail_del = true;
 		ui->screen_solar_del = true;
 		ui->screen_alert_del = true;
+		ui->screen_tcp_setting_del = true;
 }
 
 void setup_ui(lv_ui *ui)

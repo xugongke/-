@@ -71,6 +71,11 @@ typedef struct
 	lv_obj_t *screen_alert_stat_relay;          /* 开关异常计数标签 */
 	lv_obj_t *screen_alert_stat_temp;           /* 温度异常计数标签 */
 	lv_obj_t *screen_alert_stat_power;          /* 电源反接计数标签 */
+	lv_obj_t *screen_tcp_setting;               /* TCP服务器设置页 */
+	bool screen_tcp_setting_del;
+	lv_obj_t *screen_tcp_setting_ta_ip;         /* IP地址输入框 */
+	lv_obj_t *screen_tcp_setting_ta_port;       /* 端口输入框 */
+	lv_obj_t *screen_tcp_setting_kb;            /* 虚拟键盘 */
 }lv_ui;
 
 typedef void (*ui_setup_scr_t)(lv_ui * ui);
@@ -100,6 +105,7 @@ void setup_scr_screen_user_list(lv_ui *ui);
 void setup_scr_screen_user_detail(lv_ui *ui);
 void setup_scr_screen_solar(lv_ui *ui);
 void setup_scr_screen_alert(lv_ui *ui);
+void setup_scr_screen_tcp_setting(lv_ui *ui);
 LV_FONT_DECLARE(lv_font_SourceHanSerifSC_Regular_16)
 LV_FONT_DECLARE(lv_font_montserratMedium_48)
 LV_FONT_DECLARE(lv_font_SourceHanSerifSC_Regular_12)

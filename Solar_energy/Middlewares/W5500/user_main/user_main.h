@@ -50,6 +50,22 @@ typedef struct {
     uint8_t  data_buf[FRAME_MAX_DATA_LEN];
 } FrameParser_t;
 
+/* ==================== TCP服务器配置 ==================== */
+
+/**
+ * @brief   获取当前服务器IP和端口
+ * @param   ip:   输出4字节IP地址
+ * @param   port: 输出端口号
+ */
+void tcp_get_server_addr(uint8_t ip[4], uint16_t *port);
+
+/**
+ * @brief   设置新的服务器IP和端口, 并触发重连
+ * @param   ip:   4字节IP地址
+ * @param   port: 端口号
+ */
+void tcp_set_server_addr(const uint8_t ip[4], uint16_t port);
+
 /* ==================== 函数声明 ==================== */
 
 /**

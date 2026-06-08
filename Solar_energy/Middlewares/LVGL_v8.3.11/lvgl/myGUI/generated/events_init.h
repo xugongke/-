@@ -23,6 +23,7 @@ void events_init_screen_user_list(lv_ui *ui);
 void events_init_screen_user_detail(lv_ui *ui);
 void events_init_screen_solar(lv_ui *ui);
 void events_init_screen_alert(lv_ui *ui);
+void events_init_screen_tcp_setting(lv_ui *ui);
 
 /* 列表分页函数 (供key.c调用) */
 void List_NextPage(void);
