@@ -278,10 +278,13 @@ static void frame_parser_process_byte(FrameParser_t *parser, uint8_t byte)
 
 void frame_parser_feed(FrameParser_t *parser, const uint8_t *data, uint16_t len)
 {
+    printf("Feeding byte: ");
     for (uint16_t i = 0; i < len; i++)
     {
+        printf("0x%02X ", data[i]);
         frame_parser_process_byte(parser, data[i]);
     }
+    printf("\r\n");
 }
 
 /* ================================================================
@@ -358,6 +361,9 @@ static int tcp_client_connect(void)
     printf("TCP 连接到 %d.%d.%d.%d:%d...\r\n",
            server_ip[0], server_ip[1], server_ip[2], server_ip[3], server_port);
 
+    /* 连接尝试期间关闭Socket中断, 防止连接失败时产生中断风暴 */
+    setSn_IMR(TCP_SOCKET_ID, 0x00);
+
     /* 先关闭socket */
     close(TCP_SOCKET_ID);
 
@@ -378,6 +384,10 @@ static int tcp_client_connect(void)
 
     printf("TCP 已连接\r\n");
     g_tcp_connected = 1;
+
+    /* 连接成功, 开启Socket中断 (RECV | DISCON | CON) */
+    setSn_IMR(TCP_SOCKET_ID, Sn_IR_RECV | Sn_IR_DISCON | Sn_IR_CON);
+
     return 0;
 }
 
@@ -386,12 +396,26 @@ static int tcp_client_connect(void)
  * ================================================================ */
 
 /**
- * @brief   处理Socket 1的中断事件
- * @note    与loopback_tcps_interrupt类似, 但为客户端模式
+ * @brief   处理Socket的中断事件
+ * @note    在每次主循环中被调用, 负责清除中断标志并处理连接状态
  */
 static void tcp_client_process(void)
 {
     uint16_t len;
+
+    /* 清除Socket中断标志, 防止INTn引脚持续为低导致重复中断 */
+    uint8_t sir = getSn_IR(TCP_SOCKET_ID);
+    if (sir)
+    {
+        setSn_IR(TCP_SOCKET_ID, sir);  /* 写1清除 */
+    }
+
+    /* 清除W5500公共中断寄存器 */
+    uint8_t ir = getIR();
+    if (ir)
+    {
+        setIR(ir);  /* 写1清除 */
+    }
 
     /* 检查连接状态 */
     uint8_t sr = getSn_SR(TCP_SOCKET_ID);
@@ -401,6 +425,8 @@ static void tcp_client_process(void)
         if (!g_tcp_connected)
         {
             g_tcp_connected = 1;
+            /* 连接恢复, 开启Socket中断 */
+            setSn_IMR(TCP_SOCKET_ID, Sn_IR_RECV | Sn_IR_DISCON | Sn_IR_CON);
             printf("TCP 已连接\r\n");
         }
 
@@ -422,6 +448,8 @@ static void tcp_client_process(void)
     {
         disconnect(TCP_SOCKET_ID);
         g_tcp_connected = 0;
+        /* 断开连接, 关闭Socket中断防止中断风暴 */
+        setSn_IMR(TCP_SOCKET_ID, 0x00);
         printf("TCP 客户端：关闭等待，正在断开连接\r\n");
     }
     else if (sr == SOCK_CLOSED)
@@ -429,6 +457,8 @@ static void tcp_client_process(void)
         if (g_tcp_connected)
         {
             g_tcp_connected = 0;
+            /* 断开连接, 关闭Socket中断防止中断风暴 */
+            setSn_IMR(TCP_SOCKET_ID, 0x00);
             printf("TCP 客户端：已断开连接\r\n");
         }
         /* 不在此处重连, 由主循环处理 */
@@ -599,9 +629,13 @@ void W5500_Task(void *argument)
     /* 设置网络信息 */
     network_init(ethernet_buf, &default_net_info);
 
-    /* 启用Socket中断 */
-    setSIMR(0xff);
-    setSn_IMR(TCP_SOCKET_ID, 0x0f);
+    /* 仅使能Socket 0的SIMR掩码 */
+    setSIMR(0x01 << TCP_SOCKET_ID);
+    /* Socket中断掩码初始化为关闭, 连接成功后按需开启 */
+    setSn_IMR(TCP_SOCKET_ID, 0x00);
+    /* 清除可能残留的中断标志 */
+    setIR(getIR());
+    setSn_IR(TCP_SOCKET_ID, 0x1F);
 
     /* 创建流缓冲区 */
     tcp_stream_buf = xStreamBufferCreate(TCP_STREAM_BUF_SIZE, 1);

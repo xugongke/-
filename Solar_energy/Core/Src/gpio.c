@@ -141,7 +141,7 @@ void MX_GPIO_Init(void)
   /*Configure GPIO pin : W5500_INT_Pin */
   GPIO_InitStruct.Pin = W5500_INT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(W5500_INT_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : LCD_RES_Pin */

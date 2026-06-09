@@ -144,23 +144,30 @@ void screen_user_list_item_event_handler(lv_event_t *e)
 //					//让设备退网
 //					const uint8_t new_psk[2] = {0x01,0x02};
 //					ES1642_SendSetPsk(&g_es1642_handle, device_list[1].addr, new_psk, 0x01);
-//					
-//					//停止加热
-//					device_ctrl_heater(device_list[0].addr,0);
-//					
+//								
         }
 				
         if(key == LV_KEY_UP)
         {
-					Battery_Info_t info;
-					Battery_GetInfo(&info);
-					printf("电池电压:%f,电量百分比:%d,充电状态:%d,ADC原始值:%d\r\n",info.voltage,info.percentage,info.is_charging,info.adc_raw);
+					printf("up!!!\r\n");
+//					Battery_Info_t info;
+//					Battery_GetInfo(&info);
+//					printf("电池电压:%f,电量百分比:%d,充电状态:%d,ADC原始值:%d\r\n",info.voltage,info.percentage,info.is_charging,info.adc_raw);
+					//所有设备启动加热
+					for(int i = 0;i < device_count;i++)
+					{
+						device_ctrl_heater(i,1);
+					}	
         }
 				
         if(key == LV_KEY_DOWN)
         {
 					printf("down!!!\r\n");
-					tcp_resp_device_list();
+					//所有设备停止加热
+					for(int i = 0;i < device_count;i++)
+					{
+						device_ctrl_heater(i,0);
+					}		
         }
 				
         if(key == LV_KEY_ESC)//ESC键，返回首页

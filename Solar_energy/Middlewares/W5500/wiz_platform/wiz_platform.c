@@ -135,7 +135,14 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
     if (GPIO_Pin == W5500_INT_Pin)
     {
-        __HAL_GPIO_EXTI_CLEAR_IT(GPIO_Pin);
+        /*
+         * 注意: 不需要在这里调用 __HAL_GPIO_EXTI_CLEAR_IT(GPIO_Pin),
+         * 因为W5500的INTn引脚是低电平有效, 只要在tcp_client_process()中
+         * 正确清除Sn_IR和IR寄存器, INTn引脚就会自动恢复高电平, EXTI中断自然消除。
+         *
+         * 如果Sn_IR未被清除, INTn持续为低, 调用__HAL_GPIO_EXTI_CLEAR_IT也无效,
+         * EXTI会立即再次触发, 导致中断风暴。
+         */
 
         /* 释放信号量, 唤醒W5500任务处理中断事件 */
         if (w5500_int_sem != NULL)

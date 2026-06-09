@@ -315,7 +315,7 @@ void events_init_screen_user_home (lv_ui *ui)
 
 /* ======== User List 页事件处理 (分页版) ======== */
 
-#define LIST_PAGE_SIZE  6  /* 每页显示的最大设备数 (256设备÷20页, 每页~12KB) */
+#define LIST_PAGE_SIZE  5  /* 每页显示的最大设备数 (256设备÷20页, 每页~12KB) */
 
 static uint16_t s_list_page = 0;    /* 当前页码 (0-based) */
 static lv_obj_t *s_list_page_label = NULL;  /* 页码指示标签 */
