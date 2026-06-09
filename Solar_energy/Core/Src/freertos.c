@@ -49,6 +49,7 @@
 #include "rs485_usart.h"
 #include "battery.h"
 #include "mppt.h"
+#include "user_main.h"
 lv_ui  guider_ui;                     // 定义 界面对象
 extern lv_group_t * g_keypad_group;		//声明全局group
 WeatherCurrent_t weather_data = {0};//存储天气代码的结构体
@@ -356,7 +357,10 @@ void lvgl_task(void *argument)
 	
 	// 文件系统初始化完成之后读取设备表文件加载到RAM中
 	device_manager_init();
-	
+
+	// 从TF卡读取TCP服务器IP/Port配置 (在W5500_Task连接之前完成)
+	tcp_config_load();
+
 	/* USER CODE END 2 */
 	//自己设计的图形窗口
 	setup_ui(&guider_ui);           // 初始化 UI

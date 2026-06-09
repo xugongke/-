@@ -66,6 +66,18 @@ void tcp_get_server_addr(uint8_t ip[4], uint16_t *port);
  */
 void tcp_set_server_addr(const uint8_t ip[4], uint16_t port);
 
+/**
+ * @brief   将当前 server_ip 和 server_port 保存到TF卡
+ * @return  0=成功, -1=失败
+ */
+int tcp_config_save(void);
+
+/**
+ * @brief   从TF卡读取 server_ip 和 server_port
+ * @return  0=成功, -1=失败(使用默认值)
+ */
+int tcp_config_load(void);
+
 /* ==================== 函数声明 ==================== */
 
 /**

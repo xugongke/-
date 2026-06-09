@@ -11,6 +11,7 @@
 #include "semphr.h"
 #include "main.h"
 #include "tcp_cmd_handler.h"
+#include "fatfs.h"
 
 /* ==================== 网络配置 ==================== */
 wiz_NetInfo default_net_info = {
@@ -461,6 +462,143 @@ void tcp_set_server_addr(const uint8_t ip[4], uint16_t port)
         disconnect(TCP_SOCKET_ID);
         g_tcp_connected = 0;
         printf("TCP 客户端：服务器地址已更新，正在重连...\r\n");
+    }
+}
+
+/* ================================================================
+ *  TCP配置持久化 (TF卡)
+ *  文件路径: "0:/tcp_config.ini"
+ *  格式: "ip=xxx.xxx.xxx.xxx\nport=xxxxx\n"
+ * ================================================================ */
+
+#define TCP_CONFIG_FILE  "0:/tcp_config.ini"
+
+/**
+ * @brief   将当前 server_ip 和 server_port 保存到TF卡
+ * @return  0=成功, -1=失败
+ */
+int tcp_config_save(void)
+{
+    static FIL fil;
+    FRESULT res;
+    UINT bytes_written;
+    char buf[64];
+
+    /* 挂载文件系统 */
+    res = f_mount(&SDFatFS, SDPath, 1);
+    if (res != FR_OK) {
+        printf("tcp_config_save: 挂载失败 (%d)\r\n", res);
+        return -1;
+    }
+
+    /* 创建/覆盖文件 */
+    res = f_open(&fil, TCP_CONFIG_FILE, FA_WRITE | FA_CREATE_ALWAYS);
+    if (res != FR_OK) {
+        printf("tcp_config_save: 打开文件失败 (%d)\r\n", res);
+        f_mount(NULL, SDPath, 0);
+        return -1;
+    }
+
+    /* 写入IP */
+    snprintf(buf, sizeof(buf), "ip=%d.%d.%d.%d\n",
+                server_ip[0], server_ip[1], server_ip[2], server_ip[3]);
+    res = f_write(&fil, buf, strlen(buf), &bytes_written);
+
+    /* 写入Port */
+    snprintf(buf, sizeof(buf), "port=%d\n", server_port);
+    res |= f_write(&fil, buf, strlen(buf), &bytes_written);
+
+    f_close(&fil);
+    f_mount(NULL, SDPath, 0);
+
+    if (res != FR_OK) {
+        printf("tcp_config_save: 写入失败 (%d)\r\n", res);
+        return -1;
+    }
+
+    printf("tcp_config_save: 保存成功 %d.%d.%d.%d:%d\r\n",
+           server_ip[0], server_ip[1], server_ip[2], server_ip[3], server_port);
+    return 0;
+}
+
+/**
+ * @brief   从TF卡读取 server_ip 和 server_port
+ * @return  0=成功, -1=失败(使用默认值)
+ */
+int tcp_config_load(void)
+{
+    static FIL fil;
+    FRESULT res;
+    char line[64];
+    int found_ip = 0, found_port = 0;
+
+    /* 挂载文件系统 */
+    res = f_mount(&SDFatFS, SDPath, 1);
+    if (res != FR_OK) {
+        printf("tcp_config_load: 挂载失败 (%d), 使用默认配置\r\n", res);
+        return -1;
+    }
+
+    /* 打开文件 */
+    res = f_open(&fil, TCP_CONFIG_FILE, FA_READ);
+    if (res != FR_OK) {
+        printf("tcp_config_load: 文件不存在 (%d), 使用默认配置\r\n", res);
+        f_mount(NULL, SDPath, 0);
+        return -1;
+    }
+
+    /* 逐行读取并解析 */
+    while (f_gets(line, sizeof(line), &fil) != NULL)
+    {
+        if (strncmp(line, "ip=", 3) == 0)
+        {
+            /* 解析IP: ip=xxx.xxx.xxx.xxx */
+            uint8_t ip[4] = {0};
+            uint8_t octet = 0, val = 0, has_val = 0;
+            for (int i = 3; i <= (int)strlen(line) && octet < 4; i++) {
+                if (line[i] >= '0' && line[i] <= '9') {
+                    val = val * 10 + (line[i] - '0');
+                    has_val = 1;
+                } else {
+                    if (has_val) {
+                        ip[octet++] = val;
+                        val = 0;
+                        has_val = 0;
+                    }
+                }
+            }
+            if (octet == 4) {
+                memcpy(server_ip, ip, 4);
+                found_ip = 1;
+            }
+        }
+        else if (strncmp(line, "port=", 5) == 0)
+        {
+            /* 解析Port: port=xxxxx */
+            uint16_t port = 0;
+            for (int i = 5; i < (int)strlen(line); i++) {
+                if (line[i] >= '0' && line[i] <= '9') {
+                    port = port * 10 + (line[i] - '0');
+                }
+            }
+            if (port > 0) {
+                server_port = port;
+                found_port = 1;
+            }
+        }
+    }
+
+    f_close(&fil);
+    f_mount(NULL, SDPath, 0);
+
+    if (found_ip && found_port) {
+        printf("tcp_config_load: 读取成功 %d.%d.%d.%d:%d\r\n",
+               server_ip[0], server_ip[1], server_ip[2], server_ip[3], server_port);
+        return 0;
+    } else {
+        printf("tcp_config_load: 解析不完整 (ip=%d,port=%d), 使用默认配置\r\n",
+               found_ip, found_port);
+        return -1;
     }
 }
 

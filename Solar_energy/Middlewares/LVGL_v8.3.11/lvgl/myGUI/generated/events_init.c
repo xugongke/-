@@ -1031,6 +1031,9 @@ static void tcp_save(void)
     printf("TCP设置: %d.%d.%d.%d:%d\r\n", ip[0], ip[1], ip[2], ip[3], port);
     tcp_set_server_addr(ip, port);
 
+    /* 保存到TF卡 */
+    tcp_config_save();
+
     /* 更新首页显示 */
     lv_snprintf(ip_buf, sizeof(ip_buf), "%d.%d.%d.%d ", ip[0], ip[1], ip[2], ip[3]);
     lv_snprintf(port_buf, sizeof(port_buf), "%d ", port);
