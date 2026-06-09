@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "ff.h"
+#include "fatfs.h"
 #include "lvgl.h"
 #include "gui_guider.h"
 
@@ -78,7 +79,6 @@ static FRESULT ensure_user_dir(void)
 
 int ensure_user_data_file(const uint8_t *dev_addr, const uint8_t *mac)
 {
-    static FIL file;
     FRESULT res;
     char filepath[40];
     UINT bw;
@@ -101,8 +101,10 @@ int ensure_user_data_file(const uint8_t *dev_addr, const uint8_t *mac)
         return -3;
     }
 
+    if(fs_mutex) osMutexAcquire(fs_mutex, osWaitForever);
+
     /* 尝试打开文件（仅读，不创建） */
-    res = f_open(&file, filepath, FA_OPEN_EXISTING | FA_READ);
+    res = f_open(&SDFile, filepath, FA_OPEN_EXISTING | FA_READ);
     if (res == FR_OK)
     {
 				house_info_t info;
@@ -110,22 +112,25 @@ int ensure_user_data_file(const uint8_t *dev_addr, const uint8_t *mac)
 				printf("用户数据文件已存在: %s (楼栋%d 单元%d 房间%d)\r\n",
 							 filepath, info.building, info.unit, info.room);
         /* 文件已存在，直接关闭跳过 */
-        f_close(&file);
+        f_close(&SDFile);
+        if(fs_mutex) osMutexRelease(fs_mutex);
         return 0;
     }
 
     /* 文件不存在，创建新文件并写入默认数据 */
-    res = f_open(&file, filepath, FA_CREATE_NEW | FA_WRITE);
+    res = f_open(&SDFile, filepath, FA_CREATE_NEW | FA_WRITE);
     if (res != FR_OK)
     {
         /* 可能被并发创建了，再试一次读取 */
-        res = f_open(&file, filepath, FA_OPEN_EXISTING | FA_READ);
+        res = f_open(&SDFile, filepath, FA_OPEN_EXISTING | FA_READ);
         if (res == FR_OK)
         {
-            f_close(&file);
+            f_close(&SDFile);
+            if(fs_mutex) osMutexRelease(fs_mutex);
             return 0;
         }
         printf("用户数据文件创建失败: %s, err=%d\r\n", filepath, res);
+        if(fs_mutex) osMutexRelease(fs_mutex);
         return -3;
     }
 
@@ -164,8 +169,9 @@ int ensure_user_data_file(const uint8_t *dev_addr, const uint8_t *mac)
     }
 
     /* 写入文件 */
-    res = f_write(&file, &default_data, sizeof(default_data), &bw);
-    f_close(&file);
+    res = f_write(&SDFile, &default_data, sizeof(default_data), &bw);
+    f_close(&SDFile);
+    if(fs_mutex) osMutexRelease(fs_mutex);
 
     if (res != FR_OK || bw != sizeof(default_data))
     {
@@ -183,7 +189,6 @@ int ensure_user_data_file(const uint8_t *dev_addr, const uint8_t *mac)
 
 int read_user_data(const uint8_t *dev_addr, user_data_file_t *data)
 {
-    static FIL file;
     FRESULT res;
     char filepath[40];
     UINT br;
@@ -198,14 +203,17 @@ int read_user_data(const uint8_t *dev_addr, user_data_file_t *data)
         return -2;
     }
 
-    res = f_open(&file, filepath, FA_OPEN_EXISTING | FA_READ);
+    if(fs_mutex) osMutexAcquire(fs_mutex, osWaitForever);
+    res = f_open(&SDFile, filepath, FA_OPEN_EXISTING | FA_READ);
     if (res != FR_OK)
     {
+        if(fs_mutex) osMutexRelease(fs_mutex);
         return -3;
     }
 
-    res = f_read(&file, data, sizeof(user_data_file_t), &br);
-    f_close(&file);
+    res = f_read(&SDFile, data, sizeof(user_data_file_t), &br);
+    f_close(&SDFile);
+    if(fs_mutex) osMutexRelease(fs_mutex);
 
     if (res != FR_OK || br != sizeof(user_data_file_t))
     {
@@ -224,7 +232,6 @@ int read_user_data(const uint8_t *dev_addr, user_data_file_t *data)
 
 int write_user_data(const uint8_t *dev_addr, user_data_file_t *data)
 {
-    static FIL file;
     FRESULT res;
     char filepath[40];
     UINT bw;
@@ -251,15 +258,18 @@ int write_user_data(const uint8_t *dev_addr, user_data_file_t *data)
         data->update_time.seconds = rtc_now.seconds;
     }
 
+    if(fs_mutex) osMutexAcquire(fs_mutex, osWaitForever);
     /* 打开已存在的文件并覆盖写入 */
-    res = f_open(&file, filepath, FA_OPEN_EXISTING | FA_WRITE);
+    res = f_open(&SDFile, filepath, FA_OPEN_EXISTING | FA_WRITE);
     if (res != FR_OK)
     {
+        if(fs_mutex) osMutexRelease(fs_mutex);
         return -3;
     }
 
-    res = f_write(&file, data, sizeof(user_data_file_t), &bw);
-    f_close(&file);
+    res = f_write(&SDFile, data, sizeof(user_data_file_t), &bw);
+    f_close(&SDFile);
+    if(fs_mutex) osMutexRelease(fs_mutex);
 
     if (res != FR_OK || bw != sizeof(user_data_file_t))
     {

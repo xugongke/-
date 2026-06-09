@@ -479,37 +479,31 @@ void tcp_set_server_addr(const uint8_t ip[4], uint16_t port)
  */
 int tcp_config_save(void)
 {
-    static FIL fil;
     FRESULT res;
     UINT bytes_written;
     char buf[64];
 
-    /* 挂载文件系统 */
-    res = f_mount(&SDFatFS, SDPath, 1);
-    if (res != FR_OK) {
-        printf("tcp_config_save: 挂载失败 (%d)\r\n", res);
-        return -1;
-    }
+    if(fs_mutex) osMutexAcquire(fs_mutex, osWaitForever);
 
     /* 创建/覆盖文件 */
-    res = f_open(&fil, TCP_CONFIG_FILE, FA_WRITE | FA_CREATE_ALWAYS);
+    res = f_open(&SDFile, TCP_CONFIG_FILE, FA_WRITE | FA_CREATE_ALWAYS);
     if (res != FR_OK) {
         printf("tcp_config_save: 打开文件失败 (%d)\r\n", res);
-        f_mount(NULL, SDPath, 0);
+        if(fs_mutex) osMutexRelease(fs_mutex);
         return -1;
     }
 
     /* 写入IP */
     snprintf(buf, sizeof(buf), "ip=%d.%d.%d.%d\n",
                 server_ip[0], server_ip[1], server_ip[2], server_ip[3]);
-    res = f_write(&fil, buf, strlen(buf), &bytes_written);
+    res = f_write(&SDFile, buf, strlen(buf), &bytes_written);
 
     /* 写入Port */
     snprintf(buf, sizeof(buf), "port=%d\n", server_port);
-    res |= f_write(&fil, buf, strlen(buf), &bytes_written);
+    res |= f_write(&SDFile, buf, strlen(buf), &bytes_written);
 
-    f_close(&fil);
-    f_mount(NULL, SDPath, 0);
+    f_close(&SDFile);
+    if(fs_mutex) osMutexRelease(fs_mutex);
 
     if (res != FR_OK) {
         printf("tcp_config_save: 写入失败 (%d)\r\n", res);
@@ -527,28 +521,22 @@ int tcp_config_save(void)
  */
 int tcp_config_load(void)
 {
-    static FIL fil;
     FRESULT res;
     char line[64];
     int found_ip = 0, found_port = 0;
 
-    /* 挂载文件系统 */
-    res = f_mount(&SDFatFS, SDPath, 1);
-    if (res != FR_OK) {
-        printf("tcp_config_load: 挂载失败 (%d), 使用默认配置\r\n", res);
-        return -1;
-    }
+    if(fs_mutex) osMutexAcquire(fs_mutex, osWaitForever);
 
     /* 打开文件 */
-    res = f_open(&fil, TCP_CONFIG_FILE, FA_READ);
+    res = f_open(&SDFile, TCP_CONFIG_FILE, FA_READ);
     if (res != FR_OK) {
         printf("tcp_config_load: 文件不存在 (%d), 使用默认配置\r\n", res);
-        f_mount(NULL, SDPath, 0);
+        if(fs_mutex) osMutexRelease(fs_mutex);
         return -1;
     }
 
     /* 逐行读取并解析 */
-    while (f_gets(line, sizeof(line), &fil) != NULL)
+    while (f_gets(line, sizeof(line), &SDFile) != NULL)
     {
         if (strncmp(line, "ip=", 3) == 0)
         {
@@ -588,8 +576,8 @@ int tcp_config_load(void)
         }
     }
 
-    f_close(&fil);
-    f_mount(NULL, SDPath, 0);
+    f_close(&SDFile);
+    if(fs_mutex) osMutexRelease(fs_mutex);
 
     if (found_ip && found_port) {
         printf("tcp_config_load: 读取成功 %d.%d.%d.%d:%d\r\n",

@@ -26,6 +26,7 @@
 #include "ff.h"
 #include "ff_gen_drv.h"
 #include "sd_diskio.h" /* defines SD_Driver as external */
+#include "cmsis_os.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -34,12 +35,13 @@
 extern uint8_t retSD; /* Return value for SD */
 extern char SDPath[4]; /* SD logical drive path */
 extern FATFS SDFatFS; /* File system object for SD logical drive */
-extern FIL SDFile; /* File object for SD */
+extern FIL SDFile; /* File object for SD (共享, 所有文件操作通过fs_mutex互斥) */
+
 
 void MX_FATFS_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
+extern osMutexId_t fs_mutex; /* 文件系统互斥锁, 保护SDFile和SDFatFS的并发访问 */
 /* USER CODE END Prototypes */
 #ifdef __cplusplus
 }

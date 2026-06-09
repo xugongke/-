@@ -56,6 +56,8 @@ WeatherCurrent_t weather_data = {0};//存储天气代码的结构体
 
 /* LVGL互斥锁: 保护多任务对LVGL API的并发访问 */
 osMutexId_t lvgl_mutex = NULL;
+/* 文件系统互斥锁: 保护共享SDFile/SDFatFS的并发访问 */
+osMutexId_t fs_mutex = NULL;
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -229,6 +231,8 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_MUTEX */
   /* 创建LVGL互斥锁 */
   lvgl_mutex = osMutexNew(NULL);
+  /* 创建文件系统互斥锁 */
+  fs_mutex = osMutexNew(NULL);
   /* USER CODE END RTOS_MUTEX */
 
   /* Create the semaphores(s) */

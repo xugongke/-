@@ -6,6 +6,7 @@
 #include "user_data_manager.h"
 #include "a7680c_mqtt.h"
 #include "cmsis_os.h"
+#include "fatfs.h"
 
 // ================== 从机命令定义 ==================
 #define SLAVE_CMD_SET_ADDR    0x01  // 修改通信地址命令
@@ -251,22 +252,23 @@ void Clear_devices(void)
 // ================== 保存设备表 ==================
 FRESULT save_devices(void)
 {
-    static FIL file;
     FRESULT res;
     UINT bw;
 
     // 没有变化就不写SD卡（减少磨损）
     if (!device_changed)
         return FR_OK;
+
+    if(fs_mutex) osMutexAcquire(fs_mutex, osWaitForever);
 		//不管文件是否存在，都直接创建新文件；如果已存在，就清空重写
-    res = f_open(&file, DEVICE_FILE, FA_CREATE_ALWAYS | FA_WRITE);
+    res = f_open(&SDFile, DEVICE_FILE, FA_CREATE_ALWAYS | FA_WRITE);
     if (res != FR_OK)
     {
         printf("打开文件失败\r\n");
         return res;
     }
 
-    res = f_write(&file, device_list, device_count * sizeof(device_t), &bw);
+    res = f_write(&SDFile, device_list, device_count * sizeof(device_t), &bw);
 
     if (res == FR_OK)
     {
@@ -274,18 +276,20 @@ FRESULT save_devices(void)
         device_changed = 0;
     }
 
-    f_close(&file);
+    f_close(&SDFile);
+    if(fs_mutex) osMutexRelease(fs_mutex);
     return res;
 }
 
 // ================== 加载设备表 ==================
 FRESULT load_devices(void)
 {
-    static FIL file;
     FRESULT res;
     UINT br;
+
+    if(fs_mutex) osMutexAcquire(fs_mutex, osWaitForever);
 	//如果文件存在就打开，如果文件不存在就创建，但是并没有读写权限，需要加上
-    res = f_open(&file, DEVICE_FILE, FA_OPEN_ALWAYS | FA_READ);
+    res = f_open(&SDFile, DEVICE_FILE, FA_OPEN_ALWAYS | FA_READ);
     if (res != FR_OK)
     {
         printf("设备表文件打开失败\r\n");
@@ -293,13 +297,14 @@ FRESULT load_devices(void)
         return FR_NO_FILE;
     }
 
-    res = f_read(&file, device_list, sizeof(device_list), &br);
+    res = f_read(&SDFile, device_list, sizeof(device_list), &br);
     if (res != FR_OK)
     {
         printf("设备表文档f_read失败\r\n");
     }
 
-    f_close(&file);
+    f_close(&SDFile);
+    if(fs_mutex) osMutexRelease(fs_mutex);
 		//br是实际读取到的字节数,也就是用户真实的数量
     device_count = br / sizeof(device_t);
 
