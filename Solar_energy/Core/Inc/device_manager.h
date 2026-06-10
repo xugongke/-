@@ -33,8 +33,15 @@ typedef struct
     uint16_t input_voltage;     /**< 输入电压 (V) ，不会马上保存到SD卡 */
     device_state_t state;      // 状态位图 (共用体, 可按位域或整字节访问 ，不会马上保存到SD卡)
     uint8_t comm_fail_cnt;     // 通信失败次数计数 ，不会马上保存到SD卡
-    float   minute_energy_wh;  /**< 本分钟累积电量 (Wh), 每次轮询后计算并累加到用户数据文件 */
 } device_t;
+
+// ================== 运行时临时数据（不保存到SD卡） ==================
+/**
+ * @brief 各设备本分钟累积电量 (Wh)
+ * @note  每次轮询后由 calc_energy_and_accumulate() 计算并填充
+ *        不保存到 device_t 结构体中，避免影响 SD 卡文件格式
+ */
+extern float minute_energy_wh[MAX_DEVICES];
 //通信地址解析结构体
 typedef struct
 {

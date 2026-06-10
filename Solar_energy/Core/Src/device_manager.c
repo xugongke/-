@@ -22,6 +22,9 @@
 device_t device_list[MAX_DEVICES];
 uint16_t device_count = 0;
 
+// 运行时临时数据（不保存到SD卡）
+float minute_energy_wh[MAX_DEVICES];  // 各设备本分钟累积电量 (Wh)
+
 // 标志：设备是否有变化（用于减少SD写入）
 static uint8_t device_changed = 0;
 
@@ -593,7 +596,7 @@ void calc_energy_and_accumulate(void)
             float power_w = (voltage * voltage) / (float)LOAD_RESISTANCE;
             float energy_wh = power_w / 60.0f;  /* 1分钟间隔 */
 
-            device_list[i].minute_energy_wh = energy_wh;
+            minute_energy_wh[i] = energy_wh;
 
             /* 从SD卡读取用户数据文件 */
             user_data_file_t user_data;
@@ -617,7 +620,7 @@ void calc_energy_and_accumulate(void)
         else
         {
             /* 未加热或电压无效，本分钟电量为0 */
-            device_list[i].minute_energy_wh = 0.0f;
+            minute_energy_wh[i] = 0.0f;
         }
     }
 }
