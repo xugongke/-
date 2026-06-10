@@ -565,6 +565,63 @@ void device_poll_all_status(void)
     printf("设备轮询完成\r\n");
 }
 
+// ================== 计算本分钟用电量并累加到用户数据文件 ==================
+
+/**
+ * @brief 根据各设备当前电压和加热状态，计算本分钟用电量并累加到用户数据文件
+ * @note  在 device_poll_all_status() 之后调用
+ *        计算公式: P = V²/R (R=8Ω), E = P × (60/3600) = P/60 Wh
+ * 这个函数应该是电压大于启动电压的时候调用的
+ */
+void calc_energy_and_accumulate(void)
+{
+    if (device_count == 0) return;
+
+    for (uint16_t i = 0; i < device_count; i++)
+    {
+        /* 跳过未入网的设备 */
+        if (device_list[i].state.bits.valid == 0) continue;
+
+        /* 跳过通信异常的设备 */
+        if (device_list[i].state.bits.comm_err == 1) continue;
+
+        /* 只有正在直流加热 且 电压有效(>0) 时才计算功率 */
+        if (device_list[i].state.bits.dc_heating && device_list[i].input_voltage > 0)
+        {
+            /* P = V² / R,  E = P × (60s / 3600s) = P / 60 Wh */
+            float voltage = (float)device_list[i].input_voltage;
+            float power_w = (voltage * voltage) / (float)LOAD_RESISTANCE;
+            float energy_wh = power_w / 60.0f;  /* 1分钟间隔 */
+
+            device_list[i].minute_energy_wh = energy_wh;
+
+            /* 从SD卡读取用户数据文件 */
+            user_data_file_t user_data;
+            int ret = read_user_data(device_list[i].addr, &user_data);
+            if (ret == 0)
+            {
+                /* 累加用电量 */
+                user_data.power          = power_w;
+                user_data.daily_energy   += energy_wh / 1000.0f;   /* Wh → kWh */
+                user_data.monthly_energy += energy_wh / 1000.0f;
+                user_data.annual_energy  += energy_wh / 1000.0f;
+                user_data.total_energy   += energy_wh / 1000.0f;
+
+                /* 同步温度到用户数据文件 */
+                user_data.temperature = (float)device_list[i].temperature;
+
+                /* 写回SD卡 */
+                write_user_data(device_list[i].addr, &user_data);
+            }
+        }
+        else
+        {
+            /* 未加热或电压无效，本分钟电量为0 */
+            device_list[i].minute_energy_wh = 0.0f;
+        }
+    }
+}
+
 // ================== 打印设备列表 ==================
 void print_device_list(void)
 {

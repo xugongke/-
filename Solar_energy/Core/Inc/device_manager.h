@@ -6,6 +6,7 @@
 
 // ================== 配置参数 ==================
 #define MAX_DEVICES 256      // 最大设备数量
+#define LOAD_RESISTANCE 8    // 热水器负载电阻(Ω)
 #define DEVICE_FILE "0:/devices.bin"   // 存储文件名
 
 // ================== 设备状态位图共用体 ==================
@@ -32,6 +33,7 @@ typedef struct
     uint16_t input_voltage;     /**< 输入电压 (V) ，不会马上保存到SD卡 */
     device_state_t state;      // 状态位图 (共用体, 可按位域或整字节访问 ，不会马上保存到SD卡)
     uint8_t comm_fail_cnt;     // 通信失败次数计数 ，不会马上保存到SD卡
+    float   minute_energy_wh;  /**< 本分钟累积电量 (Wh), 每次轮询后计算并累加到用户数据文件 */
 } device_t;
 //通信地址解析结构体
 typedef struct
@@ -116,6 +118,13 @@ int device_read_status_ex(int dev_index);
  * @brief 轮询所有有效设备状态并通过MQTT上报
  */
 void device_poll_all_status(void);
+
+/**
+ * @brief 根据各设备当前电压和加热状态，计算本分钟用电量并累加到用户数据文件
+ * @note  在 device_poll_all_status() 之后调用
+ *        计算公式: P = V²/R (R=8Ω), E = P × (60/3600) = P/60 Wh
+ */
+void calc_energy_and_accumulate(void);
 
 // ================== 告警预扫描数据 ==================
 
