@@ -253,12 +253,15 @@ void es1642_on_frame_received(es1642_handle_t *handle,
         }
 
         case ES1642_CMD_START_SEARCH:
-				{
+		{
             status = ES1642_DecodeEmptyResponse(frame, ES1642_CMD_START_SEARCH);
             if (status == ES1642_STATUS_OK)
             {
                 printf("启动搜索: OK\r\n");
-                g_es1642_searching = 1;  /* 标记搜索中，阻止其他命令 */
+                /* 清空设备表之前，先将RAM中累积的用电量写入SD卡，避免数据丢失 */
+                daily_energy_flush_to_sd();
+                Clear_devices();//启动搜索成功之后，清空设备表
+                g_es1642_searching = 1;  /* 标记搜索中，暂停设备轮询 */
                 /* ES1642确认启动搜索成功，通知上位机 */
                 tcp_send_search_ok();
                 rs485_send_search_ok();
@@ -742,8 +745,6 @@ int ES1642_SendBroadcastData(const uint8_t *data, uint16_t len)
 int ES1642_StartSearch(uint8_t depth, es1642_search_rule_t rule)
 {
     es1642_status_t status;
-    
-		Clear_devices();//清空设备表
     printf("正在启动设备搜索...\r\n");
     
     /* 启动搜索，不携带属性数据 */

@@ -23,7 +23,7 @@ device_t device_list[MAX_DEVICES];
 uint16_t device_count = 0;
 
 // 运行时临时数据（不保存到SD卡）
-float minute_energy_wh[MAX_DEVICES];  // 各设备累积电量 (Wh)，每次轮询累加，每天零点写入SD卡
+float daily_energy_wh[MAX_DEVICES];   // 各设备当日累积电量 (Wh)
 
 // 标志：设备是否有变化（用于减少SD写入）
 static uint8_t device_changed = 0;
@@ -249,6 +249,7 @@ int update_device(uint8_t *mac, uint8_t *addr)
 void Clear_devices(void)
 {
 	memset(device_list,0,sizeof(device_list));
+	memset(daily_energy_wh,0,sizeof(daily_energy_wh));
 	device_count = 0;
 }
 
@@ -568,13 +569,12 @@ void device_poll_all_status(void)
     printf("设备轮询完成\r\n");
 }
 
-// ================== 计算本分钟用电量并累加到RAM缓存 ==================
+// ================== 计算本分钟用电量并累加到RAM ==================
 
 /**
- * @brief 根据各设备当前电压和加热状态，计算本分钟用电量并累加到RAM缓存
- * @note  在 device_poll_all_status() 之后调用
+ * @brief 根据各设备当前电压和加热状态，计算本分钟用电量并累加到RAM中的daily_energy_wh
+ * @note  在 device_poll_all_status() 之后调用，不写SD卡
  *        计算公式: P = V²/R (R=8Ω), E = P × (60/3600) = P/60 Wh
- *        仅累加到 minute_energy_wh 数组，不立即写入SD卡
  */
 void calc_energy_and_accumulate(void)
 {
@@ -596,66 +596,63 @@ void calc_energy_and_accumulate(void)
             float power_w = (voltage * voltage) / (float)LOAD_RESISTANCE;
             float energy_wh = power_w / 60.0f;  /* 1分钟间隔 */
 
-            /* 累加到RAM缓存（而不是立即写入SD卡） */
-            minute_energy_wh[i] += energy_wh;
+            /* 累加到RAM中的日累积数组 */
+            daily_energy_wh[i] += energy_wh;
         }
-        else
-        {
-            /* 未加热或电压无效，本分钟电量为0，但不清除累积值 */
-            /* minute_energy_wh[i] 保持之前的累积值 */
-        }
+        /* 未加热或电压无效时不累加，也不清零（保留之前累积的值） */
     }
 }
 
-// ================== 将累积电量写入SD卡（每天零点调用） ==================
+// ================== 每日零点：将RAM中累积电量写入SD卡 ==================
 
 /**
- * @brief 将各设备累积的用电量写入SD卡用户数据文件（每天零点调用）
- * @note  将 minute_energy_wh 数组中累积的总电量写入各设备的用户数据文件
- *        并重置累积计数器
+ * @brief 将RAM中累积的daily_energy_wh写入各用户数据文件，并清零数组
+ * @note  在每天零点调用（由RTC_Task检测日期变化触发）
+ *        将 daily_energy_wh[i] 累加到 user_data_file_t 的日/月/年/总用电量
+ *        同时处理日/月/年重置逻辑
  */
-void save_daily_energy_to_sd(void)
+void daily_energy_flush_to_sd(void)
 {
     if (device_count == 0) return;
 
-    printf("开始保存每日累积用电量到SD卡...\r\n");
+    printf("零点结算：将RAM中日累积电量写入SD卡...\r\n");
 
     for (uint16_t i = 0; i < device_count; i++)
     {
         /* 跳过未入网的设备 */
         if (device_list[i].state.bits.valid == 0) continue;
 
-        /* 跳过累积电量为0的设备 */
-        if (minute_energy_wh[i] <= 0.0f) continue;
+        /* 跳过本日无累积的设备（减少SD卡写入次数） */
+        if (daily_energy_wh[i] <= 0.0f) continue;
 
         /* 从SD卡读取用户数据文件 */
         user_data_file_t user_data;
         int ret = read_user_data(device_list[i].addr, &user_data);
         if (ret == 0)
         {
-            float energy_kwh = minute_energy_wh[i] / 1000.0f;  /* Wh → kWh */
+            float energy_kwh = daily_energy_wh[i] / 1000.0f;  /* Wh → kWh */
 
-            /* 累加用电量 */
+            /* 累加到各维度用电量 */
             user_data.daily_energy   += energy_kwh;
             user_data.monthly_energy += energy_kwh;
             user_data.annual_energy  += energy_kwh;
             user_data.total_energy   += energy_kwh;
 
-            /* 同步温度到用户数据文件 */
-            user_data.temperature = (float)device_list[i].temperature;
-
             /* 写回SD卡 */
             write_user_data(device_list[i].addr, &user_data);
 
-            printf("设备[%d] 保存日电量: %.2f Wh (%.4f kWh)\r\n",
-                   i, minute_energy_wh[i], energy_kwh);
+            house_info_t house;
+            parse_addr(device_list[i].addr, &house);
+            printf("  设备[%d_%d_%04d] 本日用电: %.3f Wh, 日累: %.3f kWh\r\n",
+                   house.building, house.unit, house.room,
+                   daily_energy_wh[i], user_data.daily_energy);
         }
 
-        /* 重置累积计数器 */
-        minute_energy_wh[i] = 0.0f;
+        /* 清零该设备的RAM日累积 */
+        daily_energy_wh[i] = 0.0f;
     }
 
-    printf("每日累积用电量保存完成\r\n");
+    printf("零点结算完成\r\n");
 }
 
 // ================== 打印设备列表 ==================

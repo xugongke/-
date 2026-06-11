@@ -37,11 +37,12 @@ typedef struct
 
 // ================== 运行时临时数据（不保存到SD卡） ==================
 /**
- * @brief 各设备本分钟累积电量 (Wh)
- * @note  每次轮询后由 calc_energy_and_accumulate() 计算并填充
+ * @brief 各设备当日累积电量 (Wh)
+ * @note  每次轮询后由 calc_energy_and_accumulate() 累加到该数组
+ *        每天零点由 daily_energy_flush_to_sd() 写入SD卡并清零
  *        不保存到 device_t 结构体中，避免影响 SD 卡文件格式
  */
-extern float minute_energy_wh[MAX_DEVICES];
+extern float daily_energy_wh[MAX_DEVICES];
 //通信地址解析结构体
 typedef struct
 {
@@ -127,19 +128,19 @@ int device_read_status_ex(int dev_index);
 void device_poll_all_status(void);
 
 /**
- * @brief 根据各设备当前电压和加热状态，计算本分钟用电量并累加到RAM缓存
- * @note  在 device_poll_all_status() 之后调用
+ * @brief 根据各设备当前电压和加热状态，计算本分钟用电量并累加到RAM中的daily_energy_wh
+ * @note  在 device_poll_all_status() 之后调用，不写SD卡
  *        计算公式: P = V²/R (R=8Ω), E = P × (60/3600) = P/60 Wh
- *        仅累加到 minute_energy_wh 数组，不立即写入SD卡
  */
 void calc_energy_and_accumulate(void);
 
 /**
- * @brief 将各设备累积的用电量写入SD卡用户数据文件（每天零点调用）
- * @note  将 minute_energy_wh 数组中累积的总电量写入各设备的用户数据文件
- *        并重置累积计数器
+ * @brief 将RAM中累积的daily_energy_wh写入各用户数据文件，并清零数组
+ * @note  在每天零点调用（由RTC_Task检测日期变化触发）
+ *        将 daily_energy_wh[i] 累加到 user_data_file_t 的日/月/年/总用电量
+ *        同时处理日/月/年重置逻辑
  */
-void save_daily_energy_to_sd(void);
+void daily_energy_flush_to_sd(void);
 
 // ================== 告警预扫描数据 ==================
 
