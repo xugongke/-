@@ -127,11 +127,19 @@ int device_read_status_ex(int dev_index);
 void device_poll_all_status(void);
 
 /**
- * @brief 根据各设备当前电压和加热状态，计算本分钟用电量并累加到用户数据文件
+ * @brief 根据各设备当前电压和加热状态，计算本分钟用电量并累加到RAM缓存
  * @note  在 device_poll_all_status() 之后调用
  *        计算公式: P = V²/R (R=8Ω), E = P × (60/3600) = P/60 Wh
+ *        仅累加到 minute_energy_wh 数组，不立即写入SD卡
  */
 void calc_energy_and_accumulate(void);
+
+/**
+ * @brief 将各设备累积的用电量写入SD卡用户数据文件（每天零点调用）
+ * @note  将 minute_energy_wh 数组中累积的总电量写入各设备的用户数据文件
+ *        并重置累积计数器
+ */
+void save_daily_energy_to_sd(void);
 
 // ================== 告警预扫描数据 ==================
 

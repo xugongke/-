@@ -45,6 +45,7 @@
 #include "es1642.h"
 #include "es1642_usage_guide.h"
 #include "device_manager.h"
+#include "rx8025t.h"
 #include "a7680c_http.h"
 #include "rs485_usart.h"
 #include "battery.h"
@@ -545,15 +546,35 @@ void Weather_Task(void *argument)
 /* USER CODE END Header_DevicePoll_Task */
 void DevicePoll_Task(void *argument)
 {
-  /* USER CODE BEGIN DevicePoll_Task */
+/* USER CODE BEGIN DevicePoll_Task */
+  /* 用于检测午夜的变量 */
+  uint8_t last_day = 0;  /* 上次保存电量时的日期 */
+  RX8025T_DateTimeCompact rtc_now;
+
   /* Infinite loop */
   for(;;)
   {
 //    if(simcard_ready == 1)
 //    {
       device_poll_all_status();
-      calc_energy_and_accumulate();  /* 根据电压和加热状态计算本分钟用电量，累加到用户数据文件 */
+      calc_energy_and_accumulate();  /* 根据电压和加热状态计算本分钟用电量，累加到RAM缓存 */
       alert_scan_devices();  /* 轮询后扫描告警数据，并更新卡片数据 */
+
+      /* 检测是否跨天（零点），如果是则保存累积电量到SD卡 */
+      if (RX8025T_GetDateTime(&rtc_now) == HAL_OK)
+      {
+          if (last_day == 0)
+          {
+              /* 首次运行，记录当前日期 */
+              last_day = rtc_now.day;
+          }
+          else if (rtc_now.day != last_day)
+          {
+              /* 日期变化，说明跨天了，保存累积电量 */
+              save_daily_energy_to_sd();
+              last_day = rtc_now.day;
+          }
+      }
 //    }
     osDelay(60000);  /* 每60秒轮询一次 */
   }
