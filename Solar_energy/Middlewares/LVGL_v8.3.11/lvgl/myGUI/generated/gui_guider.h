@@ -57,6 +57,7 @@ typedef struct
 	lv_obj_t *screen_user_detail_cont_1;
 	lv_obj_t *screen_user_detail_label_4;
 	lv_obj_t *screen_user_detail_label_time;
+	lv_obj_t *screen_user_detail_chart;         /* 七日用电量柱形图 */
 	lv_obj_t *screen_solar;                     /* 太阳能详情页 */
 	bool screen_solar_del;
 	lv_obj_t *screen_solar_chart;               /* 15日发电量折线图 */

@@ -45,7 +45,7 @@ typedef struct {
     float    total_energy;   /* 总累积用电量(kWh) - 永不重置 */
     uint8_t  last_reset_day; /* 上次日用电量重置时的日期(1-31) */
     uint8_t  last_reset_mon; /* 上次月用电量重置时的月份(1-12) */
-    uint8_t  reserved2[2];   /* 预留对齐 */
+    float    weekly_energy[7]; /* 近7日用电量(kWh), [0]=7天前...[6]=最新(当天) */
     user_data_timestamp_t create_time;  /* 数据创建时间 */
     user_data_timestamp_t update_time;  /* 数据最后更新时间 */
 } user_data_file_t;

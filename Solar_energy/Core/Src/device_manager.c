@@ -638,6 +638,11 @@ void daily_energy_flush_to_sd(void)
             user_data.annual_energy  += energy_kwh;
             user_data.total_energy   += energy_kwh;
 
+            /* 更新七日用电量数组：整体左移，[6]放入当日用电量 */
+            memmove(&user_data.weekly_energy[0], &user_data.weekly_energy[1],
+                    6 * sizeof(float));  /* [0]=[1], [1]=[2], ... [5]=[6] */
+            user_data.weekly_energy[6] = user_data.daily_energy;  /* 最新一天 */
+
             /* 写回SD卡 */
             write_user_data(device_list[i].addr, &user_data);
 

@@ -10,9 +10,6 @@
 #include "widgets_init.h"
 #include "custom.h"
 
-/* 7天柱状图的虚拟数据（千瓦时 * 10） */
-static const int usage_7day_x10[7] = {35, 28, 42, 31, 38, 25, 33};
-
 /**
  * @brief  图表绘制回调：在每个柱子上方绘制数值标签
  */
@@ -142,9 +139,10 @@ void setup_scr_screen_user_detail(lv_ui *ui)
         lv_chart_set_div_line_count(ch, 3, 0);
         lv_chart_set_range(ch, LV_CHART_AXIS_PRIMARY_Y, 0, 50);
 
+        ui->screen_user_detail_chart = ch;  /* 保存chart引用，供数据填充时使用 */
         lv_chart_series_t *ser = lv_chart_add_series(ch, lv_color_hex(0x3FB950), LV_CHART_AXIS_PRIMARY_Y);
         for(int i = 0; i < 7; i++){
-            ser->y_points[i] = (int16_t)usage_7day_x10[i];
+            ser->y_points[i] = (int16_t)0;
         }
         lv_chart_refresh(ch);
         lv_obj_set_style_size(ch, 16, LV_PART_INDICATOR);

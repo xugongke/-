@@ -153,7 +153,7 @@ void screen_user_list_item_event_handler(lv_event_t *e)
 //					Battery_Info_t info;
 //					Battery_GetInfo(&info);
 //					printf("电池电压:%f,电量百分比:%d,充电状态:%d,ADC原始值:%d\r\n",info.voltage,info.percentage,info.is_charging,info.adc_raw);
-					//所有设备启动加热
+					//指定设备启动加热
 					device_ctrl_heater(user_no,1);	
 					device_read_status_ex(user_no);
         }
@@ -161,9 +161,9 @@ void screen_user_list_item_event_handler(lv_event_t *e)
         if(key == LV_KEY_DOWN)
         {
 					printf("down!!!\r\n");
-					//所有设备停止加热
-					device_ctrl_heater(user_no,0);	
-					device_read_status_ex(user_no);
+					//指定设备停止加热
+//					device_ctrl_heater(user_no,0);	
+//					device_read_status_ex(user_no);
         }
 				
         if(key == LV_KEY_ESC)//ESC键，返回首页

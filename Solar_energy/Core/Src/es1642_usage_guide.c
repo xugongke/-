@@ -260,7 +260,7 @@ void es1642_on_frame_received(es1642_handle_t *handle,
                 printf("启动搜索: OK\r\n");
                 /* 清空设备表之前，先将RAM中累积的用电量写入SD卡，避免数据丢失 */
                 daily_energy_flush_to_sd();
-                Clear_devices();//启动搜索成功之后，清空设备表
+                Clear_devices();//启动搜索成功之后，清空设备表和用电量缓存
                 g_es1642_searching = 1;  /* 标记搜索中，暂停设备轮询 */
                 /* ES1642确认启动搜索成功，通知上位机 */
                 tcp_send_search_ok();

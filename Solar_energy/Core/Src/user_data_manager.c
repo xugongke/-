@@ -334,11 +334,40 @@ void user_list_item_event_handler(lv_event_t *e)
 
         snprintf(buf, sizeof(buf), "%.2f", user_data.total_energy);
         lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 1, 3, buf);
-			
-				snprintf(buf, sizeof(buf), "20%02d年%02d月%02d日 %02d:%02d:%02d  ",
-				user_data.update_time.year,user_data.update_time.month,user_data.update_time.day,user_data.update_time.hours,user_data.update_time.minutes,user_data.update_time.seconds);
-				
-				lv_label_set_text(guider_ui.screen_user_detail_label_time,buf);
+
+        snprintf(buf, sizeof(buf), "20%02d年%02d月%02d日 %02d:%02d:%02d  ",
+        user_data.update_time.year,user_data.update_time.month,user_data.update_time.day,user_data.update_time.hours,user_data.update_time.minutes,user_data.update_time.seconds);
+
+        lv_label_set_text(guider_ui.screen_user_detail_label_time,buf);
+
+        /* 填充七日用电量柱形图数据 */
+        if (guider_ui.screen_user_detail_chart != NULL)
+        {
+            lv_chart_series_t *ser = lv_chart_get_series_next(guider_ui.screen_user_detail_chart, NULL);
+            if (ser != NULL)
+            {
+                /* 找出七日中的最大值，用于动态调整Y轴范围 */
+                float max_val = 0.0f;
+                for (int i = 0; i < 7; i++)
+                {
+                    if (user_data.weekly_energy[i] > max_val)
+                        max_val = user_data.weekly_energy[i];
+                }
+
+                /* 设置Y轴范围: 最大值留20%余量，最小范围0~5(即50) */
+                int16_t y_max = (int16_t)(max_val * 10.0f * 1.2f);  /* kWh * 10, 留20%余量 */
+                if (y_max < 50) y_max = 50;  /* 最小显示范围 0~5.0 kWh */
+                lv_chart_set_range(guider_ui.screen_user_detail_chart, LV_CHART_AXIS_PRIMARY_Y, 0, y_max);
+
+                /* 填充数据: weekly_energy[0]=7天前...[6]=最新(当天)，乘10转整数 */
+                for (int i = 0; i < 7; i++)
+                {
+                    int16_t val = (int16_t)(user_data.weekly_energy[i] * 10.0f);
+                    ser->y_points[i] = val;
+                }
+                lv_chart_refresh(guider_ui.screen_user_detail_chart);
+            }
+        }
     }
     else
     {
