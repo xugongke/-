@@ -38,11 +38,18 @@ typedef struct
 // ================== 运行时临时数据（不保存到SD卡） ==================
 /**
  * @brief 各设备当日累积电量 (Wh)
- * @note  每次轮询后由 calc_energy_and_accumulate() 累加到该数组
+ * @note  每次轮询成功后由 device_poll_all_status() 根据实际时间差累加到该数组
  *        每天零点由 daily_energy_flush_to_sd() 写入SD卡并清零
  *        不保存到 device_t 结构体中，避免影响 SD 卡文件格式
  */
 extern float daily_energy_wh[MAX_DEVICES];
+
+/**
+ * @brief 各设备上次成功获取数据的时间戳（秒数，用于计算两次轮询间的实际时间差）
+ * @note  初始值为0表示尚未获取过数据，第一次获取时不计算用电量
+ *        在 device_read_status_ex() 获取从机数据成功的瞬间由 RX8025T_GetTime() 记录
+ */
+extern uint32_t last_poll_time[MAX_DEVICES];
 //通信地址解析结构体
 typedef struct
 {
@@ -126,13 +133,6 @@ int device_read_status_ex(int dev_index);
  * @brief 轮询所有有效设备状态并通过MQTT上报
  */
 void device_poll_all_status(void);
-
-/**
- * @brief 根据各设备当前电压和加热状态，计算本分钟用电量并累加到RAM中的daily_energy_wh
- * @note  在 device_poll_all_status() 之后调用，不写SD卡
- *        计算公式: P = V²/R (R=8Ω), E = P × (60/3600) = P/60 Wh
- */
-void calc_energy_and_accumulate(void);
 
 /**
  * @brief 将RAM中累积的daily_energy_wh写入各用户数据文件，并清零数组

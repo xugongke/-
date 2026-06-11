@@ -24,6 +24,7 @@ uint16_t device_count = 0;
 
 // 运行时临时数据（不保存到SD卡）
 float daily_energy_wh[MAX_DEVICES];   // 各设备当日累积电量 (Wh)
+uint32_t last_poll_time[MAX_DEVICES]; // 各设备上次成功获取数据的时间戳（秒数）
 
 // 标志：设备是否有变化（用于减少SD写入）
 static uint8_t device_changed = 0;
@@ -250,6 +251,7 @@ void Clear_devices(void)
 {
 	memset(device_list,0,sizeof(device_list));
 	memset(daily_energy_wh,0,sizeof(daily_energy_wh));
+	memset(last_poll_time,0,sizeof(last_poll_time));
 	device_count = 0;
 }
 
@@ -470,12 +472,8 @@ int device_read_status_ex(int dev_index)
             device_list[dev_index].state.bits.temp_err  = (state_byte & 0x40) ? 1 : 0;
             device_list[dev_index].state.bits.relay_err     = (state_byte & 0x20) ? 1 : 0;
 
-            printf("从机状态: 温度=%d℃, 电压=%dV, 直流加热=%s, 电源反接=%s，温度异常=%s，继电器控制错误=%s\r\n",
-                   device_list[dev_index].temperature, device_list[dev_index].input_voltage,
-                   device_list[dev_index].state.bits.dc_heating ? "是 " : "否 ",
-                   device_list[dev_index].state.bits.power_reverse ? "是 " : "否 ",
-                   device_list[dev_index].state.bits.temp_err ? "是 " : "否 ",
-                   device_list[dev_index].state.bits.relay_err ? "是 " : "否 ");
+            /* 获取从机数据成功的瞬间，立即记录FreeRTOS tick时间戳（秒） */
+            last_poll_time[dev_index] = xTaskGetTickCount() * portTICK_PERIOD_MS / 1000;
             return 0;
         }
         else
@@ -536,8 +534,48 @@ void device_poll_all_status(void)
         snprintf(topic, sizeof(topic), "solar/status/%d_%d_%04d",
                  house.building, house.unit, house.room);
 
-        /* 读取从机状态 */
+        /* 保存上次成功获取数据的时间戳（在调用device_read_status_ex之前读取） */
+        uint32_t prev_time = last_poll_time[i];
+
+        /* 读取从机状态（成功时内部会立即记录tick时间戳到last_poll_time[i]） */
         int ret = device_read_status_ex(i);
+
+        if (ret == 0)
+        {
+            /* 只有之前已有记录(prev_time != 0)时才计算 */
+            if (prev_time != 0)
+            {
+                /* 计算两次成功获取数据之间经过的时间（秒）
+                 * uint32_t无符号减法天然处理溢出回绕 */
+                uint32_t elapsed_sec = last_poll_time[i] - prev_time;
+
+                /* 只有正在直流加热 且 电压有效(>0) 时才计算功率 */
+                if (device_list[i].state.bits.dc_heating && device_list[i].input_voltage > 0
+                    && elapsed_sec > 0 && elapsed_sec <= 7200)  /* 合理范围: 0~2小时 */
+                {
+                    /* P = V² / R,  E = P × (elapsed_sec / 3600) Wh */
+                    float voltage = (float)device_list[i].input_voltage;
+                    float power_w = (voltage * voltage) / (float)LOAD_RESISTANCE;
+                    float energy_wh = power_w * ((float)elapsed_sec / 3600.0f);
+
+                    /* 累加到RAM中的日累积数组 */
+                    daily_energy_wh[i] += energy_wh;
+
+                    printf("从机状态: 温度=%d℃, 电压=%dV, 直流加热=%s, 电源反接=%s，温度异常=%s，继电器控制错误=%s\r\n",
+                        device_list[i].temperature, device_list[i].input_voltage,
+                        device_list[i].state.bits.dc_heating ? "是 " : "否 ",
+                        device_list[i].state.bits.power_reverse ? "是 " : "否 ",
+                        device_list[i].state.bits.temp_err ? "是 " : "否 ",
+                        device_list[i].state.bits.relay_err ? "是 " : "否 ");
+
+                    house_info_t h;
+                    parse_addr(device_list[i].addr, &h);
+                    printf("  用电量[%d_%d_%04d]: P=%.1fW, dt=%lus, E=%.3fWh, 日累=%.3fWh\r\n",
+                           h.building, h.unit, h.room,
+                           power_w, (unsigned long)elapsed_sec, energy_wh, daily_energy_wh[i]);
+                }
+            }
+        }
 
 //        if (ret == 0)
 //        {
@@ -567,40 +605,6 @@ void device_poll_all_status(void)
     }
 
     printf("设备轮询完成\r\n");
-}
-
-// ================== 计算本分钟用电量并累加到RAM ==================
-
-/**
- * @brief 根据各设备当前电压和加热状态，计算本分钟用电量并累加到RAM中的daily_energy_wh
- * @note  在 device_poll_all_status() 之后调用，不写SD卡
- *        计算公式: P = V²/R (R=8Ω), E = P × (60/3600) = P/60 Wh
- */
-void calc_energy_and_accumulate(void)
-{
-    if (device_count == 0) return;
-
-    for (uint16_t i = 0; i < device_count; i++)
-    {
-        /* 跳过未入网的设备 */
-        if (device_list[i].state.bits.valid == 0) continue;
-
-        /* 跳过通信异常的设备 */
-        if (device_list[i].state.bits.comm_err == 1) continue;
-
-        /* 只有正在直流加热 且 电压有效(>0) 时才计算功率 */
-        if (device_list[i].state.bits.dc_heating && device_list[i].input_voltage > 0)
-        {
-            /* P = V² / R,  E = P × (60s / 3600s) = P / 60 Wh */
-            float voltage = (float)device_list[i].input_voltage;
-            float power_w = (voltage * voltage) / (float)LOAD_RESISTANCE;
-            float energy_wh = power_w / 60.0f;  /* 1分钟间隔 */
-
-            /* 累加到RAM中的日累积数组 */
-            daily_energy_wh[i] += energy_wh;
-        }
-        /* 未加热或电压无效时不累加，也不清零（保留之前累积的值） */
-    }
 }
 
 // ================== 每日零点：将RAM中累积电量写入SD卡 ==================

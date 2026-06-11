@@ -45,6 +45,9 @@ static uint8_t wait_counter = 0;
 /** 发电量累计的时间戳 (上次累计的时刻, 单位: 秒) */
 static uint32_t energy_last_tick = 0;
 
+/** 发电量累计初始化标志 (防止 energy_last_tick==0 时跳过第一次累计) */
+static uint8_t energy_initialized = 0;
+
 /** 发电量累计间隔 (秒) */
 #define ENERGY_ACCUM_INTERVAL_SEC   5
 
@@ -95,9 +98,10 @@ static void accumulate_energy(void)
 {
     /* 累计发电量 (每隔 ENERGY_ACCUM_INTERVAL_SEC 秒累计一次) */
     uint32_t now = xTaskGetTickCount() * portTICK_PERIOD_MS / 1000; /* 当前秒数 */
-    if (energy_last_tick == 0)
+    if (!energy_initialized)
     {
         energy_last_tick = now;
+        energy_initialized = 1;
         return;
     }
 
@@ -135,6 +139,7 @@ void MPPT_Init(void)
     g_mppt.enabled = 1;  /* 默认使能 */
     wait_counter = 0;
     energy_last_tick = 0;
+    energy_initialized = 0;
 
     printf("MPPT: 模块初始化完成, 加热管电阻=%.1fΩ\r\n", MPPT_HEATER_RESISTANCE);
 }
@@ -499,6 +504,7 @@ void MPPT_ResetDailyEnergy(void)
     g_mppt.power_max = 0.0f;
     g_mppt.cycle_count = 0;
     energy_last_tick = 0;
+    energy_initialized = 0;
     printf("MPPT: 日发电量已重置\r\n");
 }
 

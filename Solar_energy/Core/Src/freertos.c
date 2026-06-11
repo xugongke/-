@@ -563,8 +563,7 @@ void DevicePoll_Task(void *argument)
 //    {
       if(g_es1642_searching == 0)  /* 仅在非搜索状态下轮询设备 */
       {
-        device_poll_all_status();
-        calc_energy_and_accumulate();  /* 根据电压和加热状态计算本分钟用电量，累加到RAM */
+        device_poll_all_status();  /* 轮询设备并在获取数据成功时基于实际时间差计算用电量 */
         alert_scan_devices();  /* 轮询后扫描告警数据，并更新卡片数据 */
 
         /* 零点检测：读取当前日期，如果日期变化则说明跨过了零点 */
