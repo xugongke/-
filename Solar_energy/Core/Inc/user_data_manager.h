@@ -11,6 +11,10 @@
 #include "rx8025t.h"
 #include "lvgl.h"
 
+#ifndef MAX_DEVICES
+#define MAX_DEVICES 256       /* 必须与 device_manager.h 中的定义一致 */
+#endif
+
 /* ================== 配置参数 ================== */
 #define USER_DATA_DIR       "0:/USER"
 #define USER_DATA_MAGIC     0x55444154  /* "UDAT" */
@@ -50,6 +54,33 @@ typedef struct {
     user_data_timestamp_t update_time;  /* 数据最后更新时间 */
 } user_data_file_t;
 #pragma pack(pop)
+
+/* ================== 用户详情页UI展示缓存 ================== */
+
+/**
+ * @brief  用户详情页UI展示缓存结构体
+ * @note   与 device_list[] 数组通过索引一一对应，避免每次点击都读取SD卡
+ *         仅缓存UI展示所需的数据（用电量+更新时间）
+ */
+typedef struct {
+    float    daily_energy;      /* 日累积用电量(kWh) */
+    float    monthly_energy;    /* 月累积用电量(kWh) */
+    float    annual_energy;     /* 年累积用电量(kWh) */
+    float    total_energy;      /* 总累积用电量(kWh) */
+    float    weekly_energy[7];  /* 近7日用电量(kWh), [0]=7天前...[6]=最新(当天) */
+    user_data_timestamp_t update_time; /* 最后更新时间 */
+} user_detail_cache_t;
+
+/* 全局缓存数组，与 device_list[] 索引对应 */
+extern user_detail_cache_t user_detail_cache[MAX_DEVICES];
+
+/**
+ * @brief  从SD卡加载所有已入网设备的用电量数据到RAM缓存
+ * @note   在以下时机调用：
+ *         1. 上电初始化后（lvgl_task中device_manager_init之后）
+ *         2. 搜索设备结束后（ES1642_CMD_STOP_SEARCH处理中）
+ */
+void user_detail_cache_init(void);
 
 /* ================== 接口函数 ================== */
 

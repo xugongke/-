@@ -16,6 +16,9 @@
 /* 上次选中的用户编号，用于从详情页返回时恢复焦点 */
 uint8_t s_last_user_no = 0;
 
+/* 用户详情页UI展示缓存数组，与 device_list[] 索引一一对应 */
+user_detail_cache_t user_detail_cache[MAX_DEVICES] = {0};
+
 /* ================== 内部函数声明 ================== */
 
 /**
@@ -279,12 +282,51 @@ int write_user_data(const uint8_t *dev_addr, user_data_file_t *data)
     return 0;
 }
 
+/* ================== 缓存管理 ================== */
+
+/**
+ * @brief  从SD卡加载所有已入网设备的用电量数据到RAM缓存
+ * @note   在上电初始化和搜索设备结束后调用
+ *         仅加载已入网设备(valid==1)的数据，跳过未入网设备
+ */
+void user_detail_cache_init(void)
+{
+    uint16_t loaded = 0;
+
+    /* 先清空整个缓存 */
+    memset(user_detail_cache, 0, sizeof(user_detail_cache));
+
+    for (uint16_t i = 0; i < device_count; i++)
+    {
+        /* 跳过未入网的设备 */
+        if (device_list[i].state.bits.valid == 0) continue;
+
+        /* 从SD卡读取用户数据文件 */
+        user_data_file_t file_data;
+        if (read_user_data(device_list[i].addr, &file_data) == 0)
+        {
+            /* 读取成功，填充缓存 */
+            user_detail_cache[i].daily_energy   = file_data.daily_energy;
+            user_detail_cache[i].monthly_energy = file_data.monthly_energy;
+            user_detail_cache[i].annual_energy  = file_data.annual_energy;
+            user_detail_cache[i].total_energy   = file_data.total_energy;
+            memcpy(user_detail_cache[i].weekly_energy, file_data.weekly_energy,
+                   sizeof(file_data.weekly_energy));
+            memcpy(&user_detail_cache[i].update_time, &file_data.update_time,
+                   sizeof(file_data.update_time));
+            loaded++;
+        }
+    }
+
+    printf("用户详情缓存初始化完成: 已加载%d/%u个设备\r\n", loaded, device_count);
+}
+
 /* ================== UI回调函数实现 ================== */
 
 /**
  * @brief  用户列表项点击回调函数
  * @note   user_data传入device_list索引(uint32_t)
- *         点击后切换到用户详情页，并从SD卡读取温度/功率/用电量显示在表格中
+ *         点击后切换到用户详情页，直接从RAM缓存读取用电量数据显示在表格中
  */
 void user_list_item_event_handler(lv_event_t *e)
 {
@@ -301,9 +343,8 @@ void user_list_item_event_handler(lv_event_t *e)
         return;
     }
 
-    /* 读取用户数据文件 */
-    user_data_file_t user_data;
-    int ret = read_user_data(device_list[idx].addr, &user_data);
+    /* 从RAM缓存读取用户数据（不再每次读SD卡） */
+    user_detail_cache_t *cache = &user_detail_cache[idx];
 
     /* 无动画直接切换到用户详情页
      * is_clean=false: 不在回调内清理旧屏幕(避免在子对象回调中删除父对象导致白屏)
@@ -320,25 +361,28 @@ void user_list_item_event_handler(lv_event_t *e)
     snprintf(buf, sizeof(buf), "%d楼 %d单元 %04d", house.building, house.unit, house.room);
     lv_label_set_text(guider_ui.screen_user_detail_label_user, buf);
 
-    if (ret == 0)
+    /* 检查缓存是否有有效数据（total_energy非0或update_time非全0表示有数据） */
+    if (cache->total_energy != 0.0f ||
+        cache->update_time.year != 0 || cache->update_time.month != 0)
     {
-        /* 文件读取成功，显示日/月/年/总累积用电量 (2行x4列表格) */
-        snprintf(buf, sizeof(buf), "%.2f", user_data.daily_energy);
+        /* 缓存有效，显示日/月/年/总累积用电量 (2行x4列表格) */
+        snprintf(buf, sizeof(buf), "%.2f", cache->daily_energy);
         lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 1, 0, buf);
 
-        snprintf(buf, sizeof(buf), "%.2f", user_data.monthly_energy);
+        snprintf(buf, sizeof(buf), "%.2f", cache->monthly_energy);
         lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 1, 1, buf);
 
-        snprintf(buf, sizeof(buf), "%.2f", user_data.annual_energy);
+        snprintf(buf, sizeof(buf), "%.2f", cache->annual_energy);
         lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 1, 2, buf);
 
-        snprintf(buf, sizeof(buf), "%.2f", user_data.total_energy);
+        snprintf(buf, sizeof(buf), "%.2f", cache->total_energy);
         lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 1, 3, buf);
 
         snprintf(buf, sizeof(buf), "20%02d年%02d月%02d日 %02d:%02d:%02d  ",
-        user_data.update_time.year,user_data.update_time.month,user_data.update_time.day,user_data.update_time.hours,user_data.update_time.minutes,user_data.update_time.seconds);
+        cache->update_time.year, cache->update_time.month, cache->update_time.day,
+        cache->update_time.hours, cache->update_time.minutes, cache->update_time.seconds);
 
-        lv_label_set_text(guider_ui.screen_user_detail_label_time,buf);
+        lv_label_set_text(guider_ui.screen_user_detail_label_time, buf);
 
         /* 填充七日用电量柱形图数据 */
         if (guider_ui.screen_user_detail_chart != NULL)
@@ -350,8 +394,8 @@ void user_list_item_event_handler(lv_event_t *e)
                 float max_val = 0.0f;
                 for (int i = 0; i < 7; i++)
                 {
-                    if (user_data.weekly_energy[i] > max_val)
-                        max_val = user_data.weekly_energy[i];
+                    if (cache->weekly_energy[i] > max_val)
+                        max_val = cache->weekly_energy[i];
                 }
 
                 /* 设置Y轴范围: 最大值留20%余量，最小范围0~5(即50) */
@@ -362,7 +406,7 @@ void user_list_item_event_handler(lv_event_t *e)
                 /* 填充数据: weekly_energy[0]=7天前...[6]=最新(当天)，乘10转整数 */
                 for (int i = 0; i < 7; i++)
                 {
-                    int16_t val = (int16_t)(user_data.weekly_energy[i] * 10.0f);
+                    int16_t val = (int16_t)(cache->weekly_energy[i] * 10.0f);
                     ser->y_points[i] = val;
                 }
                 lv_chart_refresh(guider_ui.screen_user_detail_chart);
@@ -371,7 +415,7 @@ void user_list_item_event_handler(lv_event_t *e)
     }
     else
     {
-        /* 文件不存在或读取失败，显示默认/错误信息 */
+        /* 缓存无数据（设备未入网或SD卡无文件），显示默认/错误信息 */
         lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 1, 0, "--");
         lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 1, 1, "--");
         lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 1, 2, "--");

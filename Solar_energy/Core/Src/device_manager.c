@@ -255,6 +255,7 @@ void Clear_devices(void)
 	memset(device_list,0,sizeof(device_list));
 	memset(daily_energy_wh,0,sizeof(daily_energy_wh));
 	memset(last_poll_time,0,sizeof(last_poll_time));
+	memset(user_detail_cache,0,sizeof(user_detail_cache));
 	device_count = 0;
     poll_initialized = 0;
 }
@@ -679,6 +680,16 @@ void daily_energy_flush_to_sd(void)
 
             /* 写回SD卡 */
             write_user_data(device_list[i].addr, &user_data);
+
+            /* 同步更新RAM缓存 */
+            user_detail_cache[i].daily_energy   = user_data.daily_energy;
+            user_detail_cache[i].monthly_energy = user_data.monthly_energy;
+            user_detail_cache[i].annual_energy  = user_data.annual_energy;
+            user_detail_cache[i].total_energy   = user_data.total_energy;
+            memcpy(user_detail_cache[i].weekly_energy, user_data.weekly_energy,
+                   sizeof(user_data.weekly_energy));
+            memcpy(&user_detail_cache[i].update_time, &user_data.update_time,
+                   sizeof(user_data.update_time));
 
             house_info_t house;
             parse_addr(device_list[i].addr, &house);

@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include "ff.h"
 #include "device_manager.h"
+#include "user_data_manager.h"
 #include "host_comm.h"
 
 /* ========================= 使用说明 ========================= */
@@ -285,6 +286,8 @@ void es1642_on_frame_received(es1642_handle_t *handle,
 								{
 									device_manager_init();//重新读取SD卡中的记录并加载到RAM中
 								}
+                /* 搜索结束后，从SD卡重新加载用户详情缓存 */
+                user_detail_cache_init();
                 /* ES1642确认停止搜索成功，通知上位机搜索完成 */
                 tcp_send_search_done();
                 rs485_send_search_done();

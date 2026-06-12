@@ -45,6 +45,7 @@
 #include "es1642.h"
 #include "es1642_usage_guide.h"
 #include "device_manager.h"
+#include "user_data_manager.h"
 #include "a7680c_http.h"
 #include "rs485_usart.h"
 #include "battery.h"
@@ -361,6 +362,9 @@ void lvgl_task(void *argument)
 	
 	// 文件系统初始化完成之后读取设备表文件加载到RAM中
 	device_manager_init();
+
+	// 从SD卡加载所有已入网设备的用电量数据到RAM缓存（在UI显示之前完成）
+	user_detail_cache_init();
 
 	// 从TF卡读取TCP服务器IP/Port配置 (在W5500_Task连接之前完成)
 	tcp_config_load();
