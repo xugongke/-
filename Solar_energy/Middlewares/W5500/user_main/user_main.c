@@ -345,7 +345,8 @@ void tcp_send_frame(uint8_t type, uint8_t cmd, const uint8_t *data, uint16_t len
                             FRAME_MAX_DATA_LEN + FRAME_CRC_LEN + 1];
 
     uint16_t frame_len = build_frame(send_buf, type, cmd, data, len);
-    send(TCP_SOCKET_ID, send_buf, frame_len);
+    int lenl = send(TCP_SOCKET_ID, send_buf, frame_len);
+    printf("Sent frame: %d bytes\r\n", lenl);
 }
 
 /* ================================================================
@@ -403,11 +404,11 @@ static void tcp_client_process(void)
 {
     uint16_t len;
 
-    /* 清除Socket中断标志, 防止INTn引脚持续为低导致重复中断 */
+    /* 清除Socket中断标志, 但保留SENDOK给send()函数自己处理 */
     uint8_t sir = getSn_IR(TCP_SOCKET_ID);
     if (sir)
     {
-        setSn_IR(TCP_SOCKET_ID, sir);  /* 写1清除 */
+        setSn_IR(TCP_SOCKET_ID, sir & ~Sn_IR_SENDOK);  /* 清除除SENDOK外的所有标志 */
     }
 
     /* 清除W5500公共中断寄存器 */

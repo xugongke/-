@@ -363,7 +363,7 @@ void lvgl_task(void *argument)
 	device_manager_init();
 
 	// 从TF卡读取TCP服务器IP/Port配置 (在W5500_Task连接之前完成)
-//	tcp_config_load();
+	tcp_config_load();
 
 	/* USER CODE END 2 */
 	//自己设计的图形窗口
@@ -559,8 +559,8 @@ void DevicePoll_Task(void *argument)
   /* Infinite loop */
   for(;;)
   {
-//    if(simcard_ready == 1)
-//    {
+    if(simcard_ready == 1)
+    {
       if(g_es1642_searching == 0)  /* 仅在非搜索状态下轮询设备 */
       {
         device_poll_all_status();  /* 轮询设备并在获取数据成功时基于实际时间差计算用电量 */
@@ -579,7 +579,7 @@ void DevicePoll_Task(void *argument)
             last_date = cur_date;  /* 更新日期缓存 */
         }
       }
-//    }
+    }
     osDelay(60000);  /* 每60秒轮询一次 */
   }
   /* USER CODE END DevicePoll_Task */
