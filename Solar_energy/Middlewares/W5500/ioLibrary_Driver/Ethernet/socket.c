@@ -54,7 +54,7 @@
 //
 //*****************************************************************************
 #include "socket.h"
-
+#include "stdio.h"
 //M20150401 : Typing Error
 //#define SOCK_ANY_PORT_NUM  0xC000;
 #define SOCK_ANY_PORT_NUM  0xC000
@@ -180,7 +180,18 @@ int8_t socket(uint8_t sn, uint8_t protocol, uint16_t port, uint8_t flag)
 	}
    setSn_PORT(sn,port);	
    setSn_CR(sn,Sn_CR_OPEN);
-   while(getSn_CR(sn));
+   {
+      /* 超时保护：等待OPEN命令完成 */
+      uint32_t retry = 0;
+      while(getSn_CR(sn))
+      {
+         if(++retry > 10000)  /* 约1秒超时 */
+         {
+            printf("socket: OPEN命令超时\r\n");
+            return SOCKERR_TIMEOUT;
+         }
+      }
+   }
    //A20150401 : For release the previous sock_io_mode
    sock_io_mode &= ~(1 <<sn);
    //
@@ -191,7 +202,18 @@ int8_t socket(uint8_t sn, uint8_t protocol, uint16_t port, uint8_t flag)
    //sock_pack_info[sn] = 0;
    sock_pack_info[sn] = PACK_COMPLETED;
    //
-   while(getSn_SR(sn) == SOCK_CLOSED);
+   {
+      /* 超时保护：等待socket状态从CLOSED转换 */
+      uint32_t retry = 0;
+      while(getSn_SR(sn) == SOCK_CLOSED)
+      {
+         if(++retry > 10000)  /* 约1秒超时 */
+         {
+            printf("socket: 等待socket打开超时\r\n");
+            return SOCKERR_TIMEOUT;
+         }
+      }
+   }
    return (int8_t)sn;
 }	   
 
@@ -225,7 +247,17 @@ int8_t close(uint8_t sn)
 #endif 
 	setSn_CR(sn,Sn_CR_CLOSE);
    /* wait to process the command... */
-	while( getSn_CR(sn) );
+   {
+      uint32_t retry = 0;
+      while(getSn_CR(sn))
+      {
+         if(++retry > 10000)  /* 超时保护：约1秒 */
+         {
+            printf("close: CLOSE命令超时\r\n");
+            break;
+         }
+      }
+   }
 	/* clear all interrupt of the socket. */
 	setSn_IR(sn, 0xFF);
 	//A20150401 : Release the sock_io_mode of socket n.
@@ -234,7 +266,18 @@ int8_t close(uint8_t sn)
 	sock_is_sending &= ~(1<<sn);
 	sock_remained_size[sn] = 0;
 	sock_pack_info[sn] = 0;
-	while(getSn_SR(sn) != SOCK_CLOSED);
+	{
+	   /* 超时保护：等待socket进入CLOSED状态 */
+	   uint32_t retry = 0;
+		while(getSn_SR(sn) != SOCK_CLOSED)
+		{
+		   if(++retry > 10000)  /* 约1秒超时 */
+		   {
+		      printf("close: 等待SOCK_CLOSED超时，强制返回\r\n");
+		      break;
+		   }
+		}
+	}
 	return SOCK_OK;
 }
 
@@ -275,21 +318,43 @@ int8_t connect(uint8_t sn, uint8_t * addr, uint16_t port)
 	setSn_DIPR(sn,addr);
 	setSn_DPORT(sn,port);
 	setSn_CR(sn,Sn_CR_CONNECT);
-   while(getSn_CR(sn));
-   if(sock_io_mode & (1<<sn)) return SOCK_BUSY;
-   while(getSn_SR(sn) != SOCK_ESTABLISHED)
    {
-		if (getSn_IR(sn) & Sn_IR_TIMEOUT)
-		{
-			setSn_IR(sn, Sn_IR_TIMEOUT);
+      /* 超时保护：等待CONNECT命令完成 */
+      uint32_t retry = 0;
+      while(getSn_CR(sn))
+      {
+         if(++retry > 10000)  /* 约1秒超时 */
+         {
+            printf("connect: CONNECT命令超时\r\n");
             return SOCKERR_TIMEOUT;
-		}
+         }
+      }
+   }
+   if(sock_io_mode & (1<<sn)) return SOCK_BUSY;
+   {
+      /* 超时保护：等待连接建立（W5500内部TCP超时约几秒，这里设5秒兜底） */
+      uint32_t retry = 0;
+      while(getSn_SR(sn) != SOCK_ESTABLISHED)
+      {
+         if (getSn_IR(sn) & Sn_IR_TIMEOUT)
+         {
+            setSn_IR(sn, Sn_IR_TIMEOUT);
+            return SOCKERR_TIMEOUT;
+         }
 
-		if (getSn_SR(sn) == SOCK_CLOSED)
-		{
-			return SOCKERR_SOCKCLOSED;
-		}
-	}
+         if (getSn_SR(sn) == SOCK_CLOSED)
+         {
+            return SOCKERR_SOCKCLOSED;
+         }
+
+         if(++retry > 50000)  /* 约5秒超时兜底 */
+         {
+            printf("connect: 等待连接建立超时\r\n");
+            close(sn);
+            return SOCKERR_TIMEOUT;
+         }
+      }
+   }
    
    return SOCK_OK;
 }
@@ -303,10 +368,18 @@ int8_t disconnect(uint8_t sn)
 	while(getSn_CR(sn));
 	sock_is_sending &= ~(1<<sn);
    if(sock_io_mode & (1<<sn)) return SOCK_BUSY;
+   /* 超时保护：防止服务器不回复FIN-ACK导致永久卡死 */
+   uint32_t retry = 0;
 	while(getSn_SR(sn) != SOCK_CLOSED)
 	{
 	   if(getSn_IR(sn) & Sn_IR_TIMEOUT)
 	   {
+	      close(sn);
+	      return SOCKERR_TIMEOUT;
+	   }
+	   if(++retry > 30000)  /* 每次循环约100us，30000 ≈ 3秒超时 */
+	   {
+         printf("disconnect: 超时未收到服务器响应，强制关闭连接\r\n");
 	      close(sn);
 	      return SOCKERR_TIMEOUT;
 	   }

@@ -3,7 +3,7 @@
 <title>Static Call Graph - [LCD_PJ\LCD_PJ.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image LCD_PJ\LCD_PJ.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060960: Last Updated: Fri Jun 12 11:13:00 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060960: Last Updated: Fri Jun 12 11:51:54 2026
 <BR><P>
 <H3>Maximum Stack Usage =       2212 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -1558,7 +1558,7 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[1d3]"></a>DHCP_stop</STRONG> (Thumb, 16 bytes, Stack size 8 bytes, dhcp.o(i.DHCP_stop))
-<BR><BR>[Stack]<UL><LI>Max Depth = 48<LI>Call Chain = DHCP_stop &rArr; close &rArr; WIZCHIP_WRITE
+<BR><BR>[Stack]<UL><LI>Max Depth = 56<LI>Call Chain = DHCP_stop &rArr; close &rArr; WIZCHIP_WRITE
 </UL>
 <BR>[Calls]<UL><LI><a href="#[1d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;close
 </UL>
@@ -4165,6 +4165,10 @@ Global Symbols
 <LI><a href="#[2ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_client_process
 <LI><a href="#[2ec]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_client_connect
 <LI><a href="#[4c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;frame_parser_process_byte
+<LI><a href="#[1cd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;socket
+<LI><a href="#[40b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;disconnect
+<LI><a href="#[3d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;connect
+<LI><a href="#[1d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;close
 </UL>
 
 <P><STRONG><a name="[74c]"></a>__c89printf</STRONG> (Thumb, 0 bytes, Stack size 24 bytes, printfa.o(i.__0printf), UNUSED)
@@ -4904,11 +4908,12 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[1cb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DHCP_run
 </UL>
 
-<P><STRONG><a name="[1d4]"></a>close</STRONG> (Thumb, 108 bytes, Stack size 16 bytes, socket.o(i.close))
-<BR><BR>[Stack]<UL><LI>Max Depth = 40<LI>Call Chain = close &rArr; WIZCHIP_WRITE
+<P><STRONG><a name="[1d4]"></a>close</STRONG> (Thumb, 152 bytes, Stack size 24 bytes, socket.o(i.close))
+<BR><BR>[Stack]<UL><LI>Max Depth = 48<LI>Call Chain = close &rArr; WIZCHIP_WRITE
 </UL>
 <BR>[Calls]<UL><LI><a href="#[2ea]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WIZCHIP_WRITE
 <LI><a href="#[1cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WIZCHIP_READ
+<LI><a href="#[15e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[6e7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;send
 <LI><a href="#[2ec]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_client_connect
@@ -4917,14 +4922,17 @@ Global Symbols
 <LI><a href="#[6ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;recvfrom
 <LI><a href="#[6d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;recv
 <LI><a href="#[40b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;disconnect
+<LI><a href="#[3d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;connect
 </UL>
 
-<P><STRONG><a name="[3d1]"></a>connect</STRONG> (Thumb, 258 bytes, Stack size 24 bytes, socket.o(i.connect))
-<BR><BR>[Stack]<UL><LI>Max Depth = 48<LI>Call Chain = connect &rArr; WIZCHIP_WRITE_BUF
+<P><STRONG><a name="[3d1]"></a>connect</STRONG> (Thumb, 310 bytes, Stack size 32 bytes, socket.o(i.connect))
+<BR><BR>[Stack]<UL><LI>Max Depth = 80<LI>Call Chain = connect &rArr; close &rArr; WIZCHIP_WRITE
 </UL>
 <BR>[Calls]<UL><LI><a href="#[1c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WIZCHIP_WRITE_BUF
 <LI><a href="#[2ea]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WIZCHIP_WRITE
 <LI><a href="#[1cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WIZCHIP_READ
+<LI><a href="#[1d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;close
+<LI><a href="#[15e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[2ec]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_client_connect
 </UL>
@@ -5045,12 +5053,13 @@ Global Symbols
 <LI><a href="#[1d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_poll_all_status
 </UL>
 
-<P><STRONG><a name="[40b]"></a>disconnect</STRONG> (Thumb, 134 bytes, Stack size 16 bytes, socket.o(i.disconnect))
-<BR><BR>[Stack]<UL><LI>Max Depth = 56<LI>Call Chain = disconnect &rArr; close &rArr; WIZCHIP_WRITE
+<P><STRONG><a name="[40b]"></a>disconnect</STRONG> (Thumb, 162 bytes, Stack size 32 bytes, socket.o(i.disconnect))
+<BR><BR>[Stack]<UL><LI>Max Depth = 80<LI>Call Chain = disconnect &rArr; close &rArr; WIZCHIP_WRITE
 </UL>
 <BR>[Calls]<UL><LI><a href="#[2ea]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WIZCHIP_WRITE
 <LI><a href="#[1cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WIZCHIP_READ
 <LI><a href="#[1d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;close
+<LI><a href="#[15e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[704]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_set_server_addr
 <LI><a href="#[2ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_client_process
@@ -12671,13 +12680,14 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[8b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lvgl_task
 </UL>
 
-<P><STRONG><a name="[1cd]"></a>socket</STRONG> (Thumb, 276 bytes, Stack size 32 bytes, socket.o(i.socket))
-<BR><BR>[Stack]<UL><LI>Max Depth = 72<LI>Call Chain = socket &rArr; close &rArr; WIZCHIP_WRITE
+<P><STRONG><a name="[1cd]"></a>socket</STRONG> (Thumb, 336 bytes, Stack size 40 bytes, socket.o(i.socket))
+<BR><BR>[Stack]<UL><LI>Max Depth = 88<LI>Call Chain = socket &rArr; close &rArr; WIZCHIP_WRITE
 </UL>
 <BR>[Calls]<UL><LI><a href="#[2ea]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WIZCHIP_WRITE
 <LI><a href="#[1c8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WIZCHIP_READ_BUF
 <LI><a href="#[1cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WIZCHIP_READ
 <LI><a href="#[1d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;close
+<LI><a href="#[15e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[2ec]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_client_connect
 <LI><a href="#[1cb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DHCP_run
@@ -12826,7 +12836,7 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[704]"></a>tcp_set_server_addr</STRONG> (Thumb, 38 bytes, Stack size 8 bytes, user_main.o(i.tcp_set_server_addr))
-<BR><BR>[Stack]<UL><LI>Max Depth = 64<LI>Call Chain = tcp_set_server_addr &rArr; disconnect &rArr; close &rArr; WIZCHIP_WRITE
+<BR><BR>[Stack]<UL><LI>Max Depth = 88<LI>Call Chain = tcp_set_server_addr &rArr; disconnect &rArr; close &rArr; WIZCHIP_WRITE
 </UL>
 <BR>[Calls]<UL><LI><a href="#[40b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;disconnect
 <LI><a href="#[15e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
@@ -13281,12 +13291,12 @@ Global Symbols
 <BR>[Address Reference Count : 1]<UL><LI> wizchip_conf.o(.data)
 </UL>
 <P><STRONG><a name="[a]"></a>wizchip_cs_deselect</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, wizchip_conf.o(i.wizchip_cs_deselect))
-<BR>[Address Reference Count : 2]<UL><LI> wizchip_conf.o(i.reg_wizchip_cs_cbfunc)
-<LI> wizchip_conf.o(.data)
+<BR>[Address Reference Count : 2]<UL><LI> wizchip_conf.o(.data)
+<LI> wizchip_conf.o(i.reg_wizchip_cs_cbfunc)
 </UL>
 <P><STRONG><a name="[9]"></a>wizchip_cs_select</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, wizchip_conf.o(i.wizchip_cs_select))
-<BR>[Address Reference Count : 2]<UL><LI> wizchip_conf.o(i.reg_wizchip_cs_cbfunc)
-<LI> wizchip_conf.o(.data)
+<BR>[Address Reference Count : 2]<UL><LI> wizchip_conf.o(.data)
+<LI> wizchip_conf.o(i.reg_wizchip_cs_cbfunc)
 </UL>
 <P><STRONG><a name="[113]"></a>wizchip_deselect</STRONG> (Thumb, 10 bytes, Stack size 0 bytes, wiz_platform.o(i.wizchip_deselect))
 <BR><BR>[Calls]<UL><LI><a href="#[266]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_WritePin
@@ -20175,7 +20185,7 @@ Local Symbols
 </UL>
 
 <P><STRONG><a name="[2ec]"></a>tcp_client_connect</STRONG> (Thumb, 124 bytes, Stack size 24 bytes, user_main.o(i.tcp_client_connect))
-<BR><BR>[Stack]<UL><LI>Max Depth = 96<LI>Call Chain = tcp_client_connect &rArr; socket &rArr; close &rArr; WIZCHIP_WRITE
+<BR><BR>[Stack]<UL><LI>Max Depth = 112<LI>Call Chain = tcp_client_connect &rArr; socket &rArr; close &rArr; WIZCHIP_WRITE
 </UL>
 <BR>[Calls]<UL><LI><a href="#[2ea]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WIZCHIP_WRITE
 <LI><a href="#[1cd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;socket
