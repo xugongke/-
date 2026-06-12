@@ -363,7 +363,7 @@ void lvgl_task(void *argument)
 	device_manager_init();
 
 	// 从TF卡读取TCP服务器IP/Port配置 (在W5500_Task连接之前完成)
-	tcp_config_load();
+//	tcp_config_load();
 
 	/* USER CODE END 2 */
 	//自己设计的图形窗口

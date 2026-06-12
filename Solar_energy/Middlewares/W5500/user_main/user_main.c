@@ -24,7 +24,7 @@ wiz_NetInfo default_net_info = {
 };
 
 /* 上位机服务器IP和端口 */
-uint8_t  server_ip[4] = {192, 168, 6, 196};
+uint8_t  server_ip[4] = {192, 168, 6, 157};
 uint16_t server_port  = 22222;
 
 static uint8_t ethernet_buf[ETHERNET_BUF_MAX_SIZE] = {0};
