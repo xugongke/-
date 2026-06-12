@@ -650,7 +650,16 @@ void daily_energy_flush_to_sd(void)
 {
     if (device_count == 0) return;
 
-    printf("零点结算：将RAM中日累积电量写入SD卡...\r\n");
+    /* 获取当前RTC时间 */
+    RX8025T_DateTimeCompact rtc_now;
+    if (RX8025T_GetDateTime(&rtc_now) != HAL_OK)
+    {
+        printf("零点结算失败: 无法获取RTC时间\r\n");
+        return;
+    }
+
+    printf("零点结算：将RAM中日累积电量写入SD卡... (当前: %02d/%02d %02d:%02d:%02d)\r\n",
+           rtc_now.month, rtc_now.day, rtc_now.hours, rtc_now.minutes, rtc_now.seconds);
 
     for (uint16_t i = 0; i < device_count; i++)
     {
@@ -665,6 +674,32 @@ void daily_energy_flush_to_sd(void)
         int ret = read_user_data(device_list[i].addr, &user_data);
         if (ret == 0)
         {
+            /* 检查是否需要重置日用电量（日期变化时重置） */
+            if (user_data.last_reset_day != rtc_now.day)
+            {
+                printf("  设备[%d] 日用电量重置 (上次: %02d, 当前: %02d)\r\n", 
+                       i, user_data.last_reset_day, rtc_now.day);
+                user_data.daily_energy = 0.0f;
+                user_data.last_reset_day = rtc_now.day;
+            }
+
+            /* 检查是否需要重置月用电量（月份变化时重置） */
+            if (user_data.last_reset_mon != rtc_now.month)
+            {
+                uint8_t old_mon = user_data.last_reset_mon;  /* 保存旧月份，用于跨年判断 */
+                printf("  设备[%d] 月用电量重置 (上次: %02d, 当前: %02d)\r\n", 
+                       i, old_mon, rtc_now.month);
+                user_data.monthly_energy = 0.0f;
+                user_data.last_reset_mon = rtc_now.month;
+
+                /* 跨年检查：如果月份变为1月且上次记录不是1月，说明是新的一年 */
+                if (rtc_now.month == 1 && old_mon != 1)
+                {
+                    printf("  设备[%d] 年用电量重置\r\n", i);
+                    user_data.annual_energy = 0.0f;
+                }
+            }
+
             float energy_kwh = daily_energy_wh[i] / 1000.0f;  /* Wh → kWh */
 
             /* 累加到各维度用电量 */
