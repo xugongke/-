@@ -7,6 +7,7 @@
 #include "a7680c_mqtt.h"
 #include "cmsis_os.h"
 #include "fatfs.h"
+#include "rx8025t.h"
 
 // ================== 从机命令定义 ==================
 #define SLAVE_CMD_SET_ADDR    0x01  // 修改通信地址命令
@@ -472,8 +473,14 @@ int device_read_status_ex(int dev_index)
             device_list[dev_index].state.bits.temp_err  = (state_byte & 0x40) ? 1 : 0;
             device_list[dev_index].state.bits.relay_err     = (state_byte & 0x20) ? 1 : 0;
 
-            /* 获取从机数据成功的瞬间，立即记录FreeRTOS tick时间戳（秒） */
-            last_poll_time[dev_index] = xTaskGetTickCount() * portTICK_PERIOD_MS / 1000;
+            /* 获取从机数据成功的瞬间，立即记录RTC时间戳 */
+            RX8025T_Time rtc_now;
+            if (RX8025T_GetTime(&rtc_now) == HAL_OK)
+            {
+                last_poll_time[dev_index] = (uint32_t)rtc_now.hours * 3600UL
+                                            + (uint32_t)rtc_now.minutes * 60UL
+                                            + (uint32_t)rtc_now.seconds;
+            }
             return 0;
         }
         else
@@ -537,7 +544,7 @@ void device_poll_all_status(void)
         /* 保存上次成功获取数据的时间戳（在调用device_read_status_ex之前读取） */
         uint32_t prev_time = last_poll_time[i];
 
-        /* 读取从机状态（成功时内部会立即记录tick时间戳到last_poll_time[i]） */
+        /* 读取从机状态（成功时内部会立即记录RTC时间戳到last_poll_time[i]） */
         int ret = device_read_status_ex(i);
 
         if (ret == 0)
@@ -546,8 +553,18 @@ void device_poll_all_status(void)
             if (prev_time != 0)
             {
                 /* 计算两次成功获取数据之间经过的时间（秒）
-                 * uint32_t无符号减法天然处理溢出回绕 */
-                uint32_t elapsed_sec = last_poll_time[i] - prev_time;
+                 * 处理跨零点回绕: prev=86430(23:59:30), cur=30(00:00:30)
+                 * elapsed = 86400 - 86430 + 30 = 60秒 */
+                uint32_t elapsed_sec;
+                if (last_poll_time[i] >= prev_time)
+                {
+                    elapsed_sec = last_poll_time[i] - prev_time;
+                }
+                else
+                {
+                    /* 跨零点回绕: 补偿一天86400秒 */
+                    elapsed_sec = 86400UL - prev_time + last_poll_time[i];
+                }
 
                 /* 只有正在直流加热 且 电压有效(>0) 时才计算功率 */
                 if (device_list[i].state.bits.dc_heating && device_list[i].input_voltage > 0
