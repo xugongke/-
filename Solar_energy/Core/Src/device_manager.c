@@ -29,6 +29,9 @@ uint32_t last_poll_time[MAX_DEVICES]; // 各设备上次成功获取数据的时
 // 标志：设备是否有变化（用于减少SD写入）
 static uint8_t device_changed = 0;
 
+/* 标志：首次轮询是否已完成（首次只建立时间基准，不计算用电量） */
+static uint8_t poll_initialized = 0;
+
 /* 告警预扫描全局数据 */
 alert_stats_t g_alert_stats = {0};
 alert_item_t  g_alert_items[ALERT_MAX_ITEMS] = {0};
@@ -253,6 +256,7 @@ void Clear_devices(void)
 	memset(daily_energy_wh,0,sizeof(daily_energy_wh));
 	memset(last_poll_time,0,sizeof(last_poll_time));
 	device_count = 0;
+    poll_initialized = 0;
 }
 
 // ================== 保存设备表 ==================
@@ -478,17 +482,32 @@ int device_read_status_ex(int dev_index)
         }
         else
         {
+            if (!poll_initialized)
+            {
+                /* 首次轮询时，响应异常也要记录时间基准，避免后续计算用电量时出现大数 */
+                last_poll_time[dev_index] = xTaskGetTickCount() * portTICK_PERIOD_MS / 1000;
+            }
             printf("从机状态读取失败, 响应异常\r\n");
             return -3;
         }
     }
     else if (ret == -2)
     {
+        if (!poll_initialized)
+        {
+            /* 首次轮询时，响应超时也要记录时间基准，避免后续计算用电量时出现大数 */
+            last_poll_time[dev_index] = xTaskGetTickCount() * portTICK_PERIOD_MS / 1000;
+        }
         printf("从机状态读取超时\r\n");
         return -2;
     }
     else
     {
+        if (!poll_initialized)
+        {
+            /* 首次轮询时，发送失败也要记录时间基准，避免后续计算用电量时出现大数 */
+            last_poll_time[dev_index] = xTaskGetTickCount() * portTICK_PERIOD_MS / 1000;
+        }
         printf("发送读取状态命令失败\r\n");
         return -4;
     }
@@ -540,9 +559,16 @@ void device_poll_all_status(void)
         /* 读取从机状态（成功时内部会立即记录tick时间戳到last_poll_time[i]） */
         int ret = device_read_status_ex(i);
 
+        /* 首次轮询：只建立时间基准，不计算用电量 */
+        if (!poll_initialized)
+        {
+            osDelay(200);
+            continue;
+        }
+
         if (ret == 0)
         {
-            /* 只有之前已有记录(prev_time != 0)时才计算 */
+            /* 已有上一次记录，计算时间差并累积用电量 */
             if (prev_time != 0)
             {
                 /* 计算两次成功获取数据之间经过的时间（秒）
@@ -603,7 +629,11 @@ void device_poll_all_status(void)
         /* 设备间间隔200ms，避免载波通信冲突 */
         osDelay(200);
     }
-
+    if (!poll_initialized)
+    {
+        poll_initialized = 1;
+        printf("首次轮询完成，已建立时间基准，后续将计算用电量\r\n");
+    }
     printf("设备轮询完成\r\n");
 }
 
