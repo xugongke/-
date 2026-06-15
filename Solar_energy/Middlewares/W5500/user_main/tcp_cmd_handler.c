@@ -133,7 +133,7 @@ void tcp_resp_device_list(void)
     /* 分包发送 */
     uint16_t dev_offset = 0;
     uint16_t remain, count, data_len, idx;
-    uint8_t  resp[FRAME_MAX_DATA_LEN];
+    static uint8_t resp[FRAME_MAX_DATA_LEN];  /* static避免栈溢出 */
     
     for (uint8_t seq = 0; seq < total_packs; seq++)
     {
@@ -313,7 +313,7 @@ void tcp_resp_user_data(void)
     /* 分包发送 */
     uint16_t user_offset = 0;
     uint16_t remain, count, data_len, idx;
-    uint8_t  resp[FRAME_MAX_DATA_LEN];
+    static uint8_t resp[FRAME_MAX_DATA_LEN];  /* static避免栈溢出 */
     
     for (uint8_t seq = 0; seq < total_packs; seq++)
     {

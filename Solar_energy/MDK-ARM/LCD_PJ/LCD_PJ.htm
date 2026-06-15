@@ -3,7 +3,7 @@
 <title>Static Call Graph - [LCD_PJ\LCD_PJ.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image LCD_PJ\LCD_PJ.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060960: Last Updated: Mon Jun 15 10:57:23 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060960: Last Updated: Mon Jun 15 11:43:38 2026
 <BR><P>
 <H3>Maximum Stack Usage =       2212 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -12,7 +12,6 @@ W5500_Task &rArr; frame_parser_feed &rArr; frame_parser_process_byte &rArr; tcp_
 <H3>
 Mutually Recursive functions
 </H3> <LI><a href="#[2c]">ADC_IRQHandler</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[2c]">ADC_IRQHandler</a><BR>
- <LI><a href="#[12]">HardFault_Handler</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[12]">HardFault_Handler</a><BR>
  <LI><a href="#[11]">NMI_Handler</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[11]">NMI_Handler</a><BR>
  <LI><a href="#[270]">UART_EndRxTransfer</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[270]">UART_EndRxTransfer</a><BR>
  <LI><a href="#[60a]">obj_valid_child</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[60a]">obj_valid_child</a><BR>
@@ -2912,10 +2911,10 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[87]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART_DMATxHalfCplt
 </UL>
 
-<P><STRONG><a name="[12]"></a>HardFault_Handler</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, stm32f4xx_it.o(i.HardFault_Handler))
-<BR><BR>[Calls]<UL><LI><a href="#[12]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HardFault_Handler
+<P><STRONG><a name="[12]"></a>HardFault_Handler</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, stm32f4xx_it.o(i.HardFault_Handler))
+<BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = HardFault_Handler &rArr; __2printf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[12]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HardFault_Handler
+<BR>[Calls]<UL><LI><a href="#[15e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f429xx.o(RESET)
 </UL>
@@ -4134,6 +4133,7 @@ Global Symbols
 <LI><a href="#[1d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_poll_all_status
 <LI><a href="#[15]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UsageFault_Handler
 <LI><a href="#[13]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MemManage_Handler
+<LI><a href="#[12]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HardFault_Handler
 <LI><a href="#[14]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BusFault_Handler
 <LI><a href="#[26d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UART_ErrorCallback
 <LI><a href="#[26a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UARTEx_RxEventCallback
@@ -12796,8 +12796,8 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[6fc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_dispatch_frame
 </UL>
 
-<P><STRONG><a name="[6fd]"></a>tcp_resp_device_list</STRONG> (Thumb, 224 bytes, Stack size 560 bytes, tcp_cmd_handler.o(i.tcp_resp_device_list))
-<BR><BR>[Stack]<UL><LI>Max Depth = 672<LI>Call Chain = tcp_resp_device_list &rArr; tcp_send_frame &rArr; send &rArr; wiz_send_data &rArr; WIZCHIP_WRITE_BUF
+<P><STRONG><a name="[6fd]"></a>tcp_resp_device_list</STRONG> (Thumb, 212 bytes, Stack size 48 bytes, tcp_cmd_handler.o(i.tcp_resp_device_list))
+<BR><BR>[Stack]<UL><LI>Max Depth = 160<LI>Call Chain = tcp_resp_device_list &rArr; tcp_send_frame &rArr; send &rArr; wiz_send_data &rArr; WIZCHIP_WRITE_BUF
 </UL>
 <BR>[Calls]<UL><LI><a href="#[1da]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osDelay
 <LI><a href="#[17f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memcpy
@@ -12827,8 +12827,8 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[6fc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_dispatch_frame
 </UL>
 
-<P><STRONG><a name="[701]"></a>tcp_resp_user_data</STRONG> (Thumb, 236 bytes, Stack size 560 bytes, tcp_cmd_handler.o(i.tcp_resp_user_data))
-<BR><BR>[Stack]<UL><LI>Max Depth = 672<LI>Call Chain = tcp_resp_user_data &rArr; tcp_send_frame &rArr; send &rArr; wiz_send_data &rArr; WIZCHIP_WRITE_BUF
+<P><STRONG><a name="[701]"></a>tcp_resp_user_data</STRONG> (Thumb, 224 bytes, Stack size 48 bytes, tcp_cmd_handler.o(i.tcp_resp_user_data))
+<BR><BR>[Stack]<UL><LI>Max Depth = 160<LI>Call Chain = tcp_resp_user_data &rArr; tcp_send_frame &rArr; send &rArr; wiz_send_data &rArr; WIZCHIP_WRITE_BUF
 </UL>
 <BR>[Calls]<UL><LI><a href="#[1da]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osDelay
 <LI><a href="#[17f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memcpy

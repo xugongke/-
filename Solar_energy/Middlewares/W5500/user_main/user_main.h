@@ -3,130 +3,130 @@
 
 #include "stdint.h"
 
-#define TCP_SOCKET_ID 0         /* TCP¿Í»§¶Ë Socket */
-#define ETHERNET_BUF_MAX_SIZE (1024 * 2)
-#define TCP_STREAM_BUF_SIZE   (1024 * 4)  /* TCPÁ÷»º³åÇø´óĞ¡ */
+#define TCP_SOCKET_ID 0         /* TCPå®¢æˆ·ç«¯ Socket */
+#define ETHERNET_BUF_MAX_SIZE (128 * 2)
+#define TCP_STREAM_BUF_SIZE   (256 * 2)  /* TCPæµç¼“å†²åŒºå¤§å° */
 
-/* ==================== Ö¡Ğ­ÒéÅäÖÃ ====================
+/* ==================== å¸§åè®®é…ç½® ====================
  *
- * Ö¡¸ñÊ½: [Ö¡Í·][Ö¡ÀàĞÍ][ÃüÁî×Ö][Êı¾İ³¤¶È][Êı¾İÓò][CRC16][Ö¡Î²]
- *   Ö¡Í·:     0x0D (1×Ö½Ú)
- *   Ö¡ÀàĞÍ:   1×Ö½Ú (0x00=ÇëÇó, 0x01=ÏìÓ¦, 0x02=´íÎó)
- *   ÃüÁî×Ö:   1×Ö½Ú
- *   Êı¾İ³¤¶È: 2×Ö½Ú (Ğ¡¶ËĞò, µÍ×Ö½ÚÔÚÇ°)
- *   Êı¾İÓò:   N×Ö½Ú (N = Êı¾İ³¤¶È)
- *   CRC16:   2×Ö½Ú (Ğ¡¶ËĞò, CRC·¶Î§: Ö¡Í·+Ö¡ÀàĞÍ+ÃüÁî×Ö+Êı¾İ³¤¶È+Êı¾İÓò)
- *   Ö¡Î²:     0x0E (1×Ö½Ú)
+ * å¸§æ ¼å¼: [å¸§å¤´][å¸§ç±»å‹][å‘½ä»¤å­—][æ•°æ®é•¿åº¦][æ•°æ®åŸŸ][CRC16][å¸§å°¾]
+ *   å¸§å¤´:     0x0D (1å­—èŠ‚)
+ *   å¸§ç±»å‹:   1å­—èŠ‚ (0x00=è¯·æ±‚, 0x01=å“åº”, 0x02=é”™è¯¯)
+ *   å‘½ä»¤å­—:   1å­—èŠ‚
+ *   æ•°æ®é•¿åº¦: 2å­—èŠ‚ (å°ç«¯åº, ä½å­—èŠ‚åœ¨å‰)
+ *   æ•°æ®åŸŸ:   Nå­—èŠ‚ (N = æ•°æ®é•¿åº¦)
+ *   CRC16:   2å­—èŠ‚ (å°ç«¯åº, CRCèŒƒå›´: å¸§å¤´+å¸§ç±»å‹+å‘½ä»¤å­—+æ•°æ®é•¿åº¦+æ•°æ®åŸŸ)
+ *   å¸§å°¾:     0x0E (1å­—èŠ‚)
  */
-#define FRAME_HEADER        0x0D         /* Ö¡Í· */
-#define FRAME_TAIL          0x0E         /* Ö¡Î² */
-#define FRAME_TYPE_LEN      1            /* Ö¡ÀàĞÍ³¤¶È */
-#define FRAME_CMD_LEN       1            /* ÃüÁî×Ö³¤¶È */
-#define FRAME_LENGTH_LEN    2            /* Êı¾İÓò³¤¶È×Ö¶Î×Ö½ÚÊı */
-#define FRAME_CRC_LEN       2            /* CRC16Ğ£Ñé³¤¶È */
-#define FRAME_MAX_DATA_LEN  512          /* Êı¾İÓò×î´ó³¤¶È */
+#define FRAME_HEADER        0x0D         /* å¸§å¤´ */
+#define FRAME_TAIL          0x0E         /* å¸§å°¾ */
+#define FRAME_TYPE_LEN      1            /* å¸§ç±»å‹é•¿åº¦ */
+#define FRAME_CMD_LEN       1            /* å‘½ä»¤å­—é•¿åº¦ */
+#define FRAME_LENGTH_LEN    2            /* æ•°æ®åŸŸé•¿åº¦å­—æ®µå­—èŠ‚æ•° */
+#define FRAME_CRC_LEN       2            /* CRC16æ ¡éªŒé•¿åº¦ */
+#define FRAME_MAX_DATA_LEN  512          /* æ•°æ®åŸŸæœ€å¤§é•¿åº¦ */
 
-/* ==================== Ö¡½âÎö×´Ì¬»ú ==================== */
+/* ==================== å¸§è§£æçŠ¶æ€æœº ==================== */
 typedef enum {
-    FRAME_STATE_WAIT_HEADER = 0,   /* µÈ´ıÖ¡Í· 0x0D */
-    FRAME_STATE_WAIT_TYPE,         /* µÈ´ıÖ¡ÀàĞÍ */
-    FRAME_STATE_WAIT_CMD,          /* µÈ´ıÃüÁî×Ö */
-    FRAME_STATE_WAIT_LENGTH,       /* µÈ´ıÊı¾İ³¤¶È (2×Ö½Ú) */
-    FRAME_STATE_WAIT_DATA,         /* µÈ´ıÊı¾İÓò */
-    FRAME_STATE_WAIT_CRC,          /* µÈ´ıCRC16Ğ£Ñé (2×Ö½Ú) */
-    FRAME_STATE_WAIT_TAIL,         /* µÈ´ıÖ¡Î² 0x0E */
+    FRAME_STATE_WAIT_HEADER = 0,   /* ç­‰å¾…å¸§å¤´ 0x0D */
+    FRAME_STATE_WAIT_TYPE,         /* ç­‰å¾…å¸§ç±»å‹ */
+    FRAME_STATE_WAIT_CMD,          /* ç­‰å¾…å‘½ä»¤å­— */
+    FRAME_STATE_WAIT_LENGTH,       /* ç­‰å¾…æ•°æ®é•¿åº¦ (2å­—èŠ‚) */
+    FRAME_STATE_WAIT_DATA,         /* ç­‰å¾…æ•°æ®åŸŸ */
+    FRAME_STATE_WAIT_CRC,          /* ç­‰å¾…CRC16æ ¡éªŒ (2å­—èŠ‚) */
+    FRAME_STATE_WAIT_TAIL,         /* ç­‰å¾…å¸§å°¾ 0x0E */
 } FrameState_t;
 
 typedef struct {
     FrameState_t state;
-    uint8_t  frame_type;            /* Ö¡ÀàĞÍ */
-    uint8_t  frame_cmd;             /* ÃüÁî×Ö */
-    uint8_t  length_idx;            /* ³¤¶È×Ö¶Î½ÓÊÕË÷Òı */
-    uint16_t data_len;              /* ½âÎö³öµÄÊı¾İ³¤¶È */
-    uint16_t data_index;            /* Êı¾İÓòµ±Ç°½ÓÊÕË÷Òı */
-    uint8_t  crc_idx;               /* CRC×Ö¶Î½ÓÊÕË÷Òı */
+    uint8_t  frame_type;            /* å¸§ç±»å‹ */
+    uint8_t  frame_cmd;             /* å‘½ä»¤å­— */
+    uint8_t  length_idx;            /* é•¿åº¦å­—æ®µæ¥æ”¶ç´¢å¼• */
+    uint16_t data_len;              /* è§£æå‡ºçš„æ•°æ®é•¿åº¦ */
+    uint16_t data_index;            /* æ•°æ®åŸŸå½“å‰æ¥æ”¶ç´¢å¼• */
+    uint8_t  crc_idx;               /* CRCå­—æ®µæ¥æ”¶ç´¢å¼• */
     uint8_t  length_buf[FRAME_LENGTH_LEN];
     uint8_t  crc_buf[FRAME_CRC_LEN];
     uint8_t  data_buf[FRAME_MAX_DATA_LEN];
 } FrameParser_t;
 
-/* ==================== TCP·şÎñÆ÷ÅäÖÃ ==================== */
+/* ==================== TCPæœåŠ¡å™¨é…ç½® ==================== */
 
 /**
- * @brief   »ñÈ¡µ±Ç°·şÎñÆ÷IPºÍ¶Ë¿Ú
- * @param   ip:   Êä³ö4×Ö½ÚIPµØÖ·
- * @param   port: Êä³ö¶Ë¿ÚºÅ
+ * @brief   è·å–å½“å‰æœåŠ¡å™¨IPå’Œç«¯å£
+ * @param   ip:   è¾“å‡º4å­—èŠ‚IPåœ°å€
+ * @param   port: è¾“å‡ºç«¯å£å·
  */
 void tcp_get_server_addr(uint8_t ip[4], uint16_t *port);
 
 /**
- * @brief   ÉèÖÃĞÂµÄ·şÎñÆ÷IPºÍ¶Ë¿Ú, ²¢´¥·¢ÖØÁ¬
- * @param   ip:   4×Ö½ÚIPµØÖ·
- * @param   port: ¶Ë¿ÚºÅ
+ * @brief   è®¾ç½®æ–°çš„æœåŠ¡å™¨IPå’Œç«¯å£, å¹¶è§¦å‘é‡è¿
+ * @param   ip:   4å­—èŠ‚IPåœ°å€
+ * @param   port: ç«¯å£å·
  */
 void tcp_set_server_addr(const uint8_t ip[4], uint16_t port);
 
 /**
- * @brief   ½«µ±Ç° server_ip ºÍ server_port ±£´æµ½TF¿¨
- * @return  0=³É¹¦, -1=Ê§°Ü
+ * @brief   å°†å½“å‰ server_ip å’Œ server_port ä¿å­˜åˆ°TFå¡
+ * @return  0=æˆåŠŸ, -1=å¤±è´¥
  */
 int tcp_config_save(void);
 
 /**
- * @brief   ´ÓTF¿¨¶ÁÈ¡ server_ip ºÍ server_port
- * @return  0=³É¹¦, -1=Ê§°Ü(Ê¹ÓÃÄ¬ÈÏÖµ)
+ * @brief   ä»TFå¡è¯»å– server_ip å’Œ server_port
+ * @return  0=æˆåŠŸ, -1=å¤±è´¥(ä½¿ç”¨é»˜è®¤å€¼)
  */
 int tcp_config_load(void);
 
-/* ==================== º¯ÊıÉùÃ÷ ==================== */
+/* ==================== å‡½æ•°å£°æ˜ ==================== */
 
 /**
- * @brief   W5500ÈÎÎñº¯Êı
+ * @brief   W5500ä»»åŠ¡å‡½æ•°
  */
 void W5500_Task(void *argument);
 
 /**
- * @brief   ³õÊ¼»¯Ö¡½âÎöÆ÷
+ * @brief   åˆå§‹åŒ–å¸§è§£æå™¨
  */
 void frame_parser_init(FrameParser_t *parser);
 
 /**
- * @brief   ÖØÖÃÖ¡½âÎöÆ÷
+ * @brief   é‡ç½®å¸§è§£æå™¨
  */
 void frame_parser_reset(FrameParser_t *parser);
 
 /**
- * @brief   ÏòÖ¡½âÎöÆ÷Î¹ÈëÊı¾İ
- * @param   parser: ½âÎöÆ÷Ö¸Õë
- * @param   data:  Êı¾İÖ¸Õë
- * @param   len:   Êı¾İ³¤¶È
+ * @brief   å‘å¸§è§£æå™¨å–‚å…¥æ•°æ®
+ * @param   parser: è§£æå™¨æŒ‡é’ˆ
+ * @param   data:  æ•°æ®æŒ‡é’ˆ
+ * @param   len:   æ•°æ®é•¿åº¦
  */
 void frame_parser_feed(FrameParser_t *parser, const uint8_t *data, uint16_t len);
 
 /**
- * @brief   Ö¡½ÓÊÕÍê³É»Øµ÷ (ÓÃ»§ÔÚ´Ëº¯ÊıÖĞÊµÏÖÃüÁî·Ö·¢)
- * @param   type: Ö¡ÀàĞÍ
- * @param   cmd:  ÃüÁî×Ö
- * @param   data: Êı¾İÓòÖ¸Õë
- * @param   len:  Êı¾İÓò³¤¶È
+ * @brief   å¸§æ¥æ”¶å®Œæˆå›è°ƒ (ç”¨æˆ·åœ¨æ­¤å‡½æ•°ä¸­å®ç°å‘½ä»¤åˆ†å‘)
+ * @param   type: å¸§ç±»å‹
+ * @param   cmd:  å‘½ä»¤å­—
+ * @param   data: æ•°æ®åŸŸæŒ‡é’ˆ
+ * @param   len:  æ•°æ®åŸŸé•¿åº¦
  */
 void tcp_frame_handler(uint8_t type, uint8_t cmd, const uint8_t *data, uint16_t len);
 
 /**
- * @brief   °´Ö¡Ğ­Òé¸ñÊ½×é×°²¢·¢ËÍÊı¾İµ½TCP¿Í»§¶Ë
- * @param   type: Ö¡ÀàĞÍ
- * @param   cmd:  ÃüÁî×Ö
- * @param   data: Êı¾İÓòÖ¸Õë
- * @param   len:  Êı¾İÓò³¤¶È
+ * @brief   æŒ‰å¸§åè®®æ ¼å¼ç»„è£…å¹¶å‘é€æ•°æ®åˆ°TCPå®¢æˆ·ç«¯
+ * @param   type: å¸§ç±»å‹
+ * @param   cmd:  å‘½ä»¤å­—
+ * @param   data: æ•°æ®åŸŸæŒ‡é’ˆ
+ * @param   len:  æ•°æ®åŸŸé•¿åº¦
  */
 void tcp_send_frame(uint8_t type, uint8_t cmd, const uint8_t *data, uint16_t len);
 
 /**
- * @brief   CRC16-CCITT·´Éä°æ±¾¼ÆËã (ÓëÉÏÎ»»úQt°æ±¾Ò»ÖÂ)
- *          ¶àÏîÊ½0x1021, ³õÊ¼Öµ0x0000, ÊäÈëÊä³ö·´Éä
- * @param   data: Êı¾İÖ¸Õë
- * @param   len:  Êı¾İ³¤¶È
- * @return  CRC16Öµ
+ * @brief   CRC16-CCITTåå°„ç‰ˆæœ¬è®¡ç®— (ä¸ä¸Šä½æœºQtç‰ˆæœ¬ä¸€è‡´)
+ *          å¤šé¡¹å¼0x1021, åˆå§‹å€¼0x0000, è¾“å…¥è¾“å‡ºåå°„
+ * @param   data: æ•°æ®æŒ‡é’ˆ
+ * @param   len:  æ•°æ®é•¿åº¦
+ * @return  CRC16å€¼
  */
 uint16_t crc16_ccitt(const uint8_t *data, uint16_t len);
 
