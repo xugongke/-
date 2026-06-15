@@ -193,6 +193,7 @@ void MPPT_ForceRescan(void);
  */
 uint8_t MPPT_SetActiveHeaters(uint8_t target_count);
 
+void accumulate_energy(void);
 #ifdef __cplusplus
 }
 #endif

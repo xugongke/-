@@ -563,12 +563,16 @@ void DevicePoll_Task(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    if(simcard_ready == 1)
-    {
+//    if(simcard_ready == 1)
+//    {
       if(g_es1642_searching == 0)  /* 仅在非搜索状态下轮询设备 */
       {
         device_poll_all_status();  /* 轮询设备并在获取数据成功时基于实际时间差计算用电量 */
         alert_scan_devices();  /* 轮询后扫描告警数据，并更新卡片数据 */
+
+        float solar_voltage = Solar_GetVoltage(); /* 获取最新的太阳能阵列电压 */
+        g_mppt.power = MPPT_CalcPower(solar_voltage, g_mppt.n_active);
+        accumulate_energy(); /* 累积发电量 (更新 g_mppt.energy_wh) */
 
         /* 零点检测：读取当前日期，如果日期变化则说明跨过了零点 */
         if (RX8025T_GetDate(&cur_date) == HAL_OK)
@@ -583,7 +587,7 @@ void DevicePoll_Task(void *argument)
             last_date = cur_date;  /* 更新日期缓存 */
         }
       }
-    }
+//    }
     osDelay(60000);  /* 每60秒轮询一次 */
   }
   /* USER CODE END DevicePoll_Task */

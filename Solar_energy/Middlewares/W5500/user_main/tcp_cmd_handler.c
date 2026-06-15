@@ -16,6 +16,9 @@
 /* ==================== 外部变量 ==================== */
 extern volatile uint8_t g_tcp_connected;
 
+/* ==================== 全局帧数据缓冲区 ==================== */
+uint8_t g_frame_data_buf[FRAME_MAX_DATA_LEN];  /* 组帧数据缓冲区，供分包发送函数共用 */
+
 /* ================================================================
  *  通用工具函数
  * ================================================================ */
@@ -133,7 +136,6 @@ void tcp_resp_device_list(void)
     /* 分包发送 */
     uint16_t dev_offset = 0;
     uint16_t remain, count, data_len, idx;
-    static uint8_t resp[FRAME_MAX_DATA_LEN];  /* static避免栈溢出 */
     
     for (uint8_t seq = 0; seq < total_packs; seq++)
     {
@@ -146,25 +148,25 @@ void tcp_resp_device_list(void)
         idx = 0;
 
         /* 包序号 (0=首包) */
-        resp[idx++] = seq;
+        g_frame_data_buf[idx++] = seq;
 
         /* 总设备数 (小端序) */
-        resp[idx++] = (uint8_t)(total_devices & 0xFF);
-        resp[idx++] = (uint8_t)(total_devices >> 8);
+        g_frame_data_buf[idx++] = (uint8_t)(total_devices & 0xFF);
+        g_frame_data_buf[idx++] = (uint8_t)(total_devices >> 8);
 
         /* 本包设备数 (小端序) */
-        resp[idx++] = (uint8_t)(count & 0xFF);
-        resp[idx++] = (uint8_t)(count >> 8);
+        g_frame_data_buf[idx++] = (uint8_t)(count & 0xFF);
+        g_frame_data_buf[idx++] = (uint8_t)(count >> 8);
 
         /* 拷贝设备原始数据 */
         for (uint16_t d = 0; d < count; d++)
         {
-            memcpy(&resp[idx], &device_list[dev_offset + d], sizeof(device_t));
+            memcpy(&g_frame_data_buf[idx], &device_list[dev_offset + d], sizeof(device_t));
             idx += sizeof(device_t);
         }
 
         /* 发送这一包 */
-        tcp_send_frame(FRAME_TYPE_RESPONSE, CMD_GET_DEVICE_LIST, resp, data_len);
+        tcp_send_frame(FRAME_TYPE_RESPONSE, CMD_GET_DEVICE_LIST, g_frame_data_buf, data_len);
 
         dev_offset += count;
 
@@ -313,7 +315,6 @@ void tcp_resp_user_data(void)
     /* 分包发送 */
     uint16_t user_offset = 0;
     uint16_t remain, count, data_len, idx;
-    static uint8_t resp[FRAME_MAX_DATA_LEN];  /* static避免栈溢出 */
     
     for (uint8_t seq = 0; seq < total_packs; seq++)
     {
@@ -326,25 +327,25 @@ void tcp_resp_user_data(void)
         idx = 0;
 
         /* 包序号 (0=首包) */
-        resp[idx++] = seq;
+        g_frame_data_buf[idx++] = seq;
 
         /* 总用户数 (小端序) */
-        resp[idx++] = (uint8_t)(total_users & 0xFF);
-        resp[idx++] = (uint8_t)(total_users >> 8);
+        g_frame_data_buf[idx++] = (uint8_t)(total_users & 0xFF);
+        g_frame_data_buf[idx++] = (uint8_t)(total_users >> 8);
 
         /* 本包用户数 (小端序) */
-        resp[idx++] = (uint8_t)(count & 0xFF);
-        resp[idx++] = (uint8_t)(count >> 8);
+        g_frame_data_buf[idx++] = (uint8_t)(count & 0xFF);
+        g_frame_data_buf[idx++] = (uint8_t)(count >> 8);
 
         /* 拷贝用户用电量原始数据 */
         for (uint16_t u = 0; u < count; u++)
         {
-            memcpy(&resp[idx], &user_detail_cache[user_offset + u], sizeof(user_detail_cache_t));
+            memcpy(&g_frame_data_buf[idx], &user_detail_cache[user_offset + u], sizeof(user_detail_cache_t));
             idx += sizeof(user_detail_cache_t);
         }
 
         /* 发送这一包 */
-        tcp_send_frame(FRAME_TYPE_RESPONSE, CMD_GET_USER_DATA, resp, data_len);
+        tcp_send_frame(FRAME_TYPE_RESPONSE, CMD_GET_USER_DATA, g_frame_data_buf, data_len);
 
         user_offset += count;
 

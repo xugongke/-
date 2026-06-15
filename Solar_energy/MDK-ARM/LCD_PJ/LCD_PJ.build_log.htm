@@ -27,16 +27,15 @@ Project File Date:  06/15/2026
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 7 (build 960)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'LCD_PJ'
-compiling setup_scr_screen_tcp_setting.c...
-compiling user_main.c...
-compiling tcp_cmd_handler.c...
-compiling freertos.c...
-compiling events_init.c...
+compiling device_manager.c...
+..\Core\Src\device_manager.c(547): warning:  #177-D: variable "payload"  was declared but never referenced
+      char payload[128];
+..\Core\Src\device_manager.c: 1 warning, 0 errors
 linking...
-Program Size: Code=231576 RO-data=235592 RW-data=5908 ZI-data=160716  
+Program Size: Code=231948 RO-data=235592 RW-data=5916 ZI-data=160244  
 FromELF: creating hex file...
 After Build - User command #1: C:\Keil_v5\ARM\ARMCC\bin\fromelf.exe --bin --output ./BIN/LCD_PJ.bin ./LCD_PJ/LCD_PJ.axf
-"LCD_PJ\LCD_PJ.axf" - 0 Error(s), 0 Warning(s).
+"LCD_PJ\LCD_PJ.axf" - 0 Error(s), 1 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -59,7 +58,7 @@ Package Vendor: Keil
 
    * Component: ARM::CMSIS:CORE:5.4.0
       Include file:  CMSIS/Core/Include/tz_context.h
-Build Time Elapsed:  00:00:14
+Build Time Elapsed:  00:00:12
 </pre>
 </body>
 </html>

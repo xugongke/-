@@ -94,7 +94,7 @@ static uint8_t count_online_devices(void)
  * @note   在 MEASURE 和 OBSERVE 状态时调用
  *         使用梯形积分: E += P × Δt
  */
-static void accumulate_energy(void)
+void accumulate_energy(void)
 {
     /* 累计发电量 (每隔 ENERGY_ACCUM_INTERVAL_SEC 秒累计一次) */
     uint32_t now = xTaskGetTickCount() * portTICK_PERIOD_MS / 1000; /* 当前秒数 */
@@ -113,6 +113,8 @@ static void accumulate_energy(void)
             /* power 单位 W, 间隔单位 秒, 转换为 Wh */
             g_mppt.energy_wh += power * (float)(now - energy_last_tick) / 3600.0f;
         }
+        printf("累计发电量: +%.3fWh (总: %.3fWh)\r\n",
+               power * (float)(now - energy_last_tick) / 3600.0f, g_mppt.energy_wh);
         energy_last_tick = now;
     }
 }

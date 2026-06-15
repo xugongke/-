@@ -7,6 +7,7 @@
 #include "a7680c_mqtt.h"
 #include "cmsis_os.h"
 #include "fatfs.h"
+#include "mppt.h"
 
 // ================== 从机命令定义 ==================
 #define SLAVE_CMD_SET_ADDR    0x01  // 修改通信地址命令
@@ -43,6 +44,7 @@ alert_item_t  g_alert_items[ALERT_MAX_ITEMS] = {0};
 void alert_scan_devices(void)
 {
     alert_stats_t stats = {0};
+    uint8_t DC_count = 0;
     int item_idx = 0;
 
     for (uint16_t i = 0; i < device_count; i++)
@@ -101,10 +103,17 @@ void alert_scan_devices(void)
                 item_idx++;
             }
         }
+
+        /* 统计正在加热的设备数量 (bit1) */
+        if (device_list[i].state.bits.dc_heating)
+        {
+            DC_count++;
+        }
     }
 
     stats.item_count = item_idx;
     g_alert_stats = stats;
+    g_mppt.n_active = DC_count; /* 更新MPPT模块的正在加热设备数量 */
 }
 
 // ================== 初始化 ==================
@@ -299,7 +308,7 @@ FRESULT load_devices(void)
     UINT br;
 
     if(fs_mutex) osMutexAcquire(fs_mutex, osWaitForever);
-	//如果文件存在就打开，如果文件不存在就创建，但是并没有读写权限，需要加上
+	//如果文件存在就打开，如果文件不存在就创建，但是并没有写权限
     res = f_open(&SDFile, DEVICE_FILE, FA_OPEN_ALWAYS | FA_READ);
     if (res != FR_OK)
     {
@@ -524,6 +533,7 @@ int device_read_status_ex(int dev_index)
  */
 void device_poll_all_status(void)
 {
+    float yongdianl = 0.0f;
     if (device_count == 0) return;
 
     /* 搜索设备期间不进行轮询，避免干扰搜索 */
@@ -587,6 +597,7 @@ void device_poll_all_status(void)
 
                     /* 累加到RAM中的日累积数组 */
                     daily_energy_wh[i] += energy_wh;
+                    yongdianl += energy_wh;
 
                     printf("从机状态: 温度=%d℃, 电压=%dV, 直流加热=%s, 电源反接=%s，温度异常=%s，继电器控制错误=%s\r\n",
                         device_list[i].temperature, device_list[i].input_voltage,
@@ -635,7 +646,7 @@ void device_poll_all_status(void)
         poll_initialized = 1;
         printf("首次轮询完成，已建立时间基准，后续将计算用电量\r\n");
     }
-    printf("设备轮询完成\r\n");
+    printf("设备轮询完成, 累计用电量: %.3fWh\r\n", yongdianl);
 }
 
 // ================== 每日零点：将RAM中累积电量写入SD卡 ==================
