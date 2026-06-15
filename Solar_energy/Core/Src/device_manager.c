@@ -682,6 +682,7 @@ void daily_energy_flush_to_sd(void)
                        i, user_data.last_reset_day, rtc_now.day);
                 user_data.daily_energy = energy_kwh;
                 user_data.last_reset_day = rtc_now.day;
+                user_data.half_day_energy_wh = 0.0f;
 
                 /* 累加到各维度用电量 */
                 user_data.monthly_energy += energy_kwh;
@@ -702,7 +703,7 @@ void daily_energy_flush_to_sd(void)
             else
             {
                 //日期没有变化，说明是在开始搜索前调用的这个函数，这个时候把半日累积用电量存储到SD卡中
-                user_data.power = daily_energy_wh[i];
+                user_data.half_day_energy_wh = daily_energy_wh[i];
             }
 
             /* 检查是否需要重置月用电量（月份变化时重置） */

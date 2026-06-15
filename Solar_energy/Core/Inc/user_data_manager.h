@@ -42,7 +42,7 @@ typedef struct {
     uint8_t  unit;           /* 单元号 */
     uint16_t room;           /* 房间号 */
     float    temperature;    /* 热水器当前温度(℃) - 内部使用 */
-    float    power;          /* 当前功率(W) - 内部使用 */
+    float    half_day_energy_wh;  /* 搜索前暂存的半日累积用电量(Wh) - 搜索时写入，搜索结束后恢复 */
     float    daily_energy;   /* 日累积用电量(kWh) - 当日0点重置 */
     float    monthly_energy; /* 月累积用电量(kWh) - 每月1号重置 */
     float    annual_energy;  /* 年累积用电量(kWh) - 每年1月1日重置 */
