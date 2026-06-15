@@ -310,6 +310,7 @@ void user_detail_cache_init(void)
             user_detail_cache[i].monthly_energy = file_data.monthly_energy;
             user_detail_cache[i].annual_energy  = file_data.annual_energy;
             user_detail_cache[i].total_energy   = file_data.total_energy;
+            daily_energy_wh[i] = file_data.power;  /* 从文件的power字段恢复RAM中的日累积Wh */
             memcpy(user_detail_cache[i].weekly_energy, file_data.weekly_energy,
                    sizeof(file_data.weekly_energy));
             memcpy(&user_detail_cache[i].update_time, &file_data.update_time,

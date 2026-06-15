@@ -674,13 +674,35 @@ void daily_energy_flush_to_sd(void)
         int ret = read_user_data(device_list[i].addr, &user_data);
         if (ret == 0)
         {
+            float energy_kwh = daily_energy_wh[i] / 1000.0f;  /* Wh → kWh */
             /* 检查是否需要重置日用电量（日期变化时重置） */
             if (user_data.last_reset_day != rtc_now.day)
             {
                 printf("  设备[%d] 日用电量重置 (上次: %02d, 当前: %02d)\r\n", 
                        i, user_data.last_reset_day, rtc_now.day);
-                user_data.daily_energy = 0.0f;
+                user_data.daily_energy = energy_kwh;
                 user_data.last_reset_day = rtc_now.day;
+
+                /* 累加到各维度用电量 */
+                user_data.monthly_energy += energy_kwh;
+                user_data.annual_energy  += energy_kwh;
+                user_data.total_energy   += energy_kwh;
+
+                /* 更新七日用电量数组：整体左移，[6]放入当日用电量 */
+                memmove(&user_data.weekly_energy[0], &user_data.weekly_energy[1],
+                        6 * sizeof(float));  /* [0]=[1], [1]=[2], ... [5]=[6] */
+                user_data.weekly_energy[6] = user_data.daily_energy;  /* 最新一天 */
+
+                house_info_t house;
+                parse_addr(device_list[i].addr, &house);
+                printf("  设备[%d_%d_%04d] 本日用电: %.3f Wh, 日累: %.3f kWh\r\n",
+                    house.building, house.unit, house.room,
+                    daily_energy_wh[i], user_data.daily_energy);
+            }
+            else
+            {
+                //日期没有变化，说明是在开始搜索前调用的这个函数，这个时候把半日累积用电量存储到SD卡中
+                user_data.power = daily_energy_wh[i];
             }
 
             /* 检查是否需要重置月用电量（月份变化时重置） */
@@ -689,54 +711,32 @@ void daily_energy_flush_to_sd(void)
                 uint8_t old_mon = user_data.last_reset_mon;  /* 保存旧月份，用于跨年判断 */
                 printf("  设备[%d] 月用电量重置 (上次: %02d, 当前: %02d)\r\n", 
                        i, old_mon, rtc_now.month);
-                user_data.monthly_energy = 0.0f;
+                user_data.monthly_energy = energy_kwh;
                 user_data.last_reset_mon = rtc_now.month;
 
                 /* 跨年检查：如果月份变为1月且上次记录不是1月，说明是新的一年 */
                 if (rtc_now.month == 1 && old_mon != 1)
                 {
                     printf("  设备[%d] 年用电量重置\r\n", i);
-                    user_data.annual_energy = 0.0f;
+                    user_data.annual_energy = energy_kwh;
                 }
             }
-
-            float energy_kwh = daily_energy_wh[i] / 1000.0f;  /* Wh → kWh */
-
-            /* 累加到各维度用电量 */
-            user_data.daily_energy   += energy_kwh;
-            user_data.monthly_energy += energy_kwh;
-            user_data.annual_energy  += energy_kwh;
-            user_data.total_energy   += energy_kwh;
-
-            /* 更新七日用电量数组：整体左移，[6]放入当日用电量 */
-            memmove(&user_data.weekly_energy[0], &user_data.weekly_energy[1],
-                    6 * sizeof(float));  /* [0]=[1], [1]=[2], ... [5]=[6] */
-            user_data.weekly_energy[6] = user_data.daily_energy;  /* 最新一天 */
-
-            /* 写回SD卡 */
-            write_user_data(device_list[i].addr, &user_data);
-
             /* 同步更新RAM缓存 */
             user_detail_cache[i].daily_energy   = user_data.daily_energy;
             user_detail_cache[i].monthly_energy = user_data.monthly_energy;
             user_detail_cache[i].annual_energy  = user_data.annual_energy;
             user_detail_cache[i].total_energy   = user_data.total_energy;
             memcpy(user_detail_cache[i].weekly_energy, user_data.weekly_energy,
-                   sizeof(user_data.weekly_energy));
+                sizeof(user_data.weekly_energy));
             memcpy(&user_detail_cache[i].update_time, &user_data.update_time,
-                   sizeof(user_data.update_time));
+                sizeof(user_data.update_time));
 
-            house_info_t house;
-            parse_addr(device_list[i].addr, &house);
-            printf("  设备[%d_%d_%04d] 本日用电: %.3f Wh, 日累: %.3f kWh\r\n",
-                   house.building, house.unit, house.room,
-                   daily_energy_wh[i], user_data.daily_energy);
+            /* 写回SD卡 */
+            write_user_data(device_list[i].addr, &user_data);
         }
-
         /* 清零该设备的RAM日累积 */
         daily_energy_wh[i] = 0.0f;
     }
-
     printf("零点结算完成\r\n");
 }
 
