@@ -28,6 +28,7 @@
 #define CMD_BIND_DEVICE      0x04  /* 绑定设备 */
 #define CMD_START_SEARCH     0x05  /* 开始搜索设备 */
 #define CMD_STOP_SEARCH      0x06  /* 停止搜索设备 */
+#define CMD_GET_USER_DATA    0x07  /* 读取用户用电量数据 */
 
 /* ==================== 错误码 ==================== */
 #define ERR_INVALID_CMD      0x01  /* 无效命令 */
@@ -41,6 +42,7 @@
 
 /* ==================== 分包配置 ==================== */
 #define DEVICE_PER_PACKET    28    /* 每包最大设备数 (512/18≈28) */
+#define USER_DATA_PER_PACKET 10    /* 每包最大用户数据数 (512-5)/50≈10) */
 
 /**
  * @brief   处理接收到的完整帧
@@ -78,6 +80,11 @@ void tcp_resp_start_search(void);
  * @brief   处理停止搜索设备命令 (CMD_STOP_SEARCH)
  */
 void tcp_resp_stop_search(void);
+
+/**
+ * @brief   分包发送用户用电量数据 (响应CMD_GET_USER_DATA)
+ */
+void tcp_resp_user_data(void);
 
 #endif /* __TCP_CMD_HANDLER_H */
 

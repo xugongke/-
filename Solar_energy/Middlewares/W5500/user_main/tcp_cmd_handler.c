@@ -6,6 +6,7 @@
 #include "tcp_cmd_handler.h"
 #include "user_main.h"
 #include "device_manager.h"
+#include "user_data_manager.h"
 #include "host_comm.h"
 #include "socket.h"
 #include "cmsis_os.h"
@@ -72,6 +73,11 @@ void tcp_dispatch_frame(uint8_t type, uint8_t cmd, const uint8_t *data, uint16_t
             tcp_resp_stop_search();
             break;
 
+        case CMD_GET_USER_DATA:
+            /* 读取用户用电量数据: 数据域为空 */
+            tcp_resp_user_data();
+            break;
+
         default:
             printf("未知命令: 0x%02X\r\n", cmd);
             tcp_send_error(ERR_INVALID_CMD);
@@ -126,16 +132,18 @@ void tcp_resp_device_list(void)
 
     /* 分包发送 */
     uint16_t dev_offset = 0;
+    uint16_t remain, count, data_len, idx;
+    uint8_t  resp[FRAME_MAX_DATA_LEN];
+    
     for (uint8_t seq = 0; seq < total_packs; seq++)
     {
         /* 本包设备数 */
-        uint16_t remain = total_devices - dev_offset;
-        uint16_t count  = (remain > dev_per_pack) ? dev_per_pack : remain;
+        remain = total_devices - dev_offset;
+        count  = (remain > dev_per_pack) ? dev_per_pack : remain;
 
         /* 计算数据域长度: 1(seq) + 2(total_dev) + 2(pack_count) + count*18 */
-        uint16_t data_len = 5 + (uint16_t)(count * sizeof(device_t));
-        uint8_t  resp[FRAME_MAX_DATA_LEN];
-        uint16_t idx = 0;
+        data_len = 5 + (uint16_t)(count * sizeof(device_t));
+        idx = 0;
 
         /* 包序号 (0=首包) */
         resp[idx++] = seq;
@@ -258,4 +266,91 @@ void tcp_resp_stop_search(void)
     tcp_send_frame(FRAME_TYPE_RESPONSE, CMD_STOP_SEARCH, resp, 1);
 
     printf("Search stopped\r\n");
+}
+
+/**
+ * @brief   分包发送用户用电量数据
+ *
+ * 响应帧数据域格式 (CMD=0x07在帧头命令字字段, 不在数据域中):
+ *   第1包 (包头):
+ *     [0x00=首包标志][总设备数L][总设备数H]
+ *     + [本包设备数L][本包设备数H]
+ *     + user_detail_cache_t[0..N-1] 原始字节
+ *
+ *   后续包:
+ *     [包序号(1~total)][总设备数L][总设备数H]
+ *     + [本包设备数L][本包设备数H]
+ *     + user_detail_cache_t[0..N-1] 原始字节
+ *
+ * 多字节字段均为小端序
+ * 每个用户数据占 sizeof(user_detail_cache_t)=50 字节, 每包最多10个用户
+ * 数据域最大 = 1(seq) + 2(total) + 2(count) + 10*50 = 505 ≤ 512
+ */
+void tcp_resp_user_data(void)
+{
+    printf("分包发送用户用电量数据\r\n");
+    if (!g_tcp_connected)
+        return;
+
+    uint16_t total_users = device_count;
+    if (total_users == 0)
+    {
+        /* 空列表: 发送首包, 用户数为0 */
+        uint8_t resp[5];
+        resp[0] = 0x00;                              /* 首包标志 */
+        resp[1] = (uint8_t)(total_users & 0xFF);     /* 总用户数L */
+        resp[2] = (uint8_t)(total_users >> 8);       /* 总用户数H */
+        resp[3] = 0x00;                               /* 本包用户数L */
+        resp[4] = 0x00;                               /* 本包用户数H */
+        tcp_send_frame(FRAME_TYPE_RESPONSE, CMD_GET_USER_DATA, resp, 5);
+        return;
+    }
+
+    /* 计算分包 */
+    uint16_t users_per_pack = USER_DATA_PER_PACKET;
+    uint8_t  total_packs    = (uint8_t)((total_users + users_per_pack - 1) / users_per_pack);
+
+    /* 分包发送 */
+    uint16_t user_offset = 0;
+    uint16_t remain, count, data_len, idx;
+    uint8_t  resp[FRAME_MAX_DATA_LEN];
+    
+    for (uint8_t seq = 0; seq < total_packs; seq++)
+    {
+        /* 本包用户数 */
+        remain = total_users - user_offset;
+        count  = (remain > users_per_pack) ? users_per_pack : remain;
+
+        /* 计算数据域长度: 1(seq) + 2(total_user) + 2(pack_count) + count*50 */
+        data_len = 5 + (uint16_t)(count * sizeof(user_detail_cache_t));
+        idx = 0;
+
+        /* 包序号 (0=首包) */
+        resp[idx++] = seq;
+
+        /* 总用户数 (小端序) */
+        resp[idx++] = (uint8_t)(total_users & 0xFF);
+        resp[idx++] = (uint8_t)(total_users >> 8);
+
+        /* 本包用户数 (小端序) */
+        resp[idx++] = (uint8_t)(count & 0xFF);
+        resp[idx++] = (uint8_t)(count >> 8);
+
+        /* 拷贝用户用电量原始数据 */
+        for (uint16_t u = 0; u < count; u++)
+        {
+            memcpy(&resp[idx], &user_detail_cache[user_offset + u], sizeof(user_detail_cache_t));
+            idx += sizeof(user_detail_cache_t);
+        }
+
+        /* 发送这一包 */
+        tcp_send_frame(FRAME_TYPE_RESPONSE, CMD_GET_USER_DATA, resp, data_len);
+
+        user_offset += count;
+
+        /* 包间延时, 防止发送缓冲区溢出 */
+        osDelay(2);
+    }
+
+    printf("User data sent: %d users, %d packets\r\n", total_users, total_packs);
 }

@@ -22,7 +22,7 @@
 device_t device_list[MAX_DEVICES];
 uint16_t device_count = 0;
 
-// 运行时临时数据（不保存到SD卡）
+// 运行时临时数据
 float daily_energy_wh[MAX_DEVICES];   // 各设备当日累积电量 (Wh)
 uint32_t last_poll_time[MAX_DEVICES]; // 各设备上次成功获取数据的时间戳（秒数）
 
