@@ -141,6 +141,7 @@ void setup_scr_screen_user_detail(lv_ui *ui)
 
         ui->screen_user_detail_chart = ch;  /* 保存chart引用，供数据填充时使用 */
         lv_chart_series_t *ser = lv_chart_add_series(ch, lv_color_hex(0x3FB950), LV_CHART_AXIS_PRIMARY_Y);
+        /* 初始化柱状图数据 */
         for(int i = 0; i < 7; i++){
             ser->y_points[i] = (int16_t)0;
         }

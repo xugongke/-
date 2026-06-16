@@ -32,10 +32,15 @@
 #include "device_manager.h"   /* device_list, device_count, device_ctrl_heater */
 #include "cmsis_os.h"         /* osDelay, xTaskGetTickCount */
 #include "stdio.h"
+#include "string.h"
+#include "ff.h"
+#include "fatfs.h"
+#include "rx8025t.h"
 
 /* ========================== 全局实例 ========================== */
 
 mppt_data_t g_mppt = {0};
+solar_energy_data_t g_solar_energy = {0};
 
 /* ========================== 私有变量 ========================== */
 
@@ -104,17 +109,17 @@ void accumulate_energy(void)
         energy_initialized = 1;
         return;
     }
-
-    if (now - energy_last_tick >= ENERGY_ACCUM_INTERVAL_SEC)
+    uint32_t elapsed_sec = now - energy_last_tick;
+    if (elapsed_sec >= ENERGY_ACCUM_INTERVAL_SEC)
     {
         float power = g_mppt.power;
         if (power > 0.0f)
         {
             /* power 单位 W, 间隔单位 秒, 转换为 Wh */
-            g_mppt.energy_wh += power * (float)(now - energy_last_tick) / 3600.0f;
+            g_mppt.energy_wh += power * (float)(elapsed_sec) / 3600.0f;
         }
-        printf("累计发电量: +%.3fWh (总: %.3fWh)\r\n",
-               power * (float)(now - energy_last_tick) / 3600.0f, g_mppt.energy_wh);
+        printf("累计发电量:elapsed_sec=%lu +%.3fWh (总: %.3fWh)\r\n",
+               (unsigned long)elapsed_sec, power * (float)(elapsed_sec) / 3600.0f, g_mppt.energy_wh);
         energy_last_tick = now;
     }
 }
@@ -549,6 +554,169 @@ void MPPT_ForceRescan(void)
  *   - 需要关闭一些: 按设备列表逆序关闭
  *   - 简化实现: 按列表顺序依次控制
  */
+/* ========================== 太阳能发电量管理 ========================== */
+
+/**
+ * @brief  从SD卡加载太阳能发电量数据到RAM；若文件不存在则创建默认文件
+ * @note   在文件系统初始化完成后调用 (lvgl_task中)
+ */
+void solar_energy_init(void)
+{
+    FRESULT res;
+    UINT br;
+
+    if(fs_mutex) osMutexAcquire(fs_mutex, osWaitForever);
+
+    /* 尝试打开已存在的文件 */
+    res = f_open(&SDFile, SOLAR_ENERGY_FILE, FA_OPEN_EXISTING | FA_READ);
+    if (res == FR_OK)
+    {
+        /* 文件存在，读取数据 */
+        res = f_read(&SDFile, &g_solar_energy, sizeof(solar_energy_data_t), &br);
+        f_close(&SDFile);
+        if(fs_mutex) osMutexRelease(fs_mutex);
+
+        if (res == FR_OK && br == sizeof(solar_energy_data_t) &&
+            g_solar_energy.magic == SOLAR_ENERGY_MAGIC)
+        {
+            printf("太阳能发电量文件加载成功: 日=%.3f, 月=%.3f, 年=%.3f, 总=%.3f kWh\r\n",
+                   g_solar_energy.daily_generation_kwh,
+                   g_solar_energy.monthly_generation_kwh,
+                   g_solar_energy.annual_generation_kwh,
+                   g_solar_energy.total_generation_kwh);
+            return;
+        }
+        printf("太阳能发电量文件校验失败，创建新文件\r\n");
+    }
+    else
+    {
+        if(fs_mutex) osMutexRelease(fs_mutex);
+        printf("太阳能发电量文件不存在，创建新文件\r\n");
+    }
+
+    /* 文件不存在或校验失败，创建默认数据 */
+    memset(&g_solar_energy, 0, sizeof(solar_energy_data_t));
+    g_solar_energy.magic = SOLAR_ENERGY_MAGIC;
+    g_solar_energy.version = SOLAR_ENERGY_VERSION;
+
+    /* 读取当前RTC时间作为初始重置时间 */
+    RX8025T_DateTimeCompact rtc_now;
+    if (RX8025T_GetDateTime(&rtc_now) == HAL_OK)
+    {
+        g_solar_energy.last_reset_day = rtc_now.day;
+        g_solar_energy.last_reset_mon = rtc_now.month;
+    }
+
+    /* 写入SD卡 */
+    solar_energy_save();
+    printf("太阳能发电量文件创建成功\r\n");
+}
+
+/**
+ * @brief  将RAM中的太阳能发电量数据写入SD卡（清空写）
+ */
+void solar_energy_save(void)
+{
+    FRESULT res;
+    UINT bw;
+
+    if(fs_mutex) osMutexAcquire(fs_mutex, osWaitForever);
+
+    res = f_open(&SDFile, SOLAR_ENERGY_FILE, FA_CREATE_ALWAYS | FA_WRITE);
+    if (res != FR_OK)
+    {
+        printf("太阳能发电量文件打开失败: %d\r\n", res);
+        if(fs_mutex) osMutexRelease(fs_mutex);
+        return;
+    }
+
+    res = f_write(&SDFile, &g_solar_energy, sizeof(solar_energy_data_t), &bw);
+    f_close(&SDFile);
+    if(fs_mutex) osMutexRelease(fs_mutex);
+
+    if (res != FR_OK || bw != sizeof(solar_energy_data_t))
+    {
+        printf("太阳能发电量文件写入失败\r\n");
+    }
+}
+
+/**
+ * @brief  处理太阳能发电量的日/月/年重置逻辑，将g_mppt.energy_wh累加到g_solar_energy
+ * @note   在daily_energy_flush_to_sd中调用（零点结算时）
+ */
+void solar_energy_flush(void)
+{
+    /* 获取当前RTC时间 */
+    RX8025T_DateTimeCompact rtc_now;
+    if (RX8025T_GetDateTime(&rtc_now) != HAL_OK)
+    {
+        printf("太阳能发电量结算失败: 无法获取RTC时间\r\n");
+        return;
+    }
+
+    float energy_kwh = g_mppt.energy_wh / 1000.0f;  /* Wh → kWh */
+
+    printf("太阳能发电量结算: 当前RAM累积=%.3fWh (%.3fkWh)\r\n", g_mppt.energy_wh, energy_kwh);
+
+    /* 检查是否需要重置日发电量（日期变化时重置） */
+    if (g_solar_energy.last_reset_day != rtc_now.day)
+    {
+        printf("太阳能 日发电量重置 (上次: %02d, 当前: %02d)\r\n",
+               g_solar_energy.last_reset_day, rtc_now.day);
+
+        /* 先把昨天剩余的累积电量计入各维度 */
+        g_solar_energy.monthly_generation_kwh += energy_kwh;
+        g_solar_energy.annual_generation_kwh  += energy_kwh;
+        g_solar_energy.total_generation_kwh   += energy_kwh;
+
+        /* 更新15日发电量数组：整体左移，[14]放入当日发电量 */
+        memmove(&g_solar_energy.history_daily[0], &g_solar_energy.history_daily[1],
+                (SOLAR_HISTORY_DAYS - 1) * sizeof(float));
+        g_solar_energy.history_daily[SOLAR_HISTORY_DAYS - 1] = g_solar_energy.daily_generation_kwh;
+
+        /* 日发电量重置为今天的累积 */
+        g_solar_energy.daily_generation_kwh = energy_kwh;
+        g_solar_energy.last_reset_day = rtc_now.day;
+    }
+
+    /* 检查是否需要重置月发电量（月份变化时重置） */
+    if (g_solar_energy.last_reset_mon != rtc_now.month)
+    {
+        uint8_t old_mon = g_solar_energy.last_reset_mon;
+        printf("太阳能 月发电量重置 (上次: %02d, 当前: %02d)\r\n", old_mon, rtc_now.month);
+
+        g_solar_energy.monthly_generation_kwh = energy_kwh;
+        g_solar_energy.last_reset_mon = rtc_now.month;
+
+        /* 跨年检查：如果月份变为1月且上次记录不是1月，说明是新的一年 */
+        if (rtc_now.month == 1 && old_mon != 1)
+        {
+            printf("太阳能 年发电量重置\r\n");
+            g_solar_energy.annual_generation_kwh = energy_kwh;
+        }
+    }
+
+    /* 清零RAM中的日累积 */
+    g_mppt.energy_wh = 0.0f;
+
+    /* 更新时间戳 */
+    g_solar_energy.update_time.year    = rtc_now.year;
+    g_solar_energy.update_time.month   = rtc_now.month;
+    g_solar_energy.update_time.day     = rtc_now.day;
+    g_solar_energy.update_time.hours   = rtc_now.hours;
+    g_solar_energy.update_time.minutes = rtc_now.minutes;
+    g_solar_energy.update_time.seconds = rtc_now.seconds;
+
+    /* 写入SD卡 */
+    solar_energy_save();
+
+    printf("太阳能发电量结算完成: 日=%.3f, 月=%.3f, 年=%.3f, 总=%.3f kWh\r\n",
+           g_solar_energy.daily_generation_kwh,
+           g_solar_energy.monthly_generation_kwh,
+           g_solar_energy.annual_generation_kwh,
+           g_solar_energy.total_generation_kwh);
+}
+
 uint8_t MPPT_SetActiveHeaters(uint8_t target_count)
 {
     uint8_t actually_active = 0;

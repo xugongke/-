@@ -366,6 +366,9 @@ void lvgl_task(void *argument)
 	// 从SD卡加载所有已入网设备的用电量数据到RAM缓存（在UI显示之前完成）
 	user_detail_cache_init();
 
+	// 从SD卡加载太阳能发电量数据到RAM（文件系统初始化完成后）
+	solar_energy_init();
+
 	// 从TF卡读取TCP服务器IP/Port配置 (在W5500_Task连接之前完成)
 	tcp_config_load();
 
@@ -583,6 +586,8 @@ void DevicePoll_Task(void *argument)
                       last_date.year, last_date.month, last_date.day,
                       cur_date.year, cur_date.month, cur_date.day);
                 daily_energy_flush_to_sd();  /* 将RAM中日累积电量写入SD卡 */
+                /* 太阳能发电量结算并保存到SD卡 */
+                solar_energy_flush();
             }
             last_date = cur_date;  /* 更新日期缓存 */
         }

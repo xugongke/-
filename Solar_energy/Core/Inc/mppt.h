@@ -30,6 +30,7 @@ extern "C" {
 #endif
 
 #include "stdint.h"
+#include "user_data_manager.h"  /* for user_data_timestamp_t */
 
 /* ========================== 硬件参数配置 ========================== */
 
@@ -87,6 +88,48 @@ extern "C" {
  *        扰动周期 = MPPT_SETTLE_TIME_SEC + 控制命令耗时
  */
 #define MPPT_TASK_PERIOD_MS         1000
+
+/* ========================== 太阳能发电量数据结构 ========================== */
+
+#define SOLAR_ENERGY_FILE    "0:/solar_energy.bin"
+#define SOLAR_ENERGY_MAGIC   0x534F4C41  /* "SOLA" */
+#define SOLAR_ENERGY_VERSION 1
+#define SOLAR_HISTORY_DAYS   15
+
+#pragma pack(push, 1)
+typedef struct {
+    uint32_t magic;                              /* 魔数校验 */
+    uint8_t  version;                            /* 版本号 */
+    float    daily_generation_kwh;               /* 日发电量(kWh) - 当日0点重置 */
+    float    monthly_generation_kwh;             /* 月发电量(kWh) - 每月1号重置 */
+    float    annual_generation_kwh;              /* 年发电量(kWh) - 每年1月1日重置 */
+    float    total_generation_kwh;               /* 总发电量(kWh) - 永不重置 */
+    float    history_daily[SOLAR_HISTORY_DAYS];  /* 近15日发电量(kWh), [0]=15天前...[14]=最新(当天) */
+    uint8_t  last_reset_day;                     /* 上次日发电量重置时的日期(1-31) */
+    uint8_t  last_reset_mon;                     /* 上次月发电量重置时的月份(1-12) */
+    user_data_timestamp_t update_time;           /* 数据最后更新时间 */
+    uint8_t  reserved[2];                        /* 预留对齐 */
+} solar_energy_data_t;
+#pragma pack(pop)
+
+extern solar_energy_data_t g_solar_energy;  /* 太阳能发电量数据(全局RAM缓存) */
+
+/**
+ * @brief  从SD卡加载太阳能发电量数据到RAM；若文件不存在则创建默认文件
+ * @note   在文件系统初始化完成后调用 (lvgl_task中)
+ */
+void solar_energy_init(void);
+
+/**
+ * @brief  将RAM中的太阳能发电量数据写入SD卡（清空写）
+ */
+void solar_energy_save(void);
+
+/**
+ * @brief  处理太阳能发电量的日/月/年重置逻辑，将g_mppt.energy_wh累加到g_solar_energy
+ * @note   在daily_energy_flush_to_sd中调用（零点结算时）
+ */
+void solar_energy_flush(void);
 
 /* ========================== 数据结构定义 ========================== */
 

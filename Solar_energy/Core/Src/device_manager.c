@@ -328,6 +328,14 @@ FRESULT load_devices(void)
 		//br是实际读取到的字节数,也就是用户真实的数量
     device_count = br / sizeof(device_t);
 
+    for (int i = 0; i < device_count; i++)
+    {
+        device_list[i].state.bits.comm_err = 1;
+        device_list[i].state.bits.relay_err = 1;
+        device_list[i].state.bits.temp_err = 1;
+        device_list[i].state.bits.power_reverse = 1;
+    }
+
     printf("加载设备数量:%d\r\n", device_count);
 
     return FR_OK;
@@ -733,6 +741,8 @@ void daily_energy_flush_to_sd(void)
                     user_data.annual_energy = energy_kwh;
                 }
             }
+            /* 在写入SD卡之前更新时间 */
+            memcpy(&user_data.update_time, &rtc_now, sizeof(user_data.update_time));
             /* 同步更新RAM缓存 */
             user_detail_cache[i].daily_energy   = user_data.daily_energy;
             user_detail_cache[i].monthly_energy = user_data.monthly_energy;
@@ -749,6 +759,7 @@ void daily_energy_flush_to_sd(void)
         /* 清零该设备的RAM日累积 */
         daily_energy_wh[i] = 0.0f;
     }
+
     printf("零点结算完成\r\n");
 }
 

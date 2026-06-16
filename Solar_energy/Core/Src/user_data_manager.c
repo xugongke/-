@@ -232,13 +232,12 @@ int read_user_data(const uint8_t *dev_addr, user_data_file_t *data)
 
     return 0;
 }
-
+//将RAM中的用户数据写入SD卡
 int write_user_data(const uint8_t *dev_addr, user_data_file_t *data)
 {
     FRESULT res;
     char filepath[40];
     UINT bw;
-    RX8025T_DateTimeCompact rtc_now;
 
     if (dev_addr == NULL || data == NULL)
     {
@@ -248,17 +247,6 @@ int write_user_data(const uint8_t *dev_addr, user_data_file_t *data)
     if (build_filepath(dev_addr, filepath) != 0)
     {
         return -2;
-    }
-
-    /* 读取RTC时间作为更新时间 */
-    if (RX8025T_GetDateTime(&rtc_now) == HAL_OK)
-    {
-        data->update_time.year    = rtc_now.year;
-        data->update_time.month   = rtc_now.month;
-        data->update_time.day     = rtc_now.day;
-        data->update_time.hours   = rtc_now.hours;
-        data->update_time.minutes = rtc_now.minutes;
-        data->update_time.seconds = rtc_now.seconds;
     }
 
     if(fs_mutex) osMutexAcquire(fs_mutex, osWaitForever);

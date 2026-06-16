@@ -22,6 +22,7 @@
 #include "device_manager.h"
 #include "battery.h"
 #include "user_main.h"
+#include "mppt.h"
 extern lv_indev_t * indev_keypad;
 lv_group_t * g_keypad_group;//创建全局group(可被焦点选中的对象集合)指针，在lv_init后分配空间
 
@@ -568,6 +569,72 @@ static void screen_solar_event_handler (lv_event_t *e)
         lv_indev_set_group(indev_keypad, g_keypad_group);
 				//设置初始焦点
         lv_group_focus_obj(guider_ui.screen_solar);
+
+        /* ======== 更新发电量数据到UI ======== */
+        {
+            char buf[32];
+
+            /* 更新统计表格：总发电、年发电、月发电、日发电 */
+            if (guider_ui.screen_solar_table)
+            {
+                snprintf(buf, sizeof(buf), "%.1f", (double)g_solar_energy.total_generation_kwh);
+                lv_table_set_cell_value(guider_ui.screen_solar_table, 1, 0, buf);
+
+                snprintf(buf, sizeof(buf), "%.1f", (double)g_solar_energy.annual_generation_kwh);
+                lv_table_set_cell_value(guider_ui.screen_solar_table, 1, 1, buf);
+
+                snprintf(buf, sizeof(buf), "%.1f", (double)g_solar_energy.monthly_generation_kwh);
+                lv_table_set_cell_value(guider_ui.screen_solar_table, 1, 2, buf);
+
+                snprintf(buf, sizeof(buf), "%.1f", (double)g_solar_energy.daily_generation_kwh);
+                lv_table_set_cell_value(guider_ui.screen_solar_table, 1, 3, buf);
+            }
+
+            /* 更新15日发电量折线图 */
+            if (guider_ui.screen_solar_chart)
+            {
+                lv_chart_series_t *ser = lv_chart_get_series_next(guider_ui.screen_solar_chart, NULL);
+                if (ser)
+                {
+                    /* 找出15日中的最大值，用于动态调整Y轴范围 */
+                    float max_val = 0.0f;
+                    for (int i = 0; i < SOLAR_HISTORY_DAYS; i++)
+                    {
+                        if (g_solar_energy.history_daily[i] > max_val)
+                            max_val = g_solar_energy.history_daily[i];
+                    }
+
+                    /* 设置Y轴范围：最大值留20%余量，最小范围0~30(即300) */
+                    int16_t y_max = (int16_t)(max_val * 10.0f * 1.2f);
+                    if (y_max < 300) y_max = 300;
+                    lv_chart_set_range(guider_ui.screen_solar_chart, LV_CHART_AXIS_PRIMARY_Y, 0, y_max);
+
+                    /* 填充数据：kWh * 10 转整数 */
+                    for (int i = 0; i < SOLAR_HISTORY_DAYS; i++)
+                    {
+                        ser->y_points[i] = (int16_t)(g_solar_energy.history_daily[i] * 10.0f);
+                    }
+                    lv_chart_refresh(guider_ui.screen_solar_chart);
+                }
+            }
+
+            /* 更新底部时间标签 */
+            if (guider_ui.screen_solar_label_time)
+            {
+                if (g_solar_energy.update_time.year != 0 || g_solar_energy.update_time.month != 0)
+                {
+                    snprintf(buf, sizeof(buf), "20%02d-%02d-%02d %02d:%02d:%02d",
+                             g_solar_energy.update_time.year, g_solar_energy.update_time.month,
+                             g_solar_energy.update_time.day, g_solar_energy.update_time.hours,
+                             g_solar_energy.update_time.minutes, g_solar_energy.update_time.seconds);
+                    lv_label_set_text(guider_ui.screen_solar_label_time, buf);
+                }
+                else
+                {
+                    lv_label_set_text(guider_ui.screen_solar_label_time, "----");
+                }
+            }
+        }
         break;
     }
     default:
@@ -751,7 +818,7 @@ static void alert_populate_list(void)
         lv_obj_t *tip_lbl = lv_label_create(tip);
         char tip_txt[64];
         lv_snprintf(tip_txt, sizeof(tip_txt),
-                    LV_SYMBOL_WARNING " 故障设备过多(%d项)，请检查线路连接 ", g_alert_stats.err_total);
+                    LV_SYMBOL_WARNING " 故障设备过多(%d项)请检查线路连接,点击清除所有告警 ", g_alert_stats.err_total);
         lv_label_set_text(tip_lbl, tip_txt);
         lv_obj_set_style_text_color(tip_lbl, lv_color_hex(0xD29922), 0);
         lv_obj_set_style_text_font(tip_lbl, &lv_font_SourceHanSerifSC_Regular_12, 0);
@@ -844,7 +911,13 @@ static void alert_item_event_handler(lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
 
-    if (code == LV_EVENT_KEY)
+    if (code == LV_EVENT_FOCUSED)
+    {
+        /* 焦点变化时，自动滚动父容器使焦点项可见 */
+        lv_obj_t *item = lv_event_get_target(e);
+        lv_obj_scroll_to_view(item, LV_ANIM_OFF);
+    }
+    else if (code == LV_EVENT_KEY)
     {
         uint32_t key = lv_event_get_key(e);
 
