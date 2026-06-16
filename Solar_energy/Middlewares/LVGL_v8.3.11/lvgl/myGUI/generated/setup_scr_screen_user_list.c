@@ -88,8 +88,8 @@ void setup_scr_screen_user_list(lv_ui *ui)
      *  列表区域 (暗色主题)
      * ============================================================ */
     ui->screen_user_list_list_1 = lv_list_create(ui->screen_user_list);
-    lv_obj_set_pos(ui->screen_user_list_list_1, 8, 46);
-    lv_obj_set_size(ui->screen_user_list_list_1, 464, 268);
+    lv_obj_set_pos(ui->screen_user_list_list_1, 8, 43);
+    lv_obj_set_size(ui->screen_user_list_list_1, 464, 275);
     lv_obj_set_scrollbar_mode(ui->screen_user_list_list_1, LV_SCROLLBAR_MODE_OFF);
 
     /* 列表主体: 暗色背景 */

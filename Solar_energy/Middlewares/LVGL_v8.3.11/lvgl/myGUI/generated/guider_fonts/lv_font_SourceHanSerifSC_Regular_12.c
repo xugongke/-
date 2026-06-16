@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Size: 12 px
  * Bpp: 4
- * Opts: --bpp 4 --size 12 --no-compress --stride 1 --align 1 --font SourceHanSansCN-Regular_12.ttf --symbols 年月日更异常新时间离线通信温度故障设备过多项请检查线路连接楼开关断单通信异常元设备离线用电异常电源反接通信继电器温度异常控制异常故障温度异常未知点击清除所有告警 --range 32-127 --font FontAwesome5-Solid+Brands+Regular.woff --range 61453,61553,61637,61671,61683,61931 --format lvgl -o lv_font_SourceHanSerifSC_Regular_12.c
+ * Opts: --bpp 4 --size 12 --no-compress --stride 1 --align 1 --font SourceHanSansCN-Regular_12.ttf --symbols 年月日更异常新时间离线通信温度故障设备过多项请检查线路连接楼开关断单通信异常元设备离线用电异常电源反接通信继电器温度异常控制异常故障温度异常未知点击清除所有告警 --range 32-127 --font FontAwesome5-Solid+Brands+Regular.woff --range 61453,61553,61637,61671,61683,61931,61524 --format lvgl -o lv_font_SourceHanSerifSC_Regular_12.c
  ******************************************************************************/
 
 #ifdef __has_include
@@ -1145,6 +1145,13 @@ static LV_ATTRIBUTE_LARGE_CONST const uint8_t glyph_bitmap[] = {
     0xfd, 0x10, 0xaf, 0xf2, 0x5b, 0x10, 0x0, 0x99,
     0x0,
 
+    /* U+F054 "" */
+    0x3, 0x10, 0x0, 0x3, 0xfc, 0x10, 0x0, 0xb,
+    0xfc, 0x10, 0x0, 0xb, 0xfc, 0x10, 0x0, 0xb,
+    0xfc, 0x10, 0x0, 0xd, 0xfb, 0x0, 0x5, 0xff,
+    0x50, 0x5, 0xff, 0x50, 0x5, 0xff, 0x50, 0x3,
+    0xff, 0x50, 0x0, 0xa, 0x50, 0x0, 0x0,
+
     /* U+F071 "" */
     0x0, 0x0, 0x0, 0x3, 0x10, 0x0, 0x0, 0x0,
     0x0, 0x0, 0x5, 0xfd, 0x0, 0x0, 0x0, 0x0,
@@ -1362,11 +1369,12 @@ static const lv_font_fmt_txt_glyph_dsc_t glyph_dsc[] = {
     {.bitmap_index = 5930, .adv_w = 192, .box_w = 11, .box_h = 13, .ofs_x = 1, .ofs_y = -2},
     {.bitmap_index = 6002, .adv_w = 192, .box_w = 12, .box_h = 11, .ofs_x = 0, .ofs_y = -1},
     {.bitmap_index = 6068, .adv_w = 132, .box_w = 9, .box_h = 9, .ofs_x = 0, .ofs_y = 0},
-    {.bitmap_index = 6109, .adv_w = 216, .box_w = 15, .box_h = 13, .ofs_x = -1, .ofs_y = -2},
-    {.bitmap_index = 6207, .adv_w = 168, .box_w = 11, .box_h = 13, .ofs_x = 0, .ofs_y = -2},
-    {.bitmap_index = 6279, .adv_w = 120, .box_w = 9, .box_h = 13, .ofs_x = -1, .ofs_y = -2},
-    {.bitmap_index = 6338, .adv_w = 168, .box_w = 11, .box_h = 13, .ofs_x = 0, .ofs_y = -2},
-    {.bitmap_index = 6410, .adv_w = 240, .box_w = 15, .box_h = 12, .ofs_x = 0, .ofs_y = -1}
+    {.bitmap_index = 6109, .adv_w = 120, .box_w = 7, .box_h = 11, .ofs_x = 0, .ofs_y = -1},
+    {.bitmap_index = 6148, .adv_w = 216, .box_w = 15, .box_h = 13, .ofs_x = -1, .ofs_y = -2},
+    {.bitmap_index = 6246, .adv_w = 168, .box_w = 11, .box_h = 13, .ofs_x = 0, .ofs_y = -2},
+    {.bitmap_index = 6318, .adv_w = 120, .box_w = 9, .box_h = 13, .ofs_x = -1, .ofs_y = -2},
+    {.bitmap_index = 6377, .adv_w = 168, .box_w = 11, .box_h = 13, .ofs_x = 0, .ofs_y = -2},
+    {.bitmap_index = 6449, .adv_w = 240, .box_w = 15, .box_h = 12, .ofs_x = 0, .ofs_y = -1}
 };
 
 /*---------------------
@@ -1380,8 +1388,8 @@ static const uint16_t unicode_list_1[] = {
     0x1713, 0x1727, 0x1728, 0x1749, 0x1804, 0x18df, 0x199b, 0x1e24,
     0x1e48, 0x1eaf, 0x20d8, 0x2547, 0x2554, 0x2804, 0x29da, 0x2ede,
     0x2f06, 0x3b85, 0x3bdd, 0x3c16, 0x3e0e, 0x3fe6, 0x3ffd, 0x4039,
-    0x4613, 0x4683, 0x46bb, 0x4898, 0xa02c, 0xa090, 0xa0e4, 0xa106,
-    0xa112, 0xa20a
+    0x4613, 0x4683, 0x46bb, 0x4898, 0xa02c, 0xa073, 0xa090, 0xa0e4,
+    0xa106, 0xa112, 0xa20a
 };
 
 /*Collect the unicode lists and glyph_id offsets*/
@@ -1393,7 +1401,7 @@ static const lv_font_fmt_txt_cmap_t cmaps[] =
     },
     {
         .range_start = 20449, .range_length = 41483, .glyph_id_start = 96,
-        .unicode_list = unicode_list_1, .glyph_id_ofs_list = NULL, .list_length = 58, .type = LV_FONT_FMT_TXT_CMAP_SPARSE_TINY
+        .unicode_list = unicode_list_1, .glyph_id_ofs_list = NULL, .list_length = 59, .type = LV_FONT_FMT_TXT_CMAP_SPARSE_TINY
     }
 };
 
@@ -1424,7 +1432,7 @@ static const uint8_t kern_left_class_mapping[] =
     0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0
+    0, 0, 0
 };
 
 /*Map glyph_ids to kern right classes*/
@@ -1449,7 +1457,7 @@ static const uint8_t kern_right_class_mapping[] =
     0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0
+    0, 0, 0
 };
 
 /*Kern values between classes*/

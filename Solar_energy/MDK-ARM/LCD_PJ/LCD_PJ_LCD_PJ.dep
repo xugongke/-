@@ -193,7 +193,7 @@ I (../Core/Inc/usart.h)(0x6A278F04)
 I (../Core/Inc/user_data_manager.h)(0x6A2F58FA)
 I (../Core/Inc/rx8025t.h)(0x6A1D013B)
 I (../Core/Inc/i2c.h)(0x6A1CFF20)
-I (../Core/Inc/device_manager.h)(0x6A30E550)
+I (../Core/Inc/device_manager.h)(0x6A31024A)
 I (../Middlewares/Third_Party/FatFs/src/ff.h)(0x69609CD9)
 I (../Middlewares/Third_Party/FatFs/src/integer.h)(0x69609CD9)
 I (../FATFS/Target/ffconf.h)(0x6A1CFF2A)
@@ -840,7 +840,7 @@ I (../Middlewares/Third_Party/FatFs/src/ff.h)(0x69609CD9)
 I (../Middlewares/Third_Party/FatFs/src/integer.h)(0x69609CD9)
 I (../FATFS/Target/ffconf.h)(0x6A1CFF2A)
 I (../FATFS/Target/bsp_driver_sd.h)(0x6A1CFF2A)
-I (../Core/Inc/device_manager.h)(0x6A30E550)
+I (../Core/Inc/device_manager.h)(0x6A31024A)
 I (../Core/Inc/user_data_manager.h)(0x6A2F58FA)
 I (../Core/Inc/rx8025t.h)(0x6A1D013B)
 I (../Core/Inc/i2c.h)(0x6A1CFF20)
@@ -971,7 +971,7 @@ I (../Middlewares/LVGL_v8.3.11/lvgl/src/extra/widgets/imgbtn/lv_imgbtn.h)(0x6A1C
 I (../Middlewares/LVGL_v8.3.11/lvgl/src/extra/widgets/span/lv_span.h)(0x6A1CFF34)
 I (../Core/Inc/host_comm.h)(0x6A1D013B)
 F (..\Core\Src\device_manager.c)(0x6A30DF1C)(--c99 -c --cpu Cortex-M4.fp.sp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Middlewares/Third_Party/FreeRTOS/Source/include -I ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Middlewares/LVGL_v8.3.11/lvgl -I ../Middlewares/LVGL_v8.3.11/lvgl/src -I ../Middlewares/LVGL_v8.3.11/lvgl/examples -I ../Middlewares/LVGL_v8.3.11/lvgl/examples/porting -I ../Middlewares/LVGL_v8.3.11/lvgl/src/hal -I ../Middlewares/LVGL_v8.3.11/lvgl/src/misc -I ../Middlewares/LVGL_v8.3.11/lvgl/src/core -I ../Middlewares/LVGL_v8.3.11/lvgl/src/draw/stm32_dma2d -I ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -I ../Middlewares/LVGL_v8.3.11/lvgl/myGUI/custom -I ../Middlewares/LVGL_v8.3.11/lvgl/myGUI/generated -I ../Middlewares/LVGL_v8.3.11/lvgl/myGUI/generated/guider_customer_fonts -I ../FATFS/Target -I ../FATFS/App -I ../Middlewares/Third_Party/FatFs/src -I ../Middlewares/W5500 -I ../Middlewares/W5500/ioLibrary_Driver/Ethernet -I ../Middlewares/W5500/ioLibrary_Driver/Ethernet/W5500 -I ../Middlewares/W5500/ioLibrary_Driver/Internet/DHCP -I ../Middlewares/W5500/wiz_interface -I ../Middlewares/W5500/wiz_platform -I ../Middlewares/W5500/user_main -I ../Middlewares/W5500/ioLibrary_Driver/Internet/SNTP -I ../Middlewares/W5500/DNS -I ../Middlewares/W5500/ioLibrary_Driver/Internet/DNS -I ../Middlewares/W5500/Loopback -I ../Middlewares/W5500/interrupt --diag_suppress=870 --diag_suppress=188 --diag_suppress=546 --diag_suppress=111-I.\RTE\_LCD_PJ-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.7.0\CMSIS\Core\Include-D__UVISION_VERSION="538" -D_RTE_ -DSTM32F429xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F429xx-o lcd_pj\device_manager.o --depend lcd_pj\device_manager.d)
-I (../Core/Inc/device_manager.h)(0x6A30E550)
+I (../Core/Inc/device_manager.h)(0x6A31024A)
 I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x5F63877C)
 I (../Middlewares/Third_Party/FatFs/src/ff.h)(0x69609CD9)
 I (../Middlewares/Third_Party/FatFs/src/integer.h)(0x69609CD9)
@@ -1237,7 +1237,7 @@ I (../Core/Inc/usart.h)(0x6A278F04)
 I (../Core/Inc/host_comm.h)(0x6A1D013B)
 I (../Core/Inc/es1642_usage_guide.h)(0x6A1D013B)
 I (../Core/Inc/es1642.h)(0x6A1D013B)
-I (../Core/Inc/device_manager.h)(0x6A30E550)
+I (../Core/Inc/device_manager.h)(0x6A31024A)
 I (../Middlewares/Third_Party/FatFs/src/ff.h)(0x69609CD9)
 I (../Middlewares/Third_Party/FatFs/src/integer.h)(0x69609CD9)
 I (../FATFS/Target/ffconf.h)(0x6A1CFF2A)
@@ -1430,7 +1430,7 @@ I (../Middlewares/LVGL_v8.3.11/lvgl/src/extra/widgets/colorwheel/lv_colorwheel.h
 I (../Middlewares/LVGL_v8.3.11/lvgl/src/extra/widgets/led/lv_led.h)(0x6A1CFF34)
 I (../Middlewares/LVGL_v8.3.11/lvgl/src/extra/widgets/imgbtn/lv_imgbtn.h)(0x6A1CFF34)
 I (../Middlewares/LVGL_v8.3.11/lvgl/src/extra/widgets/span/lv_span.h)(0x6A1CFF34)
-I (../Core/Inc/device_manager.h)(0x6A30E550)
+I (../Core/Inc/device_manager.h)(0x6A31024A)
 I (../Middlewares/Third_Party/FatFs/src/ff.h)(0x69609CD9)
 I (../Middlewares/Third_Party/FatFs/src/integer.h)(0x69609CD9)
 I (../FATFS/Target/ffconf.h)(0x6A1CFF2A)
@@ -1504,7 +1504,7 @@ I (../Core/Inc/usart.h)(0x6A278F04)
 I (../Middlewares/W5500/ioLibrary_Driver/Ethernet/socket.h)(0x6A1CFF36)
 I (../Middlewares/W5500/ioLibrary_Driver/Ethernet/wizchip_conf.h)(0x6A1CFF36)
 I (../Middlewares/W5500/ioLibrary_Driver/Ethernet/W5500/w5500.h)(0x6A1CFF36)
-I (../Core/Inc/device_manager.h)(0x6A30E550)
+I (../Core/Inc/device_manager.h)(0x6A31024A)
 I (../Middlewares/Third_Party/FatFs/src/ff.h)(0x69609CD9)
 I (../Middlewares/Third_Party/FatFs/src/integer.h)(0x69609CD9)
 I (../FATFS/Target/ffconf.h)(0x6A1CFF2A)
@@ -1698,7 +1698,7 @@ I (../Middlewares/LVGL_v8.3.11/lvgl/src/extra/widgets/imgbtn/lv_imgbtn.h)(0x6A1C
 I (../Middlewares/LVGL_v8.3.11/lvgl/src/extra/widgets/span/lv_span.h)(0x6A1CFF34)
 I (../Core/Inc/adc.h)(0x6A1CFF20)
 I (../Middlewares/LVGL_v8.3.11/lvgl/myGUI/generated/gui_guider.h)(0x6A2B78B4)
-I (../Core/Inc/device_manager.h)(0x6A30E550)
+I (../Core/Inc/device_manager.h)(0x6A31024A)
 I (../Middlewares/Third_Party/FatFs/src/ff.h)(0x69609CD9)
 I (../Middlewares/Third_Party/FatFs/src/integer.h)(0x69609CD9)
 I (../FATFS/Target/ffconf.h)(0x6A1CFF2A)
@@ -1895,7 +1895,7 @@ I (../Middlewares/LVGL_v8.3.11/lvgl/src/extra/widgets/led/lv_led.h)(0x6A1CFF34)
 I (../Middlewares/LVGL_v8.3.11/lvgl/src/extra/widgets/imgbtn/lv_imgbtn.h)(0x6A1CFF34)
 I (../Middlewares/LVGL_v8.3.11/lvgl/src/extra/widgets/span/lv_span.h)(0x6A1CFF34)
 I (../Core/Inc/battery.h)(0x6A1E4591)
-I (../Core/Inc/device_manager.h)(0x6A30E550)
+I (../Core/Inc/device_manager.h)(0x6A31024A)
 I (../Middlewares/Third_Party/FatFs/src/ff.h)(0x69609CD9)
 I (../Middlewares/Third_Party/FatFs/src/integer.h)(0x69609CD9)
 I (../FATFS/Target/ffconf.h)(0x6A1CFF2A)
@@ -2448,7 +2448,7 @@ I (../Core/Inc/i2c.h)(0x6A1CFF20)
 I (../Core/Inc/es1642.h)(0x6A1D013B)
 I (../Core/Inc/es1642_usage_guide.h)(0x6A1D013B)
 I (../Core/Inc/usart.h)(0x6A278F04)
-I (../Core/Inc/device_manager.h)(0x6A30E550)
+I (../Core/Inc/device_manager.h)(0x6A31024A)
 I (../Core/Inc/user_data_manager.h)(0x6A2F58FA)
 I (../Core/Inc/a7680c_http.h)(0x6A1D013B)
 I (../Core/Inc/rs485_usart.h)(0x6A1D013B)
@@ -18132,7 +18132,7 @@ I (../Middlewares/LVGL_v8.3.11/lvgl/myGUI/generated/gui_guider.h)(0x6A2B78B4)
 F (..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\custom\custom.h)(0x6A1CFF2D)()
 F (..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\custom\lv_conf_ext.h)(0x6A1CFF2D)()
 F (..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\guider_customer_fonts\guider_customer_fonts.h)(0x6A1CFF2D)()
-F (..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\guider_fonts\lv_font_SourceHanSerifSC_Regular_16.c)(0x6A276B36)(--c99 -c --cpu Cortex-M4.fp.sp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Middlewares/Third_Party/FreeRTOS/Source/include -I ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Middlewares/LVGL_v8.3.11/lvgl -I ../Middlewares/LVGL_v8.3.11/lvgl/src -I ../Middlewares/LVGL_v8.3.11/lvgl/examples -I ../Middlewares/LVGL_v8.3.11/lvgl/examples/porting -I ../Middlewares/LVGL_v8.3.11/lvgl/src/hal -I ../Middlewares/LVGL_v8.3.11/lvgl/src/misc -I ../Middlewares/LVGL_v8.3.11/lvgl/src/core -I ../Middlewares/LVGL_v8.3.11/lvgl/src/draw/stm32_dma2d -I ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -I ../Middlewares/LVGL_v8.3.11/lvgl/myGUI/custom -I ../Middlewares/LVGL_v8.3.11/lvgl/myGUI/generated -I ../Middlewares/LVGL_v8.3.11/lvgl/myGUI/generated/guider_customer_fonts -I ../FATFS/Target -I ../FATFS/App -I ../Middlewares/Third_Party/FatFs/src -I ../Middlewares/W5500 -I ../Middlewares/W5500/ioLibrary_Driver/Ethernet -I ../Middlewares/W5500/ioLibrary_Driver/Ethernet/W5500 -I ../Middlewares/W5500/ioLibrary_Driver/Internet/DHCP -I ../Middlewares/W5500/wiz_interface -I ../Middlewares/W5500/wiz_platform -I ../Middlewares/W5500/user_main -I ../Middlewares/W5500/ioLibrary_Driver/Internet/SNTP -I ../Middlewares/W5500/DNS -I ../Middlewares/W5500/ioLibrary_Driver/Internet/DNS -I ../Middlewares/W5500/Loopback -I ../Middlewares/W5500/interrupt --diag_suppress=870 --diag_suppress=188 --diag_suppress=546 --diag_suppress=111-I.\RTE\_LCD_PJ-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.7.0\CMSIS\Core\Include-D__UVISION_VERSION="538" -D_RTE_ -DSTM32F429xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F429xx-o lcd_pj\lv_font_sourcehanserifsc_regular_16.o --depend lcd_pj\lv_font_sourcehanserifsc_regular_16.d)
+F (..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\guider_fonts\lv_font_SourceHanSerifSC_Regular_16.c)(0x6A30F34B)(--c99 -c --cpu Cortex-M4.fp.sp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Middlewares/Third_Party/FreeRTOS/Source/include -I ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Middlewares/LVGL_v8.3.11/lvgl -I ../Middlewares/LVGL_v8.3.11/lvgl/src -I ../Middlewares/LVGL_v8.3.11/lvgl/examples -I ../Middlewares/LVGL_v8.3.11/lvgl/examples/porting -I ../Middlewares/LVGL_v8.3.11/lvgl/src/hal -I ../Middlewares/LVGL_v8.3.11/lvgl/src/misc -I ../Middlewares/LVGL_v8.3.11/lvgl/src/core -I ../Middlewares/LVGL_v8.3.11/lvgl/src/draw/stm32_dma2d -I ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -I ../Middlewares/LVGL_v8.3.11/lvgl/myGUI/custom -I ../Middlewares/LVGL_v8.3.11/lvgl/myGUI/generated -I ../Middlewares/LVGL_v8.3.11/lvgl/myGUI/generated/guider_customer_fonts -I ../FATFS/Target -I ../FATFS/App -I ../Middlewares/Third_Party/FatFs/src -I ../Middlewares/W5500 -I ../Middlewares/W5500/ioLibrary_Driver/Ethernet -I ../Middlewares/W5500/ioLibrary_Driver/Ethernet/W5500 -I ../Middlewares/W5500/ioLibrary_Driver/Internet/DHCP -I ../Middlewares/W5500/wiz_interface -I ../Middlewares/W5500/wiz_platform -I ../Middlewares/W5500/user_main -I ../Middlewares/W5500/ioLibrary_Driver/Internet/SNTP -I ../Middlewares/W5500/DNS -I ../Middlewares/W5500/ioLibrary_Driver/Internet/DNS -I ../Middlewares/W5500/Loopback -I ../Middlewares/W5500/interrupt --diag_suppress=870 --diag_suppress=188 --diag_suppress=546 --diag_suppress=111-I.\RTE\_LCD_PJ-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.7.0\CMSIS\Core\Include-D__UVISION_VERSION="538" -D_RTE_ -DSTM32F429xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F429xx-o lcd_pj\lv_font_sourcehanserifsc_regular_16.o --depend lcd_pj\lv_font_sourcehanserifsc_regular_16.d)
 I (../Middlewares/LVGL_v8.3.11/lvgl/lvgl.h)(0x6A1CFF35)
 I (../Middlewares/LVGL_v8.3.11/lvgl/src/misc/lv_log.h)(0x6A1CFF35)
 I (../Middlewares/LVGL_v8.3.11/lvgl/src/misc/../lv_conf_internal.h)(0x6A1CFF35)
@@ -18262,7 +18262,7 @@ I (../Middlewares/LVGL_v8.3.11/lvgl/src/extra/widgets/colorwheel/lv_colorwheel.h
 I (../Middlewares/LVGL_v8.3.11/lvgl/src/extra/widgets/led/lv_led.h)(0x6A1CFF34)
 I (../Middlewares/LVGL_v8.3.11/lvgl/src/extra/widgets/imgbtn/lv_imgbtn.h)(0x6A1CFF34)
 I (../Middlewares/LVGL_v8.3.11/lvgl/src/extra/widgets/span/lv_span.h)(0x6A1CFF34)
-F (..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\events_init.c)(0x6A30E8D5)(--c99 -c --cpu Cortex-M4.fp.sp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Middlewares/Third_Party/FreeRTOS/Source/include -I ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Middlewares/LVGL_v8.3.11/lvgl -I ../Middlewares/LVGL_v8.3.11/lvgl/src -I ../Middlewares/LVGL_v8.3.11/lvgl/examples -I ../Middlewares/LVGL_v8.3.11/lvgl/examples/porting -I ../Middlewares/LVGL_v8.3.11/lvgl/src/hal -I ../Middlewares/LVGL_v8.3.11/lvgl/src/misc -I ../Middlewares/LVGL_v8.3.11/lvgl/src/core -I ../Middlewares/LVGL_v8.3.11/lvgl/src/draw/stm32_dma2d -I ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -I ../Middlewares/LVGL_v8.3.11/lvgl/myGUI/custom -I ../Middlewares/LVGL_v8.3.11/lvgl/myGUI/generated -I ../Middlewares/LVGL_v8.3.11/lvgl/myGUI/generated/guider_customer_fonts -I ../FATFS/Target -I ../FATFS/App -I ../Middlewares/Third_Party/FatFs/src -I ../Middlewares/W5500 -I ../Middlewares/W5500/ioLibrary_Driver/Ethernet -I ../Middlewares/W5500/ioLibrary_Driver/Ethernet/W5500 -I ../Middlewares/W5500/ioLibrary_Driver/Internet/DHCP -I ../Middlewares/W5500/wiz_interface -I ../Middlewares/W5500/wiz_platform -I ../Middlewares/W5500/user_main -I ../Middlewares/W5500/ioLibrary_Driver/Internet/SNTP -I ../Middlewares/W5500/DNS -I ../Middlewares/W5500/ioLibrary_Driver/Internet/DNS -I ../Middlewares/W5500/Loopback -I ../Middlewares/W5500/interrupt --diag_suppress=870 --diag_suppress=188 --diag_suppress=546 --diag_suppress=111-I.\RTE\_LCD_PJ-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.7.0\CMSIS\Core\Include-D__UVISION_VERSION="538" -D_RTE_ -DSTM32F429xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F429xx-o lcd_pj\events_init.o --depend lcd_pj\events_init.d)
+F (..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\events_init.c)(0x6A310711)(--c99 -c --cpu Cortex-M4.fp.sp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Middlewares/Third_Party/FreeRTOS/Source/include -I ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Middlewares/LVGL_v8.3.11/lvgl -I ../Middlewares/LVGL_v8.3.11/lvgl/src -I ../Middlewares/LVGL_v8.3.11/lvgl/examples -I ../Middlewares/LVGL_v8.3.11/lvgl/examples/porting -I ../Middlewares/LVGL_v8.3.11/lvgl/src/hal -I ../Middlewares/LVGL_v8.3.11/lvgl/src/misc -I ../Middlewares/LVGL_v8.3.11/lvgl/src/core -I ../Middlewares/LVGL_v8.3.11/lvgl/src/draw/stm32_dma2d -I ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -I ../Middlewares/LVGL_v8.3.11/lvgl/myGUI/custom -I ../Middlewares/LVGL_v8.3.11/lvgl/myGUI/generated -I ../Middlewares/LVGL_v8.3.11/lvgl/myGUI/generated/guider_customer_fonts -I ../FATFS/Target -I ../FATFS/App -I ../Middlewares/Third_Party/FatFs/src -I ../Middlewares/W5500 -I ../Middlewares/W5500/ioLibrary_Driver/Ethernet -I ../Middlewares/W5500/ioLibrary_Driver/Ethernet/W5500 -I ../Middlewares/W5500/ioLibrary_Driver/Internet/DHCP -I ../Middlewares/W5500/wiz_interface -I ../Middlewares/W5500/wiz_platform -I ../Middlewares/W5500/user_main -I ../Middlewares/W5500/ioLibrary_Driver/Internet/SNTP -I ../Middlewares/W5500/DNS -I ../Middlewares/W5500/ioLibrary_Driver/Internet/DNS -I ../Middlewares/W5500/Loopback -I ../Middlewares/W5500/interrupt --diag_suppress=870 --diag_suppress=188 --diag_suppress=546 --diag_suppress=111-I.\RTE\_LCD_PJ-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.7.0\CMSIS\Core\Include-D__UVISION_VERSION="538" -D_RTE_ -DSTM32F429xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F429xx-o lcd_pj\events_init.o --depend lcd_pj\events_init.d)
 I (..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\events_init.h)(0x6A2280D0)
 I (..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\gui_guider.h)(0x6A2B78B4)
 I (../Middlewares/LVGL_v8.3.11/lvgl/lvgl.h)(0x6A1CFF35)
@@ -18455,7 +18455,7 @@ I (../Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h)(0x69609CD9)
 I (../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h)(0x69609CD9)
 I (../Core/Inc/i2c.h)(0x6A1CFF20)
 I (../Core/Inc/key.h)(0x6A1D013B)
-I (../Core/Inc/device_manager.h)(0x6A30E550)
+I (../Core/Inc/device_manager.h)(0x6A31024A)
 I (../Middlewares/Third_Party/FatFs/src/ff.h)(0x69609CD9)
 I (../Middlewares/Third_Party/FatFs/src/integer.h)(0x69609CD9)
 I (../FATFS/Target/ffconf.h)(0x6A1CFF2A)
@@ -19002,7 +19002,7 @@ I (..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\gui_guider.h)(0x6A2B78B4)
 I (..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\events_init.h)(0x6A2280D0)
 I (..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\widgets_init.h)(0x6A1CFF2D)
 I (../Middlewares/LVGL_v8.3.11/lvgl/myGUI/custom/custom.h)(0x6A1CFF2D)
-F (..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\setup_scr_screen_user_list.c)(0x6A1E726E)(--c99 -c --cpu Cortex-M4.fp.sp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Middlewares/Third_Party/FreeRTOS/Source/include -I ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Middlewares/LVGL_v8.3.11/lvgl -I ../Middlewares/LVGL_v8.3.11/lvgl/src -I ../Middlewares/LVGL_v8.3.11/lvgl/examples -I ../Middlewares/LVGL_v8.3.11/lvgl/examples/porting -I ../Middlewares/LVGL_v8.3.11/lvgl/src/hal -I ../Middlewares/LVGL_v8.3.11/lvgl/src/misc -I ../Middlewares/LVGL_v8.3.11/lvgl/src/core -I ../Middlewares/LVGL_v8.3.11/lvgl/src/draw/stm32_dma2d -I ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -I ../Middlewares/LVGL_v8.3.11/lvgl/myGUI/custom -I ../Middlewares/LVGL_v8.3.11/lvgl/myGUI/generated -I ../Middlewares/LVGL_v8.3.11/lvgl/myGUI/generated/guider_customer_fonts -I ../FATFS/Target -I ../FATFS/App -I ../Middlewares/Third_Party/FatFs/src -I ../Middlewares/W5500 -I ../Middlewares/W5500/ioLibrary_Driver/Ethernet -I ../Middlewares/W5500/ioLibrary_Driver/Ethernet/W5500 -I ../Middlewares/W5500/ioLibrary_Driver/Internet/DHCP -I ../Middlewares/W5500/wiz_interface -I ../Middlewares/W5500/wiz_platform -I ../Middlewares/W5500/user_main -I ../Middlewares/W5500/ioLibrary_Driver/Internet/SNTP -I ../Middlewares/W5500/DNS -I ../Middlewares/W5500/ioLibrary_Driver/Internet/DNS -I ../Middlewares/W5500/Loopback -I ../Middlewares/W5500/interrupt --diag_suppress=870 --diag_suppress=188 --diag_suppress=546 --diag_suppress=111-I.\RTE\_LCD_PJ-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.7.0\CMSIS\Core\Include-D__UVISION_VERSION="538" -D_RTE_ -DSTM32F429xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F429xx-o lcd_pj\setup_scr_screen_user_list.o --depend lcd_pj\setup_scr_screen_user_list.d)
+F (..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\setup_scr_screen_user_list.c)(0x6A310195)(--c99 -c --cpu Cortex-M4.fp.sp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Middlewares/Third_Party/FreeRTOS/Source/include -I ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Middlewares/LVGL_v8.3.11/lvgl -I ../Middlewares/LVGL_v8.3.11/lvgl/src -I ../Middlewares/LVGL_v8.3.11/lvgl/examples -I ../Middlewares/LVGL_v8.3.11/lvgl/examples/porting -I ../Middlewares/LVGL_v8.3.11/lvgl/src/hal -I ../Middlewares/LVGL_v8.3.11/lvgl/src/misc -I ../Middlewares/LVGL_v8.3.11/lvgl/src/core -I ../Middlewares/LVGL_v8.3.11/lvgl/src/draw/stm32_dma2d -I ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -I ../Middlewares/LVGL_v8.3.11/lvgl/myGUI/custom -I ../Middlewares/LVGL_v8.3.11/lvgl/myGUI/generated -I ../Middlewares/LVGL_v8.3.11/lvgl/myGUI/generated/guider_customer_fonts -I ../FATFS/Target -I ../FATFS/App -I ../Middlewares/Third_Party/FatFs/src -I ../Middlewares/W5500 -I ../Middlewares/W5500/ioLibrary_Driver/Ethernet -I ../Middlewares/W5500/ioLibrary_Driver/Ethernet/W5500 -I ../Middlewares/W5500/ioLibrary_Driver/Internet/DHCP -I ../Middlewares/W5500/wiz_interface -I ../Middlewares/W5500/wiz_platform -I ../Middlewares/W5500/user_main -I ../Middlewares/W5500/ioLibrary_Driver/Internet/SNTP -I ../Middlewares/W5500/DNS -I ../Middlewares/W5500/ioLibrary_Driver/Internet/DNS -I ../Middlewares/W5500/Loopback -I ../Middlewares/W5500/interrupt --diag_suppress=870 --diag_suppress=188 --diag_suppress=546 --diag_suppress=111-I.\RTE\_LCD_PJ-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.7.0\CMSIS\Core\Include-D__UVISION_VERSION="538" -D_RTE_ -DSTM32F429xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F429xx-o lcd_pj\setup_scr_screen_user_list.o --depend lcd_pj\setup_scr_screen_user_list.d)
 I (../Middlewares/LVGL_v8.3.11/lvgl/lvgl.h)(0x6A1CFF35)
 I (../Middlewares/LVGL_v8.3.11/lvgl/src/misc/lv_log.h)(0x6A1CFF35)
 I (../Middlewares/LVGL_v8.3.11/lvgl/src/misc/../lv_conf_internal.h)(0x6A1CFF35)
@@ -19461,7 +19461,7 @@ I (..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\gui_guider.h)(0x6A2B78B4)
 I (..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\events_init.h)(0x6A2280D0)
 I (..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\widgets_init.h)(0x6A1CFF2D)
 I (../Middlewares/LVGL_v8.3.11/lvgl/myGUI/custom/custom.h)(0x6A1CFF2D)
-F (..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\guider_fonts\lv_font_SourceHanSerifSC_Regular_12.c)(0x6A30EAAC)(--c99 -c --cpu Cortex-M4.fp.sp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Middlewares/Third_Party/FreeRTOS/Source/include -I ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Middlewares/LVGL_v8.3.11/lvgl -I ../Middlewares/LVGL_v8.3.11/lvgl/src -I ../Middlewares/LVGL_v8.3.11/lvgl/examples -I ../Middlewares/LVGL_v8.3.11/lvgl/examples/porting -I ../Middlewares/LVGL_v8.3.11/lvgl/src/hal -I ../Middlewares/LVGL_v8.3.11/lvgl/src/misc -I ../Middlewares/LVGL_v8.3.11/lvgl/src/core -I ../Middlewares/LVGL_v8.3.11/lvgl/src/draw/stm32_dma2d -I ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -I ../Middlewares/LVGL_v8.3.11/lvgl/myGUI/custom -I ../Middlewares/LVGL_v8.3.11/lvgl/myGUI/generated -I ../Middlewares/LVGL_v8.3.11/lvgl/myGUI/generated/guider_customer_fonts -I ../FATFS/Target -I ../FATFS/App -I ../Middlewares/Third_Party/FatFs/src -I ../Middlewares/W5500 -I ../Middlewares/W5500/ioLibrary_Driver/Ethernet -I ../Middlewares/W5500/ioLibrary_Driver/Ethernet/W5500 -I ../Middlewares/W5500/ioLibrary_Driver/Internet/DHCP -I ../Middlewares/W5500/wiz_interface -I ../Middlewares/W5500/wiz_platform -I ../Middlewares/W5500/user_main -I ../Middlewares/W5500/ioLibrary_Driver/Internet/SNTP -I ../Middlewares/W5500/DNS -I ../Middlewares/W5500/ioLibrary_Driver/Internet/DNS -I ../Middlewares/W5500/Loopback -I ../Middlewares/W5500/interrupt --diag_suppress=870 --diag_suppress=188 --diag_suppress=546 --diag_suppress=111-I.\RTE\_LCD_PJ-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.7.0\CMSIS\Core\Include-D__UVISION_VERSION="538" -D_RTE_ -DSTM32F429xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F429xx-o lcd_pj\lv_font_sourcehanserifsc_regular_12.o --depend lcd_pj\lv_font_sourcehanserifsc_regular_12.d)
+F (..\Middlewares\LVGL_v8.3.11\lvgl\myGUI\generated\guider_fonts\lv_font_SourceHanSerifSC_Regular_12.c)(0x6A30F364)(--c99 -c --cpu Cortex-M4.fp.sp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Middlewares/Third_Party/FreeRTOS/Source/include -I ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Middlewares/LVGL_v8.3.11/lvgl -I ../Middlewares/LVGL_v8.3.11/lvgl/src -I ../Middlewares/LVGL_v8.3.11/lvgl/examples -I ../Middlewares/LVGL_v8.3.11/lvgl/examples/porting -I ../Middlewares/LVGL_v8.3.11/lvgl/src/hal -I ../Middlewares/LVGL_v8.3.11/lvgl/src/misc -I ../Middlewares/LVGL_v8.3.11/lvgl/src/core -I ../Middlewares/LVGL_v8.3.11/lvgl/src/draw/stm32_dma2d -I ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -I ../Middlewares/LVGL_v8.3.11/lvgl/myGUI/custom -I ../Middlewares/LVGL_v8.3.11/lvgl/myGUI/generated -I ../Middlewares/LVGL_v8.3.11/lvgl/myGUI/generated/guider_customer_fonts -I ../FATFS/Target -I ../FATFS/App -I ../Middlewares/Third_Party/FatFs/src -I ../Middlewares/W5500 -I ../Middlewares/W5500/ioLibrary_Driver/Ethernet -I ../Middlewares/W5500/ioLibrary_Driver/Ethernet/W5500 -I ../Middlewares/W5500/ioLibrary_Driver/Internet/DHCP -I ../Middlewares/W5500/wiz_interface -I ../Middlewares/W5500/wiz_platform -I ../Middlewares/W5500/user_main -I ../Middlewares/W5500/ioLibrary_Driver/Internet/SNTP -I ../Middlewares/W5500/DNS -I ../Middlewares/W5500/ioLibrary_Driver/Internet/DNS -I ../Middlewares/W5500/Loopback -I ../Middlewares/W5500/interrupt --diag_suppress=870 --diag_suppress=188 --diag_suppress=546 --diag_suppress=111-I.\RTE\_LCD_PJ-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.7.0\CMSIS\Core\Include-D__UVISION_VERSION="538" -D_RTE_ -DSTM32F429xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F429xx-o lcd_pj\lv_font_sourcehanserifsc_regular_12.o --depend lcd_pj\lv_font_sourcehanserifsc_regular_12.d)
 I (../Middlewares/LVGL_v8.3.11/lvgl/lvgl.h)(0x6A1CFF35)
 I (../Middlewares/LVGL_v8.3.11/lvgl/src/misc/lv_log.h)(0x6A1CFF35)
 I (../Middlewares/LVGL_v8.3.11/lvgl/src/misc/../lv_conf_internal.h)(0x6A1CFF35)
@@ -20932,7 +20932,7 @@ F (..\Middlewares\W5500\user_main\tcp_cmd_handler.c)(0x6A2F7814)(--c99 -c --cpu 
 I (..\Middlewares\W5500\user_main\tcp_cmd_handler.h)(0x6A2F5F2E)
 I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x5F63877C)
 I (..\Middlewares\W5500\user_main\user_main.h)(0x6A2F7494)
-I (../Core/Inc/device_manager.h)(0x6A30E550)
+I (../Core/Inc/device_manager.h)(0x6A31024A)
 I (../Middlewares/Third_Party/FatFs/src/ff.h)(0x69609CD9)
 I (../Middlewares/Third_Party/FatFs/src/integer.h)(0x69609CD9)
 I (../FATFS/Target/ffconf.h)(0x6A1CFF2A)

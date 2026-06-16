@@ -316,7 +316,7 @@ void events_init_screen_user_home (lv_ui *ui)
 
 /* ======== User List 页事件处理 (分页版) ======== */
 
-#define LIST_PAGE_SIZE  5  /* 每页显示的最大设备数 (256设备÷20页, 每页~12KB) */
+#define LIST_PAGE_SIZE  6  /* 每页显示的最大设备数 (256设备÷20页, 每页~12KB) */
 
 static uint16_t s_list_page = 0;    /* 当前页码 (0-based) */
 static lv_obj_t *s_list_page_label = NULL;  /* 页码指示标签 */
@@ -370,48 +370,52 @@ static void list_populate_current_page(void)
                         device_list[i].mac[3],device_list[i].mac[4],device_list[i].mac[5]);
         }
 
-        lv_obj_t *btn = lv_list_add_btn(guider_ui.screen_user_list_list_1, LV_SYMBOL_HOME, txt);
+        /* ======== 使用lv_obj_create代替lv_list_add_btn，避免lv_list默认聚焦样式 ======== */
+        lv_obj_t *btn = lv_obj_create(guider_ui.screen_user_list_list_1);
+        lv_obj_remove_style_all(btn);
+        lv_obj_set_size(btn, 448, 38);
+        lv_obj_set_style_radius(btn, 10, 0);
+        lv_obj_set_style_bg_color(btn, lv_color_hex(0x161B22), 0);
+        lv_obj_set_style_bg_opa(btn, LV_OPA_COVER, 0);
+        lv_obj_set_style_border_width(btn, 1, 0);
+        lv_obj_set_style_border_color(btn, lv_color_hex(0x30363D), 0);
+        lv_obj_set_style_border_opa(btn, 60, 0);
+        lv_obj_set_style_pad_all(btn, 0, 0);
+        lv_obj_set_style_shadow_width(btn, 4, 0);
+        lv_obj_set_style_shadow_color(btn, lv_color_hex(0x000000), 0);
+        lv_obj_set_style_shadow_opa(btn, 30, 0);
+        lv_obj_set_style_shadow_ofs_y(btn, 2, 0);
+        lv_obj_clear_flag(btn, LV_OBJ_FLAG_SCROLLABLE);
+        lv_obj_add_flag(btn, LV_OBJ_FLAG_CLICKABLE);
 
-        /* ======== 默认样式 ======== */
-        static lv_style_t style_list_btn;
-        ui_init_style(&style_list_btn);
-        lv_style_set_pad_top(&style_list_btn, 10);
-        lv_style_set_pad_left(&style_list_btn, 14);
-        lv_style_set_pad_right(&style_list_btn, 14);
-        lv_style_set_pad_bottom(&style_list_btn, 10);
-        lv_style_set_border_width(&style_list_btn, 0);
-        lv_style_set_text_color(&style_list_btn, lv_color_hex(0xE6EDF3));
-        lv_style_set_text_font(&style_list_btn, &lv_font_SourceHanSerifSC_Regular_16);
-        lv_style_set_text_opa(&style_list_btn, 255);
-        lv_style_set_radius(&style_list_btn, 10);
-        lv_style_set_bg_opa(&style_list_btn, LV_OPA_COVER);
-        lv_style_set_bg_color(&style_list_btn, lv_color_hex(0x161B22));
-        lv_style_set_bg_grad_dir(&style_list_btn, LV_GRAD_DIR_NONE);
-        lv_style_set_border_width(&style_list_btn, 1);
-        lv_style_set_border_color(&style_list_btn, lv_color_hex(0x30363D));
-        lv_style_set_border_opa(&style_list_btn, 60);
-        lv_style_set_shadow_width(&style_list_btn, 4);
-        lv_style_set_shadow_color(&style_list_btn, lv_color_hex(0x000000));
-        lv_style_set_shadow_opa(&style_list_btn, 30);
-        lv_style_set_shadow_ofs_y(&style_list_btn, 2);
-        lv_style_set_shadow_spread(&style_list_btn, 0);
-        lv_obj_add_style(btn, &style_list_btn, LV_PART_MAIN|LV_STATE_DEFAULT);
+        /* 图标 */
+        lv_obj_t *icon = lv_label_create(btn);
+        lv_label_set_text(icon, LV_SYMBOL_HOME);
+        lv_obj_set_style_text_color(icon, lv_color_hex(0xF0C040), 0);
+        lv_obj_set_style_text_font(icon, &lv_font_SourceHanSerifSC_Regular_16, 0);
+        lv_obj_set_style_bg_opa(icon, 0, 0);
+        lv_obj_set_pos(icon, 14, 9);
+
+        /* 文本 */
+        lv_obj_t *lbl = lv_label_create(btn);
+        lv_label_set_text(lbl, txt);
+        lv_obj_set_style_text_color(lbl, lv_color_hex(0xE6EDF3), 0);
+        lv_obj_set_style_text_font(lbl, &lv_font_SourceHanSerifSC_Regular_16, 0);
+        lv_obj_set_style_bg_opa(lbl, 0, 0);
+        lv_obj_set_pos(lbl, 40, 9);
 
         /* ======== 聚焦样式 (蓝色左边框) ======== */
-        static lv_style_t style_list_btn_focused;
-        ui_init_style(&style_list_btn_focused);
-        lv_style_set_border_width(&style_list_btn_focused, 4);
-        lv_style_set_border_color(&style_list_btn_focused, lv_color_hex(0x58A6FF));
-        lv_style_set_border_opa(&style_list_btn_focused, LV_OPA_COVER);
-        lv_style_set_border_side(&style_list_btn_focused, LV_BORDER_SIDE_LEFT);
-        lv_style_set_shadow_width(&style_list_btn_focused, 8);
-        lv_style_set_shadow_color(&style_list_btn_focused, lv_color_hex(0x58A6FF));
-        lv_style_set_shadow_opa(&style_list_btn_focused, 30);
-        lv_style_set_shadow_ofs_y(&style_list_btn_focused, 3);
-        lv_style_set_bg_color(&style_list_btn_focused, lv_color_hex(0x1C2333));
-        lv_style_set_bg_opa(&style_list_btn_focused, LV_OPA_COVER);
-        lv_style_set_radius(&style_list_btn_focused, 10);
-        lv_obj_add_style(btn, &style_list_btn_focused, LV_PART_MAIN|LV_STATE_FOCUSED);
+        lv_obj_set_style_border_width(btn, 4, LV_PART_MAIN | LV_STATE_FOCUSED);
+        lv_obj_set_style_border_color(btn, lv_color_hex(0x58A6FF), LV_PART_MAIN | LV_STATE_FOCUSED);
+        lv_obj_set_style_border_opa(btn, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_FOCUSED);
+        lv_obj_set_style_border_side(btn, LV_BORDER_SIDE_LEFT, LV_PART_MAIN | LV_STATE_FOCUSED);
+        lv_obj_set_style_shadow_width(btn, 8, LV_PART_MAIN | LV_STATE_FOCUSED);
+        lv_obj_set_style_shadow_color(btn, lv_color_hex(0x58A6FF), LV_PART_MAIN | LV_STATE_FOCUSED);
+        lv_obj_set_style_shadow_opa(btn, 30, LV_PART_MAIN | LV_STATE_FOCUSED);
+        lv_obj_set_style_shadow_ofs_y(btn, 3, LV_PART_MAIN | LV_STATE_FOCUSED);
+        lv_obj_set_style_bg_color(btn, lv_color_hex(0x1C2333), LV_PART_MAIN | LV_STATE_FOCUSED);
+        lv_obj_set_style_bg_opa(btn, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_FOCUSED);
+        lv_obj_set_style_radius(btn, 10, LV_PART_MAIN | LV_STATE_FOCUSED);
 
         lv_group_add_obj(g_keypad_group, btn);
         lv_obj_add_event_cb(btn, user_list_item_event_handler, LV_EVENT_CLICKED, (void*)(uintptr_t)i);
@@ -690,9 +694,11 @@ static const char * alert_type_icon(alert_type_t t)
 #define ALERT_DECODE_IDX(ud)         ((int)(uintptr_t)(ud) & 0xFFF)
 #define ALERT_DECODE_TYPE(ud)        ((int)(uintptr_t)(ud) >> 12)
 
-    /* 前向声明 */
+/* 前向声明 */
 static void alert_item_event_handler(lv_event_t *e);
 static void alert_dialog_btn_cb(lv_event_t *e);
+static void alert_tip_event_handler(lv_event_t *e);
+static void alert_clear_all_dialog_btn_cb(lv_event_t *e);
 
 /**
  * @brief  创建单个告警项控件
@@ -706,7 +712,7 @@ static lv_obj_t * alert_create_item(lv_obj_t *parent, int dev_idx,
 {
     lv_obj_t *item = lv_obj_create(parent);
     lv_obj_remove_style_all(item);
-    lv_obj_set_size(item, 448, 26);
+    lv_obj_set_size(item, 448, 25);
     lv_obj_set_style_radius(item, 4, 0);
     lv_obj_set_style_bg_color(item, lv_color_hex(0x161B22), 0);
     lv_obj_set_style_bg_opa(item, LV_OPA_COVER, 0);
@@ -805,7 +811,7 @@ static void alert_populate_list(void)
     {
         lv_obj_t *tip = lv_obj_create(guider_ui.screen_alert_list);
         lv_obj_remove_style_all(tip);
-        lv_obj_set_size(tip, 448, 30);
+        lv_obj_set_size(tip, 448, 28);
         lv_obj_set_style_radius(tip, 4, 0);
         lv_obj_set_style_bg_color(tip, lv_color_hex(0x1C2333), 0);
         lv_obj_set_style_bg_opa(tip, LV_OPA_COVER, 0);
@@ -814,16 +820,33 @@ static void alert_populate_list(void)
         lv_obj_set_style_border_opa(tip, LV_OPA_COVER, 0);
         lv_obj_set_style_pad_all(tip, 0, 0);
         lv_obj_clear_flag(tip, LV_OBJ_FLAG_SCROLLABLE);
+        lv_obj_add_flag(tip, LV_OBJ_FLAG_CLICKABLE);
+
+        /* tip聚焦样式：橙色左边框，与告警项蓝色左边框区分 */
+        static lv_style_t style_tip_focused;
+        ui_init_style(&style_tip_focused);
+        lv_style_set_border_width(&style_tip_focused, 2);
+        lv_style_set_border_color(&style_tip_focused, lv_color_hex(0xD29922));
+        lv_style_set_border_opa(&style_tip_focused, LV_OPA_COVER);
+        lv_style_set_border_side(&style_tip_focused, LV_BORDER_SIDE_FULL);
+        lv_style_set_bg_color(&style_tip_focused, lv_color_hex(0x2D1F0E));
+        lv_style_set_bg_opa(&style_tip_focused, LV_OPA_COVER);
+        lv_style_set_radius(&style_tip_focused, 4);
+        lv_obj_add_style(tip, &style_tip_focused, LV_PART_MAIN | LV_STATE_FOCUSED);
 
         lv_obj_t *tip_lbl = lv_label_create(tip);
         char tip_txt[64];
         lv_snprintf(tip_txt, sizeof(tip_txt),
-                    LV_SYMBOL_WARNING " 故障设备过多(%d项)请检查线路连接,点击清除所有告警 ", g_alert_stats.err_total);
+                    LV_SYMBOL_WARNING " 故障过多(%d项) %s", g_alert_stats.err_total, LV_SYMBOL_RIGHT " 清除所有 ");
         lv_label_set_text(tip_lbl, tip_txt);
         lv_obj_set_style_text_color(tip_lbl, lv_color_hex(0xD29922), 0);
         lv_obj_set_style_text_font(tip_lbl, &lv_font_SourceHanSerifSC_Regular_12, 0);
         lv_obj_set_style_bg_opa(tip_lbl, 0, 0);
         lv_obj_align(tip_lbl, LV_ALIGN_CENTER, 0, 0);
+
+        /* 注册tip事件回调 */
+        lv_obj_add_event_cb(tip, alert_tip_event_handler, LV_EVENT_ALL, NULL);
+        lv_group_add_obj(g_keypad_group, tip);
     }
 
     /* 更新统计栏标签 (直接使用预扫描统计) */
@@ -999,6 +1022,131 @@ static void alert_item_event_handler(lv_event_t *e)
         }
     }
 }
+/**
+ * @brief  清除所有故障对话框回调
+ *         btn index 0="否", 1="是"
+ */
+static void alert_clear_all_dialog_btn_cb(lv_event_t *e)
+{
+    lv_obj_t *mbox = lv_event_get_user_data(e);
+    uint16_t btn_id = lv_msgbox_get_active_btn(mbox);
+
+    if (btn_id == 1)  /* "是" - 清除所有故障 */
+    {
+        /* 遍历所有设备，清除错误位 */
+        for (uint16_t i = 0; i < device_count; i++)
+        {
+            if (device_list[i].state.bits.valid)
+            {
+                /* 已入网设备：保留valid位(bit0)，清除所有错误位，保留dc_heating位(bit1) */
+                device_list[i].state.bits.comm_err      = 0;
+                device_list[i].state.bits.relay_err     = 0;
+                device_list[i].state.bits.temp_err      = 0;
+                device_list[i].state.bits.power_reverse = 0;
+                device_list[i].comm_fail_cnt = 0;
+            }
+            else
+            {
+                /* 未入网设备：state清零 */
+                device_list[i].state.byte = 0x00;
+            }
+        }
+
+        lv_msgbox_close(mbox);
+
+        /* 重新扫描告警数据并刷新列表 */
+        alert_scan_devices();
+        alert_populate_list();
+        Alert_Widget_Update();
+    }
+    else  /* "否" - 仅关闭对话框 */
+    {
+        lv_msgbox_close(mbox);
+        alert_populate_list();
+    }
+}
+
+/**
+ * @brief  底部tip项事件回调（故障过多时的"清除所有"提示）
+ */
+static void alert_tip_event_handler(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+
+    if (code == LV_EVENT_FOCUSED)
+    {
+        /* 焦点变化时，自动滚动父容器使tip可见 */
+        lv_obj_t *item = lv_event_get_target(e);
+        lv_obj_scroll_to_view(item, LV_ANIM_OFF);
+    }
+    else if (code == LV_EVENT_KEY)
+    {
+        uint32_t key = lv_event_get_key(e);
+
+        if (key == LV_KEY_ESC)
+        {
+            /* 返回首页 */
+            ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_home,
+                                  guider_ui.screen_user_home_del,
+                                  &guider_ui.screen_alert_del,
+                                  setup_scr_screen_user_home,
+                                  LV_SCR_LOAD_ANIM_NONE, 10, 10, true, true);
+        }
+        else if (key == LV_KEY_ENTER)
+        {
+            /* 弹出确认对话框："是否手动清除所有故障?" */
+            static const char * btns[] = {"否 ", "是 ", ""};
+
+            lv_obj_t *mbox = lv_msgbox_create(NULL, NULL,
+                              "是否手动清除所有故障?", btns, false);
+            lv_obj_set_style_bg_color(mbox, lv_color_hex(0x161B22), 0);
+            lv_obj_set_style_bg_opa(mbox, LV_OPA_COVER, 0);
+            lv_obj_set_style_radius(mbox, 10, 0);
+            lv_obj_set_style_shadow_width(mbox, 20, 0);
+            lv_obj_set_style_text_color(mbox, lv_color_hex(0xE6EDF3), 0);
+            lv_obj_set_style_text_font(mbox, &lv_font_SourceHanSerifSC_Regular_16, 0);
+            lv_obj_center(mbox);
+
+            /* 获取按钮组并设置样式 */
+            lv_obj_t *btn_matrix = lv_msgbox_get_btns(mbox);
+            if (btn_matrix)
+            {
+                /* 按钮样式 */
+                static lv_style_t style_btn;
+                ui_init_style(&style_btn);
+                lv_style_set_radius(&style_btn, 6);
+                lv_style_set_bg_color(&style_btn, lv_color_hex(0x21262D));
+                lv_style_set_bg_opa(&style_btn, LV_OPA_COVER);
+                lv_style_set_text_font(&style_btn, &lv_font_SourceHanSerifSC_Regular_16);
+                lv_style_set_text_color(&style_btn, lv_color_hex(0xE6EDF3));
+                lv_style_set_border_width(&style_btn, 1);
+                lv_style_set_border_color(&style_btn, lv_color_hex(0x30363D));
+                lv_style_set_border_opa(&style_btn, LV_OPA_COVER);
+                lv_obj_add_style(btn_matrix, &style_btn, LV_PART_ITEMS | LV_STATE_DEFAULT);
+
+                /* 聚焦样式 */
+                static lv_style_t style_btn_focused;
+                ui_init_style(&style_btn_focused);
+                lv_style_set_bg_color(&style_btn_focused, lv_color_hex(0x58A6FF));
+                lv_style_set_bg_opa(&style_btn_focused, LV_OPA_COVER);
+                lv_style_set_text_color(&style_btn_focused, lv_color_hex(0xFFFFFF));
+                lv_style_set_border_width(&style_btn_focused, 0);
+                lv_obj_add_style(btn_matrix, &style_btn_focused, LV_PART_ITEMS | LV_STATE_FOCUSED);
+            }
+
+            /* 绑定按钮回调 */
+            lv_obj_add_event_cb(mbox, alert_clear_all_dialog_btn_cb, LV_EVENT_PRESSED,
+                                (void*)mbox);
+
+            /* 切换焦点到对话框按钮 */
+            lv_group_remove_all_objs(g_keypad_group);
+            lv_group_add_obj(g_keypad_group, btn_matrix);
+            lv_group_focus_obj(btn_matrix);
+            lv_indev_set_group(indev_keypad, g_keypad_group);
+        }
+    }
+}
+
 //告警页面事件初始化函数
 static void screen_alert_event_handler (lv_event_t *e)
 {
