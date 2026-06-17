@@ -153,7 +153,7 @@ void setup_scr_screen_alert(lv_ui *ui)
     {
         lv_obj_t *card = lv_obj_create(ui->screen_alert);
         lv_obj_remove_style_all(card);
-        lv_obj_set_size(card, 464, 244);
+        lv_obj_set_size(card, 464, 320 - 1);
         lv_obj_set_pos(card, 8, 74);
         lv_obj_set_style_radius(card, 10, 0);
         lv_obj_set_style_bg_color(card, lv_color_hex(0x161B22), 0);
@@ -169,15 +169,59 @@ void setup_scr_screen_alert(lv_ui *ui)
 
         lv_obj_t *list_cont = lv_obj_create(card);
         lv_obj_remove_style_all(list_cont);
-        lv_obj_set_size(list_cont, 456, 236);
+        lv_obj_set_size(list_cont, 456, 320 - 2 - 28);
         lv_obj_set_pos(list_cont, 0, 0);
         lv_obj_set_style_pad_all(list_cont, 2, 0);
         lv_obj_set_style_pad_row(list_cont, 4, 0);
         lv_obj_set_flex_flow(list_cont, LV_FLEX_FLOW_COLUMN);
         lv_obj_set_flex_align(list_cont, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-        lv_obj_set_scrollbar_mode(list_cont, LV_SCROLLBAR_MODE_AUTO);
+        lv_obj_set_scrollbar_mode(list_cont, LV_SCROLLBAR_MODE_OFF);
 
         ui->screen_alert_list = list_cont;
+    }
+
+    /* ======== 底部提示区域（告警过多时显示） ======== */
+    {
+        ui->screen_alert_tip = lv_obj_create(ui->screen_alert);
+        lv_obj_remove_style_all(ui->screen_alert_tip);
+        lv_obj_set_size(ui->screen_alert_tip, 464, 28);
+        lv_obj_set_pos(ui->screen_alert_tip, 8, 320 - 28 - 1);
+        lv_obj_set_style_radius(ui->screen_alert_tip, 4, 0);
+        lv_obj_set_style_bg_color(ui->screen_alert_tip, lv_color_hex(0x1C2333), 0);
+        lv_obj_set_style_bg_opa(ui->screen_alert_tip, LV_OPA_COVER, 0);
+        lv_obj_set_style_border_width(ui->screen_alert_tip, 1, 0);
+        lv_obj_set_style_border_color(ui->screen_alert_tip, lv_color_hex(0xD29922), 0);
+        lv_obj_set_style_border_opa(ui->screen_alert_tip, LV_OPA_COVER, 0);
+        lv_obj_set_style_pad_all(ui->screen_alert_tip, 0, 0);
+        lv_obj_clear_flag(ui->screen_alert_tip, LV_OBJ_FLAG_SCROLLABLE);
+        lv_obj_add_flag(ui->screen_alert_tip, LV_OBJ_FLAG_CLICKABLE);
+
+        /* 创建tip内部文本标签 */
+        lv_obj_t *tip_lbl = lv_label_create(ui->screen_alert_tip);
+        lv_obj_set_style_text_color(tip_lbl, lv_color_hex(0xD29922), 0);
+        lv_obj_set_style_text_font(tip_lbl, &lv_font_SourceHanSerifSC_Regular_12, 0);
+        lv_obj_set_style_bg_opa(tip_lbl, 0, 0);
+        lv_obj_align(tip_lbl, LV_ALIGN_CENTER, 0, 0);
+
+        /* tip聚焦样式：橙色边框 */
+        static lv_style_t style_tip_focused;
+        ui_init_style(&style_tip_focused);
+        lv_style_set_border_width(&style_tip_focused, 2);
+        lv_style_set_border_color(&style_tip_focused, lv_color_hex(0xD29922));
+        lv_style_set_border_opa(&style_tip_focused, LV_OPA_COVER);
+        lv_style_set_border_side(&style_tip_focused, LV_BORDER_SIDE_FULL);
+        lv_style_set_bg_color(&style_tip_focused, lv_color_hex(0x2D1F0E));
+        lv_style_set_bg_opa(&style_tip_focused, LV_OPA_COVER);
+        lv_style_set_radius(&style_tip_focused, 4);
+        lv_obj_add_style(ui->screen_alert_tip, &style_tip_focused, LV_PART_MAIN | LV_STATE_FOCUSED);
+    }
+
+    /* ======== 页码标签 ======== */
+    {
+        ui->screen_alert_page_label = lv_label_create(ui->screen_alert);
+        lv_obj_set_style_text_font(ui->screen_alert_page_label, &lv_font_SourceHanSerifSC_Regular_12, 0);
+        lv_obj_set_style_text_color(ui->screen_alert_page_label, lv_color_hex(0x484F58), 0);
+        lv_obj_align(ui->screen_alert_page_label, LV_ALIGN_BOTTOM_RIGHT, -14, -4);
     }
 
     lv_obj_update_layout(ui->screen_alert);

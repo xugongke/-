@@ -355,21 +355,7 @@ static void list_populate_current_page(void)
     for(uint16_t i = start; i < end; i++)
     {
         char txt[100];
-        if(device_list[i].state.bits.valid == 0)
-        {
-            lv_snprintf(txt, sizeof(txt), "未入网   MAC %02X:%02X:%02X:%02X:%02X:%02X  ",
-                        device_list[i].mac[0],device_list[i].mac[1],device_list[i].mac[2],
-                        device_list[i].mac[3],device_list[i].mac[4],device_list[i].mac[5]);
-        }
-        else
-        {
-            parse_addr(device_list[i].addr, &house);
-            lv_snprintf(txt, sizeof(txt), "%d楼 %d单元 %d   MAC %02X:%02X:%02X:%02X:%02X:%02X ",
-                        house.building, house.unit, house.room,
-                        device_list[i].mac[0],device_list[i].mac[1],device_list[i].mac[2],
-                        device_list[i].mac[3],device_list[i].mac[4],device_list[i].mac[5]);
-        }
-
+			
         /* ======== 使用lv_obj_create代替lv_list_add_btn，避免lv_list默认聚焦样式 ======== */
         lv_obj_t *btn = lv_obj_create(guider_ui.screen_user_list_list_1);
         lv_obj_remove_style_all(btn);
@@ -387,6 +373,33 @@ static void list_populate_current_page(void)
         lv_obj_set_style_shadow_ofs_y(btn, 2, 0);
         lv_obj_clear_flag(btn, LV_OBJ_FLAG_SCROLLABLE);
         lv_obj_add_flag(btn, LV_OBJ_FLAG_CLICKABLE);
+			
+        if(device_list[i].state.bits.valid == 0)
+        {
+            lv_snprintf(txt, sizeof(txt), "未入网   MAC %02X:%02X:%02X:%02X:%02X:%02X  ",
+                        device_list[i].mac[0],device_list[i].mac[1],device_list[i].mac[2],
+                        device_list[i].mac[3],device_list[i].mac[4],device_list[i].mac[5]);
+        }
+        else
+        {
+            parse_addr(device_list[i].addr, &house);
+            lv_snprintf(txt, sizeof(txt), "%d楼 %d单元 %d   MAC %02X:%02X:%02X:%02X:%02X:%02X ",
+                        house.building, house.unit, house.room,
+                        device_list[i].mac[0],device_list[i].mac[1],device_list[i].mac[2],
+                        device_list[i].mac[3],device_list[i].mac[4],device_list[i].mac[5]);
+            /* 通信状态图标 (末尾): comm_err=1红色UNLINK, comm_err=0绿色LINK */
+            lv_obj_t *status_icon = lv_label_create(btn);
+            if(device_list[i].state.bits.comm_err) {
+                lv_label_set_text(status_icon, LV_SYMBOL_UNLINK);
+                lv_obj_set_style_text_color(status_icon, lv_color_hex(0xF44336), 0); /* 红色 */
+            } else {
+                lv_label_set_text(status_icon, LV_SYMBOL_LINK);
+                lv_obj_set_style_text_color(status_icon, lv_color_hex(0x3FB950), 0); /* 绿色 */
+            }
+            lv_obj_set_style_text_font(status_icon, &lv_font_SourceHanSerifSC_Regular_16, 0);
+            lv_obj_set_style_bg_opa(status_icon, 0, 0);
+            lv_obj_align(status_icon, LV_ALIGN_RIGHT_MID, -10, 0);
+        }
 
         /* 图标 */
         lv_obj_t *icon = lv_label_create(btn);
@@ -694,11 +707,16 @@ static const char * alert_type_icon(alert_type_t t)
 #define ALERT_DECODE_IDX(ud)         ((int)(uintptr_t)(ud) & 0xFFF)
 #define ALERT_DECODE_TYPE(ud)        ((int)(uintptr_t)(ud) >> 12)
 
+/* 告警列表分页配置 */
+#define ALERT_PAGE_SIZE  7  /* 每页最大告警项数 (列表高度188px / 每项29px ≈ 6) */
+static uint16_t s_alert_page = 0;    /* 当前告警页码 (0-based) */
+
 /* 前向声明 */
 static void alert_item_event_handler(lv_event_t *e);
 static void alert_dialog_btn_cb(lv_event_t *e);
 static void alert_tip_event_handler(lv_event_t *e);
 static void alert_clear_all_dialog_btn_cb(lv_event_t *e);
+static void alert_populate_current_page(void);
 
 /**
  * @brief  创建单个告警项控件
@@ -780,21 +798,41 @@ static lv_obj_t * alert_create_item(lv_obj_t *parent, int dev_idx,
 }
 
 /**
- * @brief  根据预扫描数据填充告警列表
- * @note   数据由 alert_scan_devices() 在 DevicePoll_Task 中预先生成
+ * @brief  计算告警总页数
  */
-static void alert_populate_list(void)
+static uint16_t alert_get_total_pages(void)
+{
+    if (g_alert_stats.item_count == 0) return 1;
+    return (g_alert_stats.item_count + ALERT_PAGE_SIZE - 1) / ALERT_PAGE_SIZE;
+}
+
+/**
+ * @brief  填充当前页的告警项
+ */
+static void alert_populate_current_page(void)
 {
     lv_obj_clean(guider_ui.screen_alert_list);
     lv_group_remove_all_objs(g_keypad_group);
 
-    /* 直接使用预扫描的告警项数组创建列表 */
-    for (int i = 0; i < g_alert_stats.item_count; i++)
+    uint16_t start = s_alert_page * ALERT_PAGE_SIZE;
+    uint16_t end = start + ALERT_PAGE_SIZE;
+    if (end > g_alert_stats.item_count) end = g_alert_stats.item_count;
+
+    /* 更新页码指示 */
+    if (guider_ui.screen_alert_page_label && lv_obj_is_valid(guider_ui.screen_alert_page_label))
+    {
+        char page_txt[32];
+        lv_snprintf(page_txt, sizeof(page_txt), "%d/%d页  共%d项 ",
+                    s_alert_page + 1, alert_get_total_pages(), g_alert_stats.item_count);
+        lv_label_set_text(guider_ui.screen_alert_page_label, page_txt);
+    }
+
+    /* 创建当前页的告警项 */
+    for (uint16_t i = start; i < end; i++)
     {
         int dev_idx = g_alert_items[i].dev_idx;
         alert_type_t type = g_alert_items[i].type;
 
-        /* 生成地址文本 */
         house_info_t house;
         parse_addr(device_list[dev_idx].addr, &house);
         char addr_txt[32];
@@ -806,50 +844,19 @@ static void alert_populate_list(void)
         lv_group_add_obj(g_keypad_group, item);
     }
 
-    /* 如果故障总数超过列表最大显示项数，在列表底部添加警告提示 */
-    if (g_alert_stats.err_total > ALERT_MAX_ITEMS)
+    /* 更新tip文本 */
+    lv_obj_t *tip_lbl = lv_obj_get_child(guider_ui.screen_alert_tip, 0);
+    if (tip_lbl)
     {
-        lv_obj_t *tip = lv_obj_create(guider_ui.screen_alert_list);
-        lv_obj_remove_style_all(tip);
-        lv_obj_set_size(tip, 448, 28);
-        lv_obj_set_style_radius(tip, 4, 0);
-        lv_obj_set_style_bg_color(tip, lv_color_hex(0x1C2333), 0);
-        lv_obj_set_style_bg_opa(tip, LV_OPA_COVER, 0);
-        lv_obj_set_style_border_width(tip, 1, 0);
-        lv_obj_set_style_border_color(tip, lv_color_hex(0xD29922), 0);
-        lv_obj_set_style_border_opa(tip, LV_OPA_COVER, 0);
-        lv_obj_set_style_pad_all(tip, 0, 0);
-        lv_obj_clear_flag(tip, LV_OBJ_FLAG_SCROLLABLE);
-        lv_obj_add_flag(tip, LV_OBJ_FLAG_CLICKABLE);
-
-        /* tip聚焦样式：橙色左边框，与告警项蓝色左边框区分 */
-        static lv_style_t style_tip_focused;
-        ui_init_style(&style_tip_focused);
-        lv_style_set_border_width(&style_tip_focused, 2);
-        lv_style_set_border_color(&style_tip_focused, lv_color_hex(0xD29922));
-        lv_style_set_border_opa(&style_tip_focused, LV_OPA_COVER);
-        lv_style_set_border_side(&style_tip_focused, LV_BORDER_SIDE_FULL);
-        lv_style_set_bg_color(&style_tip_focused, lv_color_hex(0x2D1F0E));
-        lv_style_set_bg_opa(&style_tip_focused, LV_OPA_COVER);
-        lv_style_set_radius(&style_tip_focused, 4);
-        lv_obj_add_style(tip, &style_tip_focused, LV_PART_MAIN | LV_STATE_FOCUSED);
-
-        lv_obj_t *tip_lbl = lv_label_create(tip);
         char tip_txt[64];
         lv_snprintf(tip_txt, sizeof(tip_txt),
-                    LV_SYMBOL_WARNING " 故障过多(%d项) %s", g_alert_stats.err_total, LV_SYMBOL_RIGHT " 清除所有 ");
+                    LV_SYMBOL_WARNING " 点击清除所有告警(%d项) ", g_alert_stats.err_total);
         lv_label_set_text(tip_lbl, tip_txt);
-        lv_obj_set_style_text_color(tip_lbl, lv_color_hex(0xD29922), 0);
-        lv_obj_set_style_text_font(tip_lbl, &lv_font_SourceHanSerifSC_Regular_12, 0);
-        lv_obj_set_style_bg_opa(tip_lbl, 0, 0);
-        lv_obj_align(tip_lbl, LV_ALIGN_CENTER, 0, 0);
-
-        /* 注册tip事件回调 */
-        lv_obj_add_event_cb(tip, alert_tip_event_handler, LV_EVENT_ALL, NULL);
-        lv_group_add_obj(g_keypad_group, tip);
     }
 
-    /* 更新统计栏标签 (直接使用预扫描统计) */
+    lv_group_add_obj(g_keypad_group, guider_ui.screen_alert_tip);
+
+    /* 更新统计栏标签 */
     char buf[32];
     lv_snprintf(buf, sizeof(buf), LV_SYMBOL_CLOSE " 通信异常: %d", g_alert_stats.comm_cnt);
     lv_label_set_text(guider_ui.screen_alert_stat_comm, buf);
@@ -860,7 +867,7 @@ static void alert_populate_list(void)
     lv_snprintf(buf, sizeof(buf), LV_SYMBOL_WARNING " 电源反接: %d", g_alert_stats.power_cnt);
     lv_label_set_text(guider_ui.screen_alert_stat_power, buf);
 
-    /* 更新总数角标 (显示真实故障总数，非截断后的数量) */
+    /* 更新总数角标 */
     lv_snprintf(buf, sizeof(buf), "%d", g_alert_stats.err_total);
     lv_label_set_text(guider_ui.screen_alert_label_count, buf);
 
@@ -878,6 +885,15 @@ static void alert_populate_list(void)
         lv_group_add_obj(g_keypad_group, guider_ui.screen_alert);
         lv_group_focus_obj(guider_ui.screen_alert);
     }
+}
+
+/**
+ * @brief  根据预扫描数据填充告警列表（重置页码并刷新）
+ */
+static void alert_populate_list(void)
+{
+    s_alert_page = 0;
+    alert_populate_current_page();
 }
 
 /**
@@ -952,6 +968,29 @@ static void alert_item_event_handler(lv_event_t *e)
                                   &guider_ui.screen_alert_del,
                                   setup_scr_screen_user_home,
                                   LV_SCR_LOAD_ANIM_NONE, 10, 10, true, true);
+        }
+        else if (key == LV_KEY_LEFT)
+        {
+            /* 上一页 */
+            if (s_alert_page > 0)
+            {
+                s_alert_page--;
+                alert_populate_current_page();
+            }
+            lv_event_stop_processing(e);
+            lv_event_stop_bubbling(e);
+        }
+        else if (key == LV_KEY_RIGHT)
+        {
+            /* 下一页 */
+            uint16_t total = alert_get_total_pages();
+            if (s_alert_page + 1 < total)
+            {
+                s_alert_page++;
+                alert_populate_current_page();
+            }
+            lv_event_stop_processing(e);
+            lv_event_stop_bubbling(e);
         }
         else if (key == LV_KEY_ENTER)
         {
@@ -1165,6 +1204,8 @@ static void screen_alert_event_handler (lv_event_t *e)
     case LV_EVENT_SCREEN_LOADED:
     {
         g_need_key_remap = 0;  /* 告警页面不需要重映射 */
+        /* 注册tip事件回调（屏幕重建后旧对象已销毁，需要重新注册） */
+        lv_obj_add_event_cb(guider_ui.screen_alert_tip, alert_tip_event_handler, LV_EVENT_ALL, NULL);
         alert_populate_list();
         break;
     }

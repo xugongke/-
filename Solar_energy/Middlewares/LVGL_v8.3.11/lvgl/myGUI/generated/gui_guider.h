@@ -72,6 +72,8 @@ typedef struct
 	lv_obj_t *screen_alert_stat_relay;          /* 开关异常计数标签 */
 	lv_obj_t *screen_alert_stat_temp;           /* 温度异常计数标签 */
 	lv_obj_t *screen_alert_stat_power;          /* 电源反接计数标签 */
+	lv_obj_t *screen_alert_tip;                 /* 底部告警提示容器 */
+	lv_obj_t *screen_alert_page_label;          /* 告警页码标签 */
 	lv_obj_t *screen_tcp_setting;               /* TCP服务器设置页 */
 	bool screen_tcp_setting_del;
 	lv_obj_t *screen_tcp_setting_ta_ip;         /* IP地址输入框 */

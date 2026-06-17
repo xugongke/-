@@ -154,7 +154,7 @@ typedef enum {
     ALERT_POWER_REVERSE,    /* 电源反接 (bit7) */
 } alert_type_t;
 
-#define ALERT_MAX_ITEMS 7  /* 告警列表最大项数 */
+#define ALERT_MAX_ITEMS 1024  /* 告警列表最大项数 */
 
 /**
  * @brief 告警统计结构体

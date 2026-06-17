@@ -184,6 +184,10 @@ extern "C" {
 #define LV_SYMBOL_TABLE           "\xEF\x83\x80" /*61632, 0xF0C0*/
 #endif
 
+#if !defined LV_SYMBOL_LINK
+#define LV_SYMBOL_LINK            "\xEF\x83\x81" /*61633, 0xF0C1*/
+#endif
+
 #if !defined LV_SYMBOL_CUT
 #define LV_SYMBOL_CUT             "\xEF\x83\x84" /*61636, 0xF0C4*/
 #endif
@@ -222,6 +226,10 @@ extern "C" {
 
 #if !defined LV_SYMBOL_GPS
 #define LV_SYMBOL_GPS             "\xEF\x84\xA4" /*61732, 0xF124*/
+#endif
+
+#if !defined LV_SYMBOL_UNLINK
+#define LV_SYMBOL_UNLINK          "\xEF\x84\xA7" /*61735, 0xF127*/
 #endif
 
 #if !defined LV_SYMBOL_FILE
@@ -347,6 +355,7 @@ enum {
     _LV_STR_SYMBOL_CALL,
     _LV_STR_SYMBOL_CERTIFICATE,
     _LV_STR_SYMBOL_TABLE,
+    _LV_STR_SYMBOL_LINK,
     _LV_STR_SYMBOL_CUT,
     _LV_STR_SYMBOL_COPY,
     _LV_STR_SYMBOL_SAVE,
@@ -357,6 +366,7 @@ enum {
     _LV_STR_SYMBOL_BELL,
     _LV_STR_SYMBOL_KEYBOARD,
     _LV_STR_SYMBOL_GPS,
+    _LV_STR_SYMBOL_UNLINK,
     _LV_STR_SYMBOL_FILE,
     _LV_STR_SYMBOL_MOON,
     _LV_STR_SYMBOL_WIFI,

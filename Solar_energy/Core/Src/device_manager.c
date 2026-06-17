@@ -328,6 +328,7 @@ FRESULT load_devices(void)
 		//br是实际读取到的字节数,也就是用户真实的数量
     device_count = br / sizeof(device_t);
 
+		//设置显示所有错误
     for (int i = 0; i < device_count; i++)
     {
         device_list[i].state.bits.comm_err = 1;
