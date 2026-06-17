@@ -18,6 +18,12 @@ void wizchip_reset(void);
 void wizchip_spi_cb_reg(void);
 
 /**
+ * @brief   初始化SPI DMA所需的信号量和互斥锁
+ * @note    必须在FreeRTOS调度器启动后、W5500初始化前调用
+ */
+void wiz_spi_dma_init(void);
+
+/**
  * @brief   Turn on wiz timer interrupt
  * @param   none
  * @return  none

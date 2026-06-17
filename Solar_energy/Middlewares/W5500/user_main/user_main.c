@@ -4,6 +4,7 @@
 #include <string.h>
 #include "wizchip_conf.h"
 #include "wiz_interface.h"
+#include "wiz_platform.h"
 #include "socket.h"
 
 #include "cmsis_os.h"
@@ -27,6 +28,8 @@ wiz_NetInfo default_net_info = {
 uint8_t  server_ip[4] = {192, 168, 6, 196};
 uint16_t server_port  = 22222;
 
+/* DMA收发缓冲区必须放在0x20000000的AHB SRAM区域, DMA控制器才能访问 */
+__attribute__((section("RW_IRAM1")))
 static uint8_t ethernet_buf[ETHERNET_BUF_MAX_SIZE] = {0};
 
 /* ==================== 流缓冲区 ==================== */
@@ -341,6 +344,8 @@ void tcp_send_frame(uint8_t type, uint8_t cmd, const uint8_t *data, uint16_t len
     if (!g_tcp_connected)
         return;
 
+    /* 发送缓冲区也经DMA传输, 必须放在DMA可访问内存区域 */
+    __attribute__((section("RW_IRAM1")))
     static uint8_t send_buf[1 + FRAME_TYPE_LEN + FRAME_CMD_LEN + FRAME_LENGTH_LEN +
                             FRAME_MAX_DATA_LEN + FRAME_CRC_LEN + 1];
 
@@ -623,6 +628,9 @@ int tcp_config_load(void)
 
 void W5500_Task(void *argument)
 {
+    /* 初始化SPI DMA所需的信号量和互斥锁 (必须在wizchip初始化前) */
+    wiz_spi_dma_init();
+
     /* wizchip 初始化 */
     printf("W5500 TCP client\r\n");
     wizchip_initialize();
