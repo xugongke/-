@@ -29,6 +29,13 @@
 
 extern MessageBufferHandle_t uart2Message;//消息缓冲区句柄
 extern MessageBufferHandle_t uart3Message;//消息缓冲区句柄
+
+/* P0修复: ISR中禁止printf, 改用volatile计数器 */
+volatile uint32_t isr_uart2_overflow;   // UART2(ES1642) 缓冲区溢出
+volatile uint32_t isr_uart2_dma_err;    // UART2 DMA重启失败
+volatile uint32_t isr_uart3_overflow;   // UART3(A7680C) 缓冲区溢出
+volatile uint32_t isr_uart3_dma_err;    // UART3 DMA重启失败
+volatile uint32_t isr_rs485_dma_err;    // RS485串口 DMA/IT重启失败
 /* USER CODE END 0 */
 
 UART_HandleTypeDef huart4;
@@ -779,13 +786,13 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
         // 可选：检测溢出
         if (sent != Size)
         {
-					printf("huart2缓冲区溢出\r\n");
+					isr_uart2_overflow++;
         }
 
         // 立刻重启下一轮接收
 				if (HAL_UARTEx_ReceiveToIdle_DMA(&huart2, g_es1642_rx_buf, sizeof(g_es1642_rx_buf)) != HAL_OK)
 				{
-						printf("启动UART2 DMA接收失败\r\n");
+						isr_uart2_dma_err++;
 				}
 				__HAL_DMA_DISABLE_IT(huart2.hdmarx, DMA_IT_HT); // 关闭半传中断，避免重复回调,一定要关闭，要不然会进入错误中断
     }
@@ -798,13 +805,13 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
         // 可选：检测溢出
         if (sent != Size)
         {
-					printf("huart3缓冲区溢出\r\n");
+					isr_uart3_overflow++;
         }
 
         // 立刻重启下一轮接收
 				if (HAL_UARTEx_ReceiveToIdle_DMA(&huart3, a7680c_rx_buf, sizeof(a7680c_rx_buf)) != HAL_OK)
 				{
-						printf("启动UART3 DMA接收失败\r\n");
+						isr_uart3_dma_err++;
 				}
 				__HAL_DMA_DISABLE_IT(huart3.hdmarx, DMA_IT_HT); // 关闭半传中断，避免重复回调
     }
@@ -825,7 +832,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
         // 重新启动DMA+空闲中断接收
         if (HAL_UARTEx_ReceiveToIdle_DMA(&huart1, USART1_RX_BUF, RS485_RX_BUFFER_SIZE) != HAL_OK)
 				{
-					printf("启动UART1 DMA接收失败\r\n");
+					isr_rs485_dma_err++;
 				}
 				__HAL_DMA_DISABLE_IT(huart1.hdmarx, DMA_IT_HT); // 关闭半传中断，避免重复回调
     }
@@ -848,7 +855,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 				//只要保证在处理完这一帧传感器发来的数据之后，再给传感器要数据就不用担心旧数据被覆盖，因为旧数据已经处理完成了，没用了
         if (HAL_UARTEx_ReceiveToIdle_DMA(&huart6, USART6_RX_BUF, RS485_RX_BUFFER_SIZE) != HAL_OK)
 				{
-					printf("启动UART6 DMA接收失败\r\n");
+					isr_rs485_dma_err++;
 				}
 				__HAL_DMA_DISABLE_IT(huart6.hdmarx, DMA_IT_HT); // 关闭半传中断，避免重复回调
     }
@@ -869,7 +876,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
         // 重新启动DMA+空闲中断接收
         if (HAL_UARTEx_ReceiveToIdle_DMA(&huart4, UART4_RX_BUF, RS485_RX_BUFFER_SIZE) != HAL_OK)
 				{
-					printf("启动UART4 DMA接收失败\r\n");
+					isr_rs485_dma_err++;
 				}	
 				__HAL_DMA_DISABLE_IT(huart4.hdmarx, DMA_IT_HT); // 关闭半传中断，避免重复回调
     }
@@ -890,7 +897,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
         // 重新启动DMA+空闲中断接收
         if (HAL_UARTEx_ReceiveToIdle_DMA(&huart7, UART7_RX_BUF, RS485_RX_BUFFER_SIZE) != HAL_OK)
 				{
-					printf("启动UART7 DMA接收失败\r\n");
+					isr_rs485_dma_err++;
 				}
 				__HAL_DMA_DISABLE_IT(huart7.hdmarx, DMA_IT_HT); // 关闭半传中断，避免重复回调
     }
@@ -911,7 +918,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
         // 重新启动中断+空闲中断接收（UART8无DMA，使用IT方式）
         if (HAL_UARTEx_ReceiveToIdle_IT(&huart8, UART8_RX_BUF, RS485_RX_BUFFER_SIZE) != HAL_OK)
 				{
-					printf("启动UART8 IT接收失败\r\n");
+					isr_rs485_dma_err++;
 				}
     }
 		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
@@ -933,7 +940,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
         {
             if (HAL_UARTEx_ReceiveToIdle_DMA(huart, g_es1642_rx_buf, sizeof(g_es1642_rx_buf)) != HAL_OK)
             {
-                printf("UART2错误后重启DMA接收失败\r\n");
+                isr_uart2_dma_err++;
             }
             __HAL_DMA_DISABLE_IT(huart->hdmarx, DMA_IT_HT);
         }
@@ -942,13 +949,13 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
     // 如果其他UART也有同样问题，可以类似处理
     if (huart->Instance == USART3)
     {
-			printf("UART3错误,重启DMA\r\n");
+			isr_uart3_dma_err++;
         __HAL_UART_CLEAR_OREFLAG(huart);
         if (huart->RxState == HAL_UART_STATE_READY)
         {
             if (HAL_UARTEx_ReceiveToIdle_DMA(huart, a7680c_rx_buf, sizeof(a7680c_rx_buf)) != HAL_OK)
             {
-                printf("UART3错误后重启DMA接收失败\r\n");
+                isr_uart3_dma_err++;
             }
             __HAL_DMA_DISABLE_IT(huart->hdmarx, DMA_IT_HT);
         }

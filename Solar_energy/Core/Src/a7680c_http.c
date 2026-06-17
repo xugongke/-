@@ -181,11 +181,11 @@ const char* Weather_GetShortDesc(int code)
     switch(code)
     {
         case 0:  	return "晴天 ";
-        case 1:		return "晴转多云 ";
+        case 1:		return "多云 ";
         case 2:		return "多云 ";
         case 3:  	return "阴天 ";
-        case 45:	return "雾 ";
-        case 48: 	return "霾 ";
+        case 45:	return "雾天 ";
+        case 48: 	return "雾霾 ";
         case 51:
         case 53:
         case 55: 

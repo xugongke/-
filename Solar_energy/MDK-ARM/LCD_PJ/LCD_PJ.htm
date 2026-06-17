@@ -3,7 +3,7 @@
 <title>Static Call Graph - [LCD_PJ\LCD_PJ.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image LCD_PJ\LCD_PJ.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060960: Last Updated: Wed Jun 17 13:45:09 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060960: Last Updated: Wed Jun 17 16:52:39 2026
 <BR><P>
 <H3>Maximum Stack Usage =       2212 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -887,18 +887,18 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[145]"></a>__aeabi_llsl</STRONG> (Thumb, 30 bytes, Stack size 0 bytes, llshl.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[157]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_double_epilogue
+<BR><BR>[Called By]<UL><LI><a href="#[143]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uldivmod
+<LI><a href="#[157]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_double_epilogue
 <LI><a href="#[155]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dadd
 <LI><a href="#[15b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_d2ulz
-<LI><a href="#[143]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uldivmod
 </UL>
 
 <P><STRONG><a name="[75b]"></a>_ll_shift_l</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, llshl.o(.text), UNUSED)
 
 <P><STRONG><a name="[144]"></a>__aeabi_llsr</STRONG> (Thumb, 32 bytes, Stack size 0 bytes, llushr.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[157]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_double_epilogue
+<BR><BR>[Called By]<UL><LI><a href="#[143]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uldivmod
+<LI><a href="#[157]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_double_epilogue
 <LI><a href="#[15b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_d2ulz
-<LI><a href="#[143]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uldivmod
 </UL>
 
 <P><STRONG><a name="[75c]"></a>_ll_ushift_r</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, llushr.o(.text), UNUSED)
@@ -1042,10 +1042,10 @@ Global Symbols
 <BR><BR>[Stack]<UL><LI>Max Depth = 168<LI>Call Chain = A7680C_CheckNetworkReady &rArr; A7680C_SendAT &rArr; osSemaphoreRelease &rArr; xQueueGenericSend &rArr; xTaskResumeAll &rArr; xTaskIncrementTick
 </UL>
 <BR>[Calls]<UL><LI><a href="#[164]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_SendAT
-<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[162]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_SendAT_CPIN
 <LI><a href="#[165]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_SendAT_CGDCONT
 <LI><a href="#[163]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_SendAT_CGATT_SET
+<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[17e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;netmgr_full_init
 </UL>
@@ -1076,13 +1076,13 @@ Global Symbols
 <BR><BR>[Stack]<UL><LI>Max Depth = 1264<LI>Call Chain = A7680C_HTTP_GetWeatherData &rArr; A7680C_HTTP_SetConfig &rArr; A7680C_SendAT &rArr; osSemaphoreRelease &rArr; xQueueGenericSend &rArr; xTaskResumeAll &rArr; xTaskIncrementTick
 </UL>
 <BR>[Calls]<UL><LI><a href="#[171]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2d
-<LI><a href="#[172]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2snprintf
-<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[176]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Weather_ParseCurrent
 <LI><a href="#[174]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_ParseHttpActionDataLen
 <LI><a href="#[173]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_HTTP_SetConfig
 <LI><a href="#[175]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_HTTP_ReadResponse
 <LI><a href="#[16f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_HTTP_GET
+<LI><a href="#[172]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2snprintf
+<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[97]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Weather_Task
 </UL>
@@ -1108,8 +1108,8 @@ Global Symbols
 <BR><BR>[Stack]<UL><LI>Max Depth = 680<LI>Call Chain = A7680C_HTTP_SetConfig &rArr; A7680C_SendAT &rArr; osSemaphoreRelease &rArr; xQueueGenericSend &rArr; xTaskResumeAll &rArr; xTaskIncrementTick
 </UL>
 <BR>[Calls]<UL><LI><a href="#[164]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_SendAT
-<LI><a href="#[172]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2snprintf
 <LI><a href="#[178]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strlen
+<LI><a href="#[172]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2snprintf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[170]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_HTTP_GetWeatherData
 </UL>
@@ -1157,8 +1157,8 @@ Global Symbols
 <P><STRONG><a name="[16d]"></a>A7680C_ParseCCLK</STRONG> (Thumb, 88 bytes, Stack size 64 bytes, a7680c_at.o(i.A7680C_ParseCCLK))
 <BR><BR>[Stack]<UL><LI>Max Depth = 328<LI>Call Chain = A7680C_ParseCCLK &rArr; __0sscanf &rArr; __vfscanf_char &rArr; __vfscanf &rArr; _scanf_real
 </UL>
-<BR>[Calls]<UL><LI><a href="#[149]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__0sscanf
-<LI><a href="#[180]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strstr
+<BR>[Calls]<UL><LI><a href="#[180]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strstr
+<LI><a href="#[149]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__0sscanf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[167]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_GetNetworkTime_Debug
 </UL>
@@ -1166,8 +1166,8 @@ Global Symbols
 <P><STRONG><a name="[181]"></a>A7680C_ParseCLBS</STRONG> (Thumb, 66 bytes, Stack size 32 bytes, a7680c_at.o(i.A7680C_ParseCLBS))
 <BR><BR>[Stack]<UL><LI>Max Depth = 296<LI>Call Chain = A7680C_ParseCLBS &rArr; __0sscanf &rArr; __vfscanf_char &rArr; __vfscanf &rArr; _scanf_real
 </UL>
-<BR>[Calls]<UL><LI><a href="#[149]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__0sscanf
-<LI><a href="#[180]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strstr
+<BR>[Calls]<UL><LI><a href="#[180]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strstr
+<LI><a href="#[149]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__0sscanf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[97]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Weather_Task
 </UL>
@@ -1175,8 +1175,8 @@ Global Symbols
 <P><STRONG><a name="[182]"></a>A7680C_ParseCSQ</STRONG> (Thumb, 44 bytes, Stack size 16 bytes, a7680c_at.o(i.A7680C_ParseCSQ))
 <BR><BR>[Stack]<UL><LI>Max Depth = 280<LI>Call Chain = A7680C_ParseCSQ &rArr; __0sscanf &rArr; __vfscanf_char &rArr; __vfscanf &rArr; _scanf_real
 </UL>
-<BR>[Calls]<UL><LI><a href="#[149]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__0sscanf
-<LI><a href="#[180]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strstr
+<BR>[Calls]<UL><LI><a href="#[180]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strstr
+<LI><a href="#[149]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__0sscanf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[17f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;netmgr_health_check
 </UL>
@@ -1184,8 +1184,8 @@ Global Symbols
 <P><STRONG><a name="[174]"></a>A7680C_ParseHttpActionDataLen</STRONG> (Thumb, 46 bytes, Stack size 24 bytes, a7680c_http.o(i.A7680C_ParseHttpActionDataLen))
 <BR><BR>[Stack]<UL><LI>Max Depth = 288<LI>Call Chain = A7680C_ParseHttpActionDataLen &rArr; __0sscanf &rArr; __vfscanf_char &rArr; __vfscanf &rArr; _scanf_real
 </UL>
-<BR>[Calls]<UL><LI><a href="#[149]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__0sscanf
-<LI><a href="#[180]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strstr
+<BR>[Calls]<UL><LI><a href="#[180]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strstr
+<LI><a href="#[149]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__0sscanf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[170]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_HTTP_GetWeatherData
 </UL>
@@ -1199,14 +1199,14 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[164]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_SendAT
 </UL>
 
-<P><STRONG><a name="[164]"></a>A7680C_SendAT</STRONG> (Thumb, 128 bytes, Stack size 32 bytes, a7680c.o(i.A7680C_SendAT))
+<P><STRONG><a name="[164]"></a>A7680C_SendAT</STRONG> (Thumb, 136 bytes, Stack size 32 bytes, a7680c.o(i.A7680C_SendAT))
 <BR><BR>[Stack]<UL><LI>Max Depth = 160<LI>Call Chain = A7680C_SendAT &rArr; osSemaphoreRelease &rArr; xQueueGenericSend &rArr; xTaskResumeAll &rArr; xTaskIncrementTick
 </UL>
 <BR>[Calls]<UL><LI><a href="#[186]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSemaphoreRelease
 <LI><a href="#[185]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSemaphoreAcquire
-<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[187]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memcpy
 <LI><a href="#[183]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_Send
+<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[97]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Weather_Task
 <LI><a href="#[17f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;netmgr_health_check
@@ -1381,9 +1381,9 @@ Global Symbols
 <LI><a href="#[194]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BANK_GetActiveBank
 <LI><a href="#[190]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BANK_EnableDualBank
 <LI><a href="#[196]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_Delay
+<LI><a href="#[180]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strstr
 <LI><a href="#[172]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2snprintf
 <LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
-<LI><a href="#[180]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strstr
 </UL>
 <BR>[Called By]<UL><LI><a href="#[2b7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Process_USART1_Data
 </UL>
@@ -1963,10 +1963,10 @@ Global Symbols
 <LI><a href="#[185]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSemaphoreAcquire
 <LI><a href="#[203]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_StatusString
 <LI><a href="#[1fd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_SendData
-<LI><a href="#[172]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2snprintf
-<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[146]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memclr
 <LI><a href="#[187]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memcpy
+<LI><a href="#[172]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2snprintf
+<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[6f9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_device
 <LI><a href="#[41a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_read_status_ex
@@ -2897,14 +2897,13 @@ Global Symbols
 <LI><a href="#[2c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RS485_UART8_Init
 </UL>
 
-<P><STRONG><a name="[27d]"></a>HAL_UARTEx_RxEventCallback</STRONG> (Thumb, 486 bytes, Stack size 32 bytes, usart.o(i.HAL_UARTEx_RxEventCallback))
+<P><STRONG><a name="[27d]"></a>HAL_UARTEx_RxEventCallback</STRONG> (Thumb, 488 bytes, Stack size 32 bytes, usart.o(i.HAL_UARTEx_RxEventCallback))
 <BR><BR>[Stack]<UL><LI>Max Depth = 120<LI>Call Chain = HAL_UARTEx_RxEventCallback &rArr; xStreamBufferSendFromISR &rArr; prvWriteMessageToBuffer &rArr; prvWriteBytesToBuffer &rArr; __aeabi_memcpy
 </UL>
 <BR>[Calls]<UL><LI><a href="#[27e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xStreamBufferSendFromISR
 <LI><a href="#[27f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xQueueGenericSendFromISR
 <LI><a href="#[27b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UARTEx_ReceiveToIdle_IT
 <LI><a href="#[17a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UARTEx_ReceiveToIdle_DMA
-<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[281]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UART_IRQHandler
 <LI><a href="#[282]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART_Receive_IT
@@ -2912,11 +2911,10 @@ Global Symbols
 <LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART_DMAReceiveCplt
 </UL>
 
-<P><STRONG><a name="[280]"></a>HAL_UART_ErrorCallback</STRONG> (Thumb, 120 bytes, Stack size 16 bytes, usart.o(i.HAL_UART_ErrorCallback))
+<P><STRONG><a name="[280]"></a>HAL_UART_ErrorCallback</STRONG> (Thumb, 122 bytes, Stack size 16 bytes, usart.o(i.HAL_UART_ErrorCallback))
 <BR><BR>[Stack]<UL><LI>Max Depth = 84<LI>Call Chain = HAL_UART_ErrorCallback &rArr; HAL_UARTEx_ReceiveToIdle_DMA &rArr; UART_Start_Receive_DMA &rArr; HAL_DMA_Start_IT &rArr; DMA_SetConfig
 </UL>
 <BR>[Calls]<UL><LI><a href="#[17a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UARTEx_ReceiveToIdle_DMA
-<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[281]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UART_IRQHandler
 <LI><a href="#[8f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART_DMAError
@@ -3334,8 +3332,8 @@ Global Symbols
 <LI><a href="#[2bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_handle_bind_cmd
 <LI><a href="#[20b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_StopSearch
 <LI><a href="#[20a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_StartSearch
-<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[2b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strncmp
+<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[98]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RS485_UART_ProcessTask
 </UL>
@@ -4149,7 +4147,7 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[1c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Weather_Widget_Update
 </UL>
 
-<P><STRONG><a name="[307]"></a>Weather_GetShortDesc</STRONG> (Thumb, 208 bytes, Stack size 0 bytes, a7680c_http.o(i.Weather_GetShortDesc))
+<P><STRONG><a name="[307]"></a>Weather_GetShortDesc</STRONG> (Thumb, 204 bytes, Stack size 0 bytes, a7680c_http.o(i.Weather_GetShortDesc))
 <BR><BR>[Called By]<UL><LI><a href="#[1c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Weather_Widget_Update
 </UL>
 
@@ -4160,9 +4158,9 @@ Global Symbols
 <P><STRONG><a name="[176]"></a>Weather_ParseCurrent</STRONG> (Thumb, 160 bytes, Stack size 32 bytes, a7680c_http.o(i.Weather_ParseCurrent))
 <BR><BR>[Stack]<UL><LI>Max Depth = 296<LI>Call Chain = Weather_ParseCurrent &rArr; __0sscanf &rArr; __vfscanf_char &rArr; __vfscanf &rArr; _scanf_real
 </UL>
-<BR>[Calls]<UL><LI><a href="#[149]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__0sscanf
+<BR>[Calls]<UL><LI><a href="#[180]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strstr
+<LI><a href="#[149]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__0sscanf
 <LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
-<LI><a href="#[180]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strstr
 </UL>
 <BR>[Called By]<UL><LI><a href="#[170]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_HTTP_GetWeatherData
 </UL>
@@ -4206,8 +4204,6 @@ Global Symbols
 <LI><a href="#[13]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MemManage_Handler
 <LI><a href="#[12]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HardFault_Handler
 <LI><a href="#[14]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BusFault_Handler
-<LI><a href="#[280]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UART_ErrorCallback
-<LI><a href="#[27d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UARTEx_RxEventCallback
 <LI><a href="#[c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;user_list_item_event_handler
 <LI><a href="#[494]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ensure_user_dir
 <LI><a href="#[195]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BANK_ProcessCommand
@@ -5004,7 +5000,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[18c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;at_process_data
 </UL>
 
-<P><STRONG><a name="[18c]"></a>at_process_data</STRONG> (Thumb, 118 bytes, Stack size 24 bytes, a7680c.o(i.at_process_data))
+<P><STRONG><a name="[18c]"></a>at_process_data</STRONG> (Thumb, 158 bytes, Stack size 24 bytes, a7680c.o(i.at_process_data))
 <BR><BR>[Stack]<UL><LI>Max Depth = 152<LI>Call Chain = at_process_data &rArr; at_notify_result &rArr; osSemaphoreRelease &rArr; xQueueGenericSend &rArr; xTaskResumeAll &rArr; xTaskIncrementTick
 </UL>
 <BR>[Calls]<UL><LI><a href="#[187]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memcpy
@@ -5104,9 +5100,9 @@ Global Symbols
 <LI><a href="#[171]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2d
 <LI><a href="#[38b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;parse_addr
 <LI><a href="#[2ce]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_GetDateTime
-<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[40b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memmove4
 <LI><a href="#[187]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memcpy
+<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[99]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DevicePoll_Task
 <LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;es1642_on_frame_received
@@ -5271,8 +5267,8 @@ Global Symbols
 <LI><a href="#[496]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_close
 <LI><a href="#[38b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;parse_addr
 <LI><a href="#[2ce]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_GetDateTime
-<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[1ce]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memclr4
+<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[6f9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_device
 </UL>
@@ -5320,8 +5316,8 @@ Global Symbols
 <LI><a href="#[4a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_DecodeLocalException
 <LI><a href="#[1ec]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_DecodeEmptyResponse
 <LI><a href="#[1ea]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_DecodeAddr
-<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[187]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memcpy
+<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> es1642_usage_guide.o(i.ES1642_InitModule)
 </UL>
@@ -7110,9 +7106,9 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[4ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;get_glyph_dsc_id
 </UL>
 <BR>[Address Reference Count : 5]<UL><LI> lv_font_montserrat_14.o(.constdata)
-<LI> lv_font_sourcehanserifsc_regular_16.o(.constdata)
 <LI> lv_font_sourcehanserifsc_regular_12.o(.constdata)
 <LI> lv_font_weather_16.o(.constdata)
+<LI> lv_font_sourcehanserifsc_regular_16.o(.constdata)
 <LI> lv_font_montserratmedium_48.o(.constdata)
 </UL>
 <P><STRONG><a name="[582]"></a>lv_font_get_glyph_bitmap</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, lv_font.o(i.lv_font_get_glyph_bitmap))
@@ -7134,9 +7130,9 @@ Global Symbols
 <LI><a href="#[4ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;get_glyph_dsc_id
 </UL>
 <BR>[Address Reference Count : 5]<UL><LI> lv_font_montserrat_14.o(.constdata)
-<LI> lv_font_sourcehanserifsc_regular_16.o(.constdata)
 <LI> lv_font_sourcehanserifsc_regular_12.o(.constdata)
 <LI> lv_font_weather_16.o(.constdata)
+<LI> lv_font_sourcehanserifsc_regular_16.o(.constdata)
 <LI> lv_font_montserratmedium_48.o(.constdata)
 </UL>
 <P><STRONG><a name="[369]"></a>lv_font_get_glyph_width</STRONG> (Thumb, 24 bytes, Stack size 24 bytes, lv_font.o(i.lv_font_get_glyph_width))
@@ -12274,8 +12270,8 @@ Global Symbols
 <LI><a href="#[6f9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_device
 <LI><a href="#[6f8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;make_addr
 <LI><a href="#[49d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;save_devices
-<LI><a href="#[149]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__0sscanf
 <LI><a href="#[1ce]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memclr4
+<LI><a href="#[149]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__0sscanf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[2b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Process_USART6_Data
 </UL>
@@ -12286,8 +12282,8 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[501]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;host_mac_to_string
 <LI><a href="#[4ff]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;host_addr_to_string
 <LI><a href="#[2bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_usart6_send
-<LI><a href="#[500]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2sprintf
 <LI><a href="#[178]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strlen
+<LI><a href="#[500]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2sprintf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[2b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Process_USART6_Data
 </UL>
@@ -12298,8 +12294,8 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[501]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;host_mac_to_string
 <LI><a href="#[4ff]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;host_addr_to_string
 <LI><a href="#[2bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_usart6_send
-<LI><a href="#[500]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2sprintf
 <LI><a href="#[178]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strlen
+<LI><a href="#[500]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2sprintf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;es1642_on_frame_received
 </UL>
@@ -12795,8 +12791,8 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[171]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2d
 <LI><a href="#[70a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_save
 <LI><a href="#[2ce]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_GetDateTime
-<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[40b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memmove4
+<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[99]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DevicePoll_Task
 </UL>
@@ -12812,8 +12808,8 @@ Global Symbols
 <LI><a href="#[171]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2d
 <LI><a href="#[70a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_save
 <LI><a href="#[2ce]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_GetDateTime
-<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[1ce]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memclr4
+<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[92]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lvgl_task
 </UL>
@@ -12844,9 +12840,9 @@ Global Symbols
 <LI><a href="#[495]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_open
 <LI><a href="#[496]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_close
 <LI><a href="#[4b5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_gets
-<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[2b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strncmp
 <LI><a href="#[178]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strlen
+<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[92]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lvgl_task
 </UL>
@@ -12859,9 +12855,9 @@ Global Symbols
 <LI><a href="#[497]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_write
 <LI><a href="#[495]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_open
 <LI><a href="#[496]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_close
+<LI><a href="#[178]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strlen
 <LI><a href="#[172]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2snprintf
 <LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
-<LI><a href="#[178]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strlen
 </UL>
 <BR>[Called By]<UL><LI><a href="#[717]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_save
 </UL>
@@ -12869,13 +12865,13 @@ Global Symbols
 <P><STRONG><a name="[710]"></a>tcp_dispatch_frame</STRONG> (Thumb, 92 bytes, Stack size 8 bytes, tcp_cmd_handler.o(i.tcp_dispatch_frame))
 <BR><BR>[Stack]<UL><LI>Max Depth = 1508<LI>Call Chain = tcp_dispatch_frame &rArr; tcp_resp_bind_device &rArr; update_device &rArr; ES1642_SendUserData &rArr; ES1642_SendData &rArr; ES1642_SendFrame &rArr; ES1642_BuildFrame &rArr; es1642_calc_checksum
 </UL>
-<BR>[Calls]<UL><LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
-<LI><a href="#[716]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_send_error
+<BR>[Calls]<UL><LI><a href="#[716]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_send_error
 <LI><a href="#[715]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_resp_user_data
 <LI><a href="#[714]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_resp_stop_search
 <LI><a href="#[713]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_resp_start_search
 <LI><a href="#[711]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_resp_device_list
 <LI><a href="#[712]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_resp_bind_device
+<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[4e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_frame_handler
 </UL>
@@ -12899,8 +12895,8 @@ Global Symbols
 <LI><a href="#[6f8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;make_addr
 <LI><a href="#[49d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;save_devices
 <LI><a href="#[719]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_send_frame
-<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[716]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_send_error
+<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[710]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_dispatch_frame
 </UL>
@@ -12910,8 +12906,8 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[1e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osDelay
 <LI><a href="#[719]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_send_frame
-<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[187]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memcpy
+<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[710]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_dispatch_frame
 </UL>
@@ -12941,8 +12937,8 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[1e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osDelay
 <LI><a href="#[719]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_send_frame
-<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[187]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memcpy
+<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[710]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_dispatch_frame
 </UL>
@@ -12977,8 +12973,8 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[6fd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;send
 <LI><a href="#[501]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;host_mac_to_string
 <LI><a href="#[4ff]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;host_addr_to_string
-<LI><a href="#[500]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2sprintf
 <LI><a href="#[178]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strlen
+<LI><a href="#[500]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2sprintf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;es1642_on_frame_received
 </UL>
@@ -13057,8 +13053,8 @@ Global Symbols
 <LI><a href="#[4a2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;find_device_by_mac
 <LI><a href="#[209]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_SetPsk
 <LI><a href="#[208]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_SendUserData
-<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[4d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;memcmp
+<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[2bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_handle_bind_cmd
 <LI><a href="#[712]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_resp_bind_device
@@ -13068,9 +13064,9 @@ Global Symbols
 <BR><BR>[Stack]<UL><LI>Max Depth = 1048<LI>Call Chain = user_detail_cache_init &rArr; read_user_data &rArr; f_open &rArr; dir_register &rArr; dir_find &rArr; dir_next &rArr; create_chain &rArr; put_fat &rArr; move_window &rArr; sync_window &rArr; disk_write
 </UL>
 <BR>[Calls]<UL><LI><a href="#[40a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;read_user_data
-<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[1ce]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memclr4
 <LI><a href="#[187]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memcpy
+<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[92]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lvgl_task
 <LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;es1642_on_frame_received
@@ -19720,8 +19716,8 @@ Local Symbols
 <LI><a href="#[5b2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_textarea_get_text
 <LI><a href="#[71c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_set_server_addr
 <LI><a href="#[70f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_config_save
-<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[178]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strlen
+<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_kb_custom_handler
 </UL>
@@ -20442,8 +20438,8 @@ Local Symbols
 <BR>[Calls]<UL><LI><a href="#[4e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_frame_handler
 <LI><a href="#[4e4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;frame_parser_reset
 <LI><a href="#[3bf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;crc16_ccitt
-<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[187]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memcpy
+<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[306]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;frame_parser_feed
 </UL>
@@ -20486,9 +20482,9 @@ Local Symbols
 <LI><a href="#[1cf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DHCP_init
 <LI><a href="#[6a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;wizchip_setnetinfo
 <LI><a href="#[1d0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WIZCHIP_READ_BUF
-<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[72e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;wiz_delete_timer
 <LI><a href="#[72c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;wiz_add_timer
+<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[300]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;network_init
 </UL>
@@ -20522,7 +20518,6 @@ Local Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[1e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osDelay
 <LI><a href="#[1cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osTimerStart
-<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[177]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_HTTP_Init
 <LI><a href="#[17c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_MQTT_Start
 <LI><a href="#[17b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_MQTT_Connect
@@ -20530,6 +20525,7 @@ Local Symbols
 <LI><a href="#[188]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_SendATE0
 <LI><a href="#[167]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_GetNetworkTime_Debug
 <LI><a href="#[161]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_CheckNetworkReady
+<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[17d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_NetManager_Process
 </UL>
@@ -20539,32 +20535,32 @@ Local Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[6a8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_GetLevel
 <LI><a href="#[164]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_SendAT
-<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[18a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_SendAT_CSQ
 <LI><a href="#[162]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_SendAT_CPIN
 <LI><a href="#[189]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_SendAT_CFUN
 <LI><a href="#[182]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_ParseCSQ
+<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[17d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_NetManager_Process
 </UL>
 
 <P><STRONG><a name="[310]"></a>_fp_digits</STRONG> (Thumb, 366 bytes, Stack size 64 bytes, printfa.o(i._fp_digits), UNUSED)
-<BR><BR>[Calls]<UL><LI><a href="#[14f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dmul
+<BR><BR>[Calls]<UL><LI><a href="#[143]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uldivmod
+<LI><a href="#[14f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dmul
 <LI><a href="#[150]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_ddiv
 <LI><a href="#[155]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dadd
 <LI><a href="#[15b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_d2ulz
 <LI><a href="#[311]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_cdrcmple
-<LI><a href="#[143]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uldivmod
 </UL>
 <BR>[Called By]<UL><LI><a href="#[30b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_printf_core
 </UL>
 
 <P><STRONG><a name="[30b]"></a>_printf_core</STRONG> (Thumb, 1704 bytes, Stack size 136 bytes, printfa.o(i._printf_core), UNUSED)
-<BR><BR>[Calls]<UL><LI><a href="#[371]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uidivmod
+<BR><BR>[Calls]<UL><LI><a href="#[143]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uldivmod
+<LI><a href="#[371]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uidivmod
 <LI><a href="#[36f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_printf_pre_padding
 <LI><a href="#[370]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_printf_post_padding
 <LI><a href="#[310]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_fp_digits
-<LI><a href="#[143]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uldivmod
 </UL>
 <BR>[Called By]<UL><LI><a href="#[30d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__0sprintf
 <LI><a href="#[30c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__0snprintf

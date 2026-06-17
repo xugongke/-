@@ -9,13 +9,33 @@ char *keyword = NULL;
 /* DMA接收数据缓冲区,必须放到SRAM中，要不然DMA没办法访问！！！！！ */
 __attribute__((section("RW_IRAM1")))// 放到普通 SRAM（0x20000000）
 uint8_t a7680c_rx_buf[UART_RX_DMA_SIZE];
-
+//流式拼接缓冲区，接收到的完整的4G数据存储在这里面
 __attribute__((section("RW_IRAM2")))// 放到 CCM RAM（0x10000000）
 uint8_t at_parse_buf[AT_PARSE_BUFFER_SIZE] = {[AT_PARSE_BUFFER_SIZE - 1] = '\0',[AT_PARSE_BUFFER_SIZE - 2] = '\n',[AT_PARSE_BUFFER_SIZE - 3] = '\r'};//流式拼接缓冲区，接收到的完整的4G数据存储在这里面
 uint16_t at_index = 0;//记录缓冲区下标
 
 /* 接收到的完整帧总长度 */
 uint16_t a7680c_rx_len = 0;
+
+/* ==================== P0修复：竞态条件消除 ==================== */
+/*
+ * 问题：SendAT(StartDefaultTask)直接写 at_index=0，与 at_process_data(A7680C_Task)
+ *       的 at_index+=len 并发，导致缓冲区位置错乱。
+ *
+ * 方案：
+ * 1. SendAT 不再直接写 at_index，改为设置 at_need_reset 标志
+ * 2. at_process_data 在下次执行时检查该标志并执行重置（单任务内操作，无竞态）
+ * 3. 匹配成功时先把完整响应拷贝到 at_response_buf，再释放信号量
+ *    SendAT 从 at_response_buf 读取（信号量保证时序），避免 at_parse_buf 被后续数据覆盖
+ */
+
+/* 安全结果缓冲区：只在 at_process_data 中写入、在 SendAT 中读取，信号量保证不并发 */
+__attribute__((section("RW_IRAM2")))
+static uint8_t at_response_buf[AT_PARSE_BUFFER_SIZE];
+static uint16_t at_response_len = 0;
+
+/* 缓冲区重置请求标志：SendAT 设置，at_process_data 检查并执行 */
+static volatile uint8_t at_need_reset = 0;
 
 //通知函数（接收任务调用）
 void at_notify_result(at_result_t result)
@@ -67,13 +87,13 @@ uint8_t A7680C_SendAT(char *cmd, char *ack, uint32_t timeout,uint8_t* data)
         return 0; // 获取不到锁，直接退出（不会进入业务）
     }
 
-    // 清空接收缓冲区
-    at_index = 0;
-    keyword = ack;  // 设置本次要等待的关键字,因为同一时刻只允许一个任务调用A7680C_Send，所以不用担心keyword被覆盖
+    // 【P0修复】不再直接写 at_index=0（会和 A7680C_Task 的 at_process_data 竞态）
+    // 改为设置重置标志，由 at_process_data 在自己的任务上下文中执行重置
+    at_need_reset = 1;
+    keyword = ack;  // 设置本次要等待的关键字
 
     // ==============================================
     // 【第二步：清空残留信号量】
-    // 因为这个信号量是接收任务释放的，必须清空历史残留
     // ==============================================
     while (osSemaphoreAcquire(at_semHandle, 0) == osOK);
 
@@ -90,24 +110,28 @@ uint8_t A7680C_SendAT(char *cmd, char *ack, uint32_t timeout,uint8_t* data)
     {
         // 收到响应
         ret = at_result;
-				if(ret == AT_RESULT_ERROR)
+			if(ret == AT_RESULT_ERROR)
+			{
+				printf("%s%s",cmd,at_response_buf);
+			}
+			else
+			{
+				if(data != NULL && at_response_len > 0)
 				{
-					printf("%s%s",cmd,at_parse_buf);
+					/* 【P0修复】从安全结果缓冲区读取，而非直接读 at_parse_buf
+					 * at_response_buf 在 at_process_data 中写入后释放信号量，
+					 * 此处信号量已获取，保证不会并发 */
+					memcpy(data, at_response_buf, at_response_len + 1);
 				}
-				else
-				{
-					if(data != NULL)
-					{//接收到的完整帧保存到了data中，不用担心at_parse_buf被覆盖导致数据丢失了
-						memcpy(data, at_parse_buf, a7680c_rx_len + 1);//加一是因为最后还有个字符串结束符号
-					}
-				}
+			}
     }
     else
     {
-//        printf("在指定时间里没找到目标字符串：%s\r\n",ack);
-//				printf("模块响应的字符串为:%s\r\n",at_parse_buf);
         ret = AT_RESULT_TIMEOUT;
     }
+
+    // 【P0修复附加】清除 keyword，防止 SendAT 返回后 URC 数据误匹配旧关键字
+    keyword = NULL;
 
     // ==============================================
     // 【第五步：释放互斥锁 —— 允许下一个任务调用】
@@ -125,12 +149,22 @@ int at_find(const char *key)
 }
 /**
 * @brief  流式拼接处理函数，现在只处理的单片机主动发送AT命令的情况，还没有处理云平台主动发送命令的情况
- */
+* @note   本函数只在 A7680C_Task 中调用，所有对 at_index/at_parse_buf 的修改都在单任务内完成，
+*         消除了与 SendAT 的跨任务竞态。
+*/
 void at_process_data(uint8_t *data, uint16_t len)
 {
 		if (data == NULL || len == 0) return;
-	
-    if (len >= AT_PARSE_BUFFER_SIZE) {
+
+	/* 【P0修复】检查重置请求标志（由 SendAT 在另一个任务中设置）
+	 * 在这里执行 at_index=0 是安全的，因为本函数是 at_index 的唯一写者 */
+	if (at_need_reset)
+	{
+		at_index = 0;
+		at_need_reset = 0;
+	}
+
+	if (len >= AT_PARSE_BUFFER_SIZE) {
         len = AT_PARSE_BUFFER_SIZE - 1;
         at_index = 0;
     } else if (at_index + len >= AT_PARSE_BUFFER_SIZE) {
@@ -144,14 +178,20 @@ void at_process_data(uint8_t *data, uint16_t len)
     // 判断响应（keyword为NULL说明没有等待中的AT命令，跳过匹配）
     if (keyword != NULL && at_find(keyword))
     {
-				a7680c_rx_len = at_index;
+			/* 【P0修复】匹配成功时，先把完整响应拷贝到安全缓冲区，再释放信号量
+			 * 这样 SendAT 被唤醒后从 at_response_buf 读取的数据不会被后续数据覆盖 */
+			at_response_len = at_index;
+			memcpy(at_response_buf, at_parse_buf, at_index + 1); /* +1 包含'\0' */
+			a7680c_rx_len = at_index;
         at_notify_result(AT_RESULT_OK);
         at_index = 0;
     }
     else if (keyword != NULL && at_find("ERROR"))
     {
-				a7680c_rx_len = at_index;
-				at_notify_result(AT_RESULT_ERROR);
+			at_response_len = at_index;
+			memcpy(at_response_buf, at_parse_buf, at_index + 1);
+			a7680c_rx_len = at_index;
+			at_notify_result(AT_RESULT_ERROR);
         at_index = 0;
     }
 }
