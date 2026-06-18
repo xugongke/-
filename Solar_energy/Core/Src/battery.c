@@ -305,7 +305,7 @@ static lv_timer_t *status_bar_timer = NULL;
 #define SOLAR_VOLTAGE_DIVIDER   48.0f
 #define SOLAR_ADC_VREF          3.3f
 #define SOLAR_ADC_RESOLUTION    4096.0f
-#define SOLAR_ADC_SAMPLES       8
+#define SOLAR_ADC_SAMPLES       5
 
 /**
  * @brief 太阳能电压校准系数
@@ -314,7 +314,7 @@ static lv_timer_t *status_bar_timer = NULL;
  *        例: 实际30V, 显示28.2V → 校准系数 = 30/28.2 = 1.064
  *        设为 1.0 表示不校准
  */
-#define SOLAR_CALIBRATION       1.064f
+#define SOLAR_CALIBRATION       1.02285f
 
 
 /* 太阳能电压缓存 (V), 由 Solar_UpdateCache() 写入 */

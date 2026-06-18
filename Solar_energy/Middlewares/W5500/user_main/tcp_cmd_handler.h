@@ -12,6 +12,8 @@
  *   0x04 = 绑定设备
  *   0x05 = 开始搜索设备
  *   0x06 = 停止搜索设备
+ *   0x07 = 读取用户用电量数据
+ *   0x08 = 读取太阳能板发电量
  */
 #ifndef __TCP_CMD_HANDLER_H
 #define __TCP_CMD_HANDLER_H
@@ -29,6 +31,7 @@
 #define CMD_START_SEARCH     0x05  /* 开始搜索设备 */
 #define CMD_STOP_SEARCH      0x06  /* 停止搜索设备 */
 #define CMD_GET_USER_DATA    0x07  /* 读取用户用电量数据 */
+#define CMD_GET_SOLAR_ENERGY 0x08  /* 读取太阳能板发电量 */
 
 /* ==================== 错误码 ==================== */
 #define ERR_INVALID_CMD      0x01  /* 无效命令 */
@@ -85,6 +88,11 @@ void tcp_resp_stop_search(void);
  * @brief   分包发送用户用电量数据 (响应CMD_GET_USER_DATA)
  */
 void tcp_resp_user_data(void);
+
+/**
+ * @brief   发送太阳能板发电量数据 (响应CMD_GET_SOLAR_ENERGY)
+ */
+void tcp_resp_solar_energy(void);
 
 #endif /* __TCP_CMD_HANDLER_H */
 

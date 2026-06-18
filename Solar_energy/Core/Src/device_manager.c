@@ -328,15 +328,6 @@ FRESULT load_devices(void)
 		//br是实际读取到的字节数,也就是用户真实的数量
     device_count = br / sizeof(device_t);
 
-		//设置显示所有错误
-    for (int i = 0; i < device_count; i++)
-    {
-        device_list[i].state.bits.comm_err = 1;
-        device_list[i].state.bits.relay_err = 1;
-        device_list[i].state.bits.temp_err = 1;
-        device_list[i].state.bits.power_reverse = 1;
-    }
-
     printf("加载设备数量:%d\r\n", device_count);
 
     return FR_OK;
@@ -685,9 +676,6 @@ void daily_energy_flush_to_sd(void)
     {
         /* 跳过未入网的设备 */
         if (device_list[i].state.bits.valid == 0) continue;
-
-        /* 跳过本日无累积的设备（减少SD卡写入次数） */
-        if (daily_energy_wh[i] <= 0.0f) continue;
 
         /* 从SD卡读取用户数据文件 */
         user_data_file_t user_data;

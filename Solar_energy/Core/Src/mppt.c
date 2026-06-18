@@ -118,7 +118,7 @@ void accumulate_energy(void)
             /* power 单位 W, 间隔单位 秒, 转换为 Wh */
             g_mppt.energy_wh += power * (float)(elapsed_sec) / 3600.0f;
         }
-        printf("累计发电量:elapsed_sec=%lu +%.3fWh (总: %.3fWh)\r\n",
+        printf("累计发电量:elapsed_sec=%lus +%.3fWh (总: %.3fWh)\r\n",
                (unsigned long)elapsed_sec, power * (float)(elapsed_sec) / 3600.0f, g_mppt.energy_wh);
         energy_last_tick = now;
     }

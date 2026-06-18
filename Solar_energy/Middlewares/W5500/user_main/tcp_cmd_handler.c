@@ -7,6 +7,7 @@
 #include "user_main.h"
 #include "device_manager.h"
 #include "user_data_manager.h"
+#include "mppt.h"
 #include "host_comm.h"
 #include "socket.h"
 #include "cmsis_os.h"
@@ -77,8 +78,13 @@ void tcp_dispatch_frame(uint8_t type, uint8_t cmd, const uint8_t *data, uint16_t
             break;
 
         case CMD_GET_USER_DATA:
-            /* 读取用户用电量数据: 数据域为空 */
+            /* 读取用户 用电量 数据: 数据域为空 */
             tcp_resp_user_data();
+            break;
+
+        case CMD_GET_SOLAR_ENERGY:
+            /* 读取太阳能板 发电量 : 数据域为空 */
+            tcp_resp_solar_energy();
             break;
 
         default:
@@ -354,4 +360,66 @@ void tcp_resp_user_data(void)
     }
 
     printf("User data sent: %d users, %d packets\r\n", total_users, total_packs);
+}
+
+/* ==================== 太阳能发电量响应结构体 ====================
+ * 用于CMD_GET_SOLAR_ENERGY(0x08)响应帧数据域的打包, 紧凑无填充
+ * 数据域布局(共82字节):
+ *   [daily_generation_kwh   4B][monthly_generation_kwh 4B]
+ *   [annual_generation_kwh  4B][total_generation_kwh   4B]
+ *   [history_daily[15]    15*4=60B]
+ *   [update_time             6B]
+ */
+#pragma pack(push, 1)
+typedef struct {
+    float    daily_generation_kwh;               /* 日发电量(kWh) */
+    float    monthly_generation_kwh;             /* 月发电量(kWh) */
+    float    annual_generation_kwh;              /* 年发电量(kWh) */
+    float    total_generation_kwh;               /* 总发电量(kWh) */
+    float    history_daily[SOLAR_HISTORY_DAYS];  /* 近15日发电量(kWh) */
+    user_data_timestamp_t update_time;           /* 数据最后更新时间 */
+} solar_energy_resp_t;
+#pragma pack(pop)
+
+/**
+ * @brief   发送太阳能板发电量数据 (响应CMD_GET_SOLAR_ENERGY)
+ *
+ * 响应帧数据域格式 (CMD=0x08在帧头命令字字段, 不在数据域中):
+ *   [daily_generation_kwh   4B][monthly_generation_kwh 4B]
+ *   [annual_generation_kwh  4B][total_generation_kwh   4B]
+ *   [history_daily[15]    15*4=60B]
+ *   [update_time             6B]
+ *
+ * 多字节字段均为小端序 (ARM Cortex-M 默认小端)
+ * 数据域长度 = sizeof(solar_energy_resp_t) = 82 字节 ≤ 512, 单帧发送
+ */
+void tcp_resp_solar_energy(void)
+{
+    if (!g_tcp_connected)
+        return;
+
+    /* 定义响应数据结构体, 从全局缓存中填充 */
+    solar_energy_resp_t resp;
+
+    resp.daily_generation_kwh   = g_solar_energy.daily_generation_kwh;
+    resp.monthly_generation_kwh = g_solar_energy.monthly_generation_kwh;
+    resp.annual_generation_kwh  = g_solar_energy.annual_generation_kwh;
+    resp.total_generation_kwh   = g_solar_energy.total_generation_kwh;
+
+    memcpy(resp.history_daily, g_solar_energy.history_daily, sizeof(resp.history_daily));
+    memcpy(&resp.update_time, &g_solar_energy.update_time, sizeof(user_data_timestamp_t));
+
+    /* 统一拷贝到帧数据缓冲区 */
+    memcpy(g_frame_data_buf, &resp, sizeof(solar_energy_resp_t));
+
+    /* 发送响应帧 (单帧, 无需分包) */
+    tcp_send_frame(FRAME_TYPE_RESPONSE, CMD_GET_SOLAR_ENERGY,
+                   g_frame_data_buf, sizeof(solar_energy_resp_t));
+
+    // printf("Solar energy sent: 日=%.3f, 月=%.3f, 年=%.3f, 总=%.3f kWh, %d bytes\r\n",
+    //        g_solar_energy.daily_generation_kwh,
+    //        g_solar_energy.monthly_generation_kwh,
+    //        g_solar_energy.annual_generation_kwh,
+    //        g_solar_energy.total_generation_kwh,
+    //        (int)sizeof(solar_energy_resp_t));
 }

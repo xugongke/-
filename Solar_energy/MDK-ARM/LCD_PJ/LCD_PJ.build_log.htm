@@ -27,37 +27,8 @@ Project File Date:  06/15/2026
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 7 (build 960)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'LCD_PJ'
-compiling lv_font_SourceHanSerifSC_Regular_16.c...
-compiling a7680c_http.c...
-compiling battery.c...
+compiling device_manager.c...
+..\Core\Src\device_manager.c(547): warning:  #177-D: variable "payload"  was declared but never referenced
+      char payload[128];
+..\Core\Src\device_manager.c: 1 warning, 0 errors
 linking...
-Program Size: Code=233956 RO-data=237364 RW-data=8788 ZI-data=167508  
-FromELF: creating hex file...
-After Build - User command #1: C:\Keil_v5\ARM\ARMCC\bin\fromelf.exe --bin --output ./BIN/LCD_PJ.bin ./LCD_PJ/LCD_PJ.axf
-"LCD_PJ\LCD_PJ.axf" - 0 Error(s), 0 Warning(s).
-
-<h2>Software Packages used:</h2>
-
-Package Vendor: ARM
-                http://www.keil.com/pack/ARM.CMSIS.5.7.0.pack
-                ARM.CMSIS.5.7.0
-                CMSIS (Cortex Microcontroller Software Interface Standard)
-   * Component: CORE Version: 5.4.0
-
-Package Vendor: Keil
-                https://www.keil.com/pack/Keil.STM32F4xx_DFP.3.1.1.pack
-                Keil.STM32F4xx_DFP.3.1.1
-                STMicroelectronics STM32F4 Series Device Support
-
-<h2>Collection of Component include folders:</h2>
-  ./RTE/_LCD_PJ
-  C:/Keil_v5/ARM/PACK/ARM/CMSIS/5.7.0/CMSIS/Core/Include
-
-<h2>Collection of Component Files used:</h2>
-
-   * Component: ARM::CMSIS:CORE:5.4.0
-      Include file:  CMSIS/Core/Include/tz_context.h
-Build Time Elapsed:  00:00:13
-</pre>
-</body>
-</html>
