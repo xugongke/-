@@ -448,6 +448,14 @@ void es1642_on_frame_received(es1642_handle_t *handle,
             status = ES1642_DecodeRecvData(frame, &recv_data);
             if (status == ES1642_STATUS_OK)
             {
+                /* 异步模式（0x02/0x03加热控制ACK）：直接更新设备状态，不走阻塞信号量路径 */
+                if (g_es1642_wait_type != ES1642_WAIT_RECV_DATA)
+                {
+                    device_async_update_from_ack(recv_data.src_addr,
+                                                 recv_data.user_data,
+                                                 recv_data.user_data_len);
+                    break;
+                }
                 printf("收到数据: 源地址=%02X:%02X:%02X:%02X:%02X:%02X, "
                        "长度=%d, RSSI=%d, 中继深度:%d\r\n",
                        recv_data.src_addr[0], recv_data.src_addr[1],
@@ -706,6 +714,62 @@ int ES1642_SendUserData(int dev_index,
         osSemaphoreRelease(ES1642_mutexHandle);//解锁
         return -2; /* 响应超时 */
     }
+}
+
+/**
+ * @brief  发送控制命令到指定设备（不等ACK，非阻塞）
+ * @param  dev_index: 目标设备在device_list中的下标
+ * @param  data: 要发送的用户数据(含cmd/len/data)
+ * @param  len: 数据长度
+ * @retval 0: 发送成功, -1: 参数错误/发送失败
+ * @note   用于MPPT加热控制(0x02/0x03)，发完立即返回不等ACK。
+ *         从机ACK在 es1642_on_frame_received 回调里异步处理。
+ */
+int ES1642_SendControlNoAck(int dev_index,
+                            const uint8_t *data,
+                            uint16_t len)
+{
+    es1642_status_t status;
+
+    if (dev_index < 0 || dev_index >= device_count || (len > 0 && data == NULL))
+    {
+        return -1;
+    }
+
+    const uint8_t *dst_addr = device_list[dev_index].addr;
+
+    if (g_es1642_searching)
+    {
+        return -1;
+    }
+
+    /* 获取互斥锁：保证发送串行化 */
+    if (osSemaphoreAcquire(ES1642_mutexHandle, osWaitForever) != osOK)
+    {
+        return -1;
+    }
+
+    /* 清空残留信号量 */
+    while (osSemaphoreAcquire(ES1642_sendHandle, 0) == osOK) {}
+
+    /* 设为非等待模式：ACK到达时回调走异步处理路径 */
+    g_es1642_wait_type = ES1642_WAIT_NONE;
+    Current_addr = (uint8_t*)dst_addr;
+
+    /* 发送控制命令帧 */
+    status = ES1642_SendData(&g_es1642_handle, dst_addr, data, len, 0, true);
+
+    Current_addr = NULL;
+
+    /* 立即释放互斥锁，不等ACK */
+    osSemaphoreRelease(ES1642_mutexHandle);
+
+    if (status != ES1642_STATUS_OK)
+    {
+        return -1;
+    }
+
+    return 0;
 }
 
 /**

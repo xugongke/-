@@ -6,7 +6,7 @@
 
 // ================== 配置参数 ==================
 #define MAX_DEVICES 256      // 最大设备数量
-#define LOAD_RESISTANCE 8    // 热水器负载电阻(Ω)
+#define LOAD_RESISTANCE 14.06f  // 热水器负载电阻(Ω) 150V/1600W=14.06Ω
 #define DEVICE_FILE "0:/devices.bin"   // 存储文件名
 
 // ================== 设备状态位图共用体 ==================
@@ -43,6 +43,9 @@ typedef struct
  *        不保存到 device_t 结构体中，避免影响 SD 卡文件格式
  */
 extern float daily_energy_wh[MAX_DEVICES];
+
+/* 各设备连续未收到ACK计数（异步MPPT通信失败检测） */
+extern uint8_t no_ack_count[MAX_DEVICES];
 
 /**
  * @brief 各设备上次成功获取数据的时间戳（秒数，用于计算两次轮询间的实际时间差）
@@ -185,5 +188,24 @@ extern alert_item_t  g_alert_items[ALERT_MAX_ITEMS];
  * @note  在 device_poll_all_status() 之后调用, 不涉及LVGL API
  */
 void alert_scan_devices(void);
+
+/* ================== MPPT异步架构新增接口 ================== */
+
+/**
+ * @brief 按通信地址查找设备（用于异步ACK回调匹配设备）
+ */
+int find_device_by_addr(const uint8_t *addr);
+
+/**
+ * @brief 异步处理从机加热控制ACK（在es1642回调中调用）
+ * @note  解析ACK中的温度/电压/状态，更新device_list并累加用电量
+ */
+void device_async_update_from_ack(const uint8_t *src_addr, const uint8_t *user_data, uint16_t user_data_len);
+
+/**
+ * @brief MPPT轮询+控制合一（不等ACK，快速逐台发送控制命令）
+ * @note  替代原device_poll_all_status，每轮MPPT决策后逐台发0x02/0x03
+ */
+void device_poll_and_control_all(void);
 
 #endif

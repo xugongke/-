@@ -38,7 +38,7 @@ extern "C" {
  * @brief 单台热水器加热管电阻 (Ω)
  * @note  硬件工程师确认: 直流加热管视为恒定 8Ω 电阻
  */
-#define MPPT_HEATER_RESISTANCE      8.0f
+#define MPPT_HEATER_RESISTANCE      14.06f  /* 150V/1600W = 14.06Ω */
 
 /**
  * @brief 直流总线最低工作电压 (V)
@@ -176,6 +176,11 @@ typedef struct {
 
 extern mppt_data_t g_mppt;
 
+/* MPPT每台设备的目标加热状态 (1=启动加热, 0=停止加热)
+ * 由MPPT_Decide()生成，由device_poll_and_control_all()读取发送
+ * 数组大小为MAX_DEVICES(256)，在mppt.c中定义 */
+extern uint8_t g_mppt_target[];
+
 /* ========================== 函数原型 ========================== */
 
 /**
@@ -237,6 +242,14 @@ void MPPT_ForceRescan(void);
 uint8_t MPPT_SetActiveHeaters(uint8_t target_count);
 
 void accumulate_energy(void);
+
+/**
+ * @brief  MPPT决策（每轮轮询控制前调用一次）
+ * @note   基于上轮ACK回报的数据(电压/温度/n_active)做P&O决策，
+ *         生成每台设备的目标加热状态到g_mppt_target[]。
+ *         使用评分排序机制选管（温度低的优先开），方便后期扩展公平性/轮换条件。
+ */
+void MPPT_Decide(void);
 #ifdef __cplusplus
 }
 #endif

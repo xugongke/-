@@ -161,6 +161,20 @@ int ES1642_SendUserData(int dev_index,
                         es1642_response_t *response);
 
 /**
+ * @brief  发送控制命令到指定设备（不等ACK，非阻塞）
+ * @param  dev_index: 目标设备在device_list中的下标
+ * @param  data: 要发送的数据
+ * @param  len: 数据长度
+ * @retval 0: 发送成功, -1: 参数错误/发送失败
+ * @note   用于MPPT加热控制(0x02/0x03)，发完立即返回不等ACK。
+ *         从机的ACK响应在 es1642_on_frame_received 回调里异步处理。
+ *         需配合 ES1642_mutex 使用（内部已处理）。
+ */
+int ES1642_SendControlNoAck(int dev_index,
+                            const uint8_t *data,
+                            uint16_t len);
+
+/**
  * @brief  发送广播数据
  * @param  data: 要发送的数据
  * @param  len: 数据长度

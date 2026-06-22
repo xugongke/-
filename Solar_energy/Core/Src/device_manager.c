@@ -26,6 +26,7 @@ uint16_t device_count = 0;
 // 运行时临时数据
 float daily_energy_wh[MAX_DEVICES];   // 各设备当日累积电量 (Wh)
 uint32_t last_poll_time[MAX_DEVICES]; // 各设备上次成功获取数据的时间戳（秒数）
+uint8_t  no_ack_count[MAX_DEVICES];   // 各设备连续未收到ACK计数（异步MPPT通信失败检测）
 
 // 标志：设备是否有变化（用于减少SD写入）
 static uint8_t device_changed = 0;
@@ -264,6 +265,7 @@ void Clear_devices(void)
 	memset(device_list,0,sizeof(device_list));
 	memset(daily_energy_wh,0,sizeof(daily_energy_wh));
 	memset(last_poll_time,0,sizeof(last_poll_time));
+	memset(no_ack_count,0,sizeof(no_ack_count));
 	memset(user_detail_cache,0,sizeof(user_detail_cache));
 	device_count = 0;
     poll_initialized = 0;
@@ -750,6 +752,111 @@ void daily_energy_flush_to_sd(void)
     }
 
     printf("零点结算完成\r\n");
+}
+
+// ================== MPPT异步架构：按通信地址查找设备 ==================
+int find_device_by_addr(const uint8_t *addr)
+{
+    if (addr == NULL) return -1;
+    for (int i = 0; i < device_count; i++)
+    {
+        if (memcmp(device_list[i].addr, addr, 6) == 0)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+// ================== MPPT异步架构：异步处理从机ACK ==================
+void device_async_update_from_ack(const uint8_t *src_addr, const uint8_t *user_data, uint16_t user_data_len)
+{
+    int i;
+    uint32_t now_sec, prev_sec, elapsed_sec;
+    float voltage, power_w, energy_wh;
+
+    if (src_addr == NULL || user_data == NULL || user_data_len < 7) return;
+
+    uint8_t cmd = user_data[0];
+    if (cmd != SLAVE_CMD_HEATER_ON && cmd != SLAVE_CMD_HEATER_OFF) return;
+    if (user_data[1] != 0x05) return;
+
+    i = find_device_by_addr(src_addr);
+    if (i < 0) return;
+
+    taskENTER_CRITICAL();
+    device_list[i].temperature = (int8_t)user_data[3];
+    device_list[i].input_voltage = (uint16_t)user_data[4] | ((uint16_t)user_data[5] << 8);
+    uint8_t state_byte = user_data[6];
+    device_list[i].state.bits.dc_heating    = (state_byte & 0x02) ? 1 : 0;
+    device_list[i].state.bits.relay_err     = (state_byte & 0x20) ? 1 : 0;
+    device_list[i].state.bits.temp_err      = (state_byte & 0x40) ? 1 : 0;
+    device_list[i].state.bits.power_reverse = (state_byte & 0x80) ? 1 : 0;
+    device_list[i].comm_fail_cnt = 0;
+    device_list[i].state.bits.comm_err = 0;
+    no_ack_count[i] = 0;
+    taskEXIT_CRITICAL();
+
+    now_sec = xTaskGetTickCount() * portTICK_PERIOD_MS / 1000;
+    prev_sec = last_poll_time[i];
+    last_poll_time[i] = now_sec;
+
+    if (prev_sec != 0 && device_list[i].state.bits.dc_heating && device_list[i].input_voltage > 0)
+    {
+        elapsed_sec = now_sec - prev_sec;
+        if (elapsed_sec > 0 && elapsed_sec <= 7200)
+        {
+            voltage = (float)device_list[i].input_voltage;
+            power_w = (voltage * voltage) / LOAD_RESISTANCE;
+            energy_wh = power_w * ((float)elapsed_sec / 3600.0f);
+            daily_energy_wh[i] += energy_wh;
+        }
+    }
+
+    if (!poll_initialized) poll_initialized = 1;
+}
+
+// ================== MPPT异步架构：轮询+控制合一 ==================
+void device_poll_and_control_all(void)
+{
+    uint8_t cmd_buf[3];
+
+    if (device_count == 0) return;
+    if (g_es1642_searching) return;
+
+    printf("MPPT轮询控制: %d台设备\r\n", device_count);
+
+    MPPT_Decide();
+
+    for (uint16_t i = 0; i < device_count; i++)
+    {
+        if (device_list[i].state.bits.valid == 0) continue;
+
+        uint8_t heater_on = g_mppt_target[i];
+
+        if (heater_on)
+        {
+            cmd_buf[0] = SLAVE_CMD_HEATER_ON;
+            cmd_buf[1] = 0x01;
+            cmd_buf[2] = 0x01;
+        }
+        else
+        {
+            cmd_buf[0] = SLAVE_CMD_HEATER_OFF;
+            cmd_buf[1] = 0x01;
+            cmd_buf[2] = 0x00;
+        }
+
+        ES1642_SendControlNoAck(i, cmd_buf, sizeof(cmd_buf));
+
+        no_ack_count[i]++;
+        if (no_ack_count[i] >= 3)
+        {
+            device_list[i].state.bits.comm_err = 1;
+        }
+
+        osDelay(50);
+    }
 }
 
 // ================== 打印设备列表 ==================

@@ -42,6 +42,9 @@
 mppt_data_t g_mppt = {0};
 solar_energy_data_t g_solar_energy = {0};
 
+/* MPPT每台设备的目标加热状态 (1=启动加热, 0=停止加热) */
+uint8_t g_mppt_target[MAX_DEVICES] = {0};
+
 /* ========================== 私有变量 ========================== */
 
 /** 等待状态计数器 (秒) */
@@ -775,4 +778,123 @@ uint8_t MPPT_SetActiveHeaters(uint8_t target_count)
 
     printf("MPPT_SetActiveHeaters: 目标=%d, 实际=%d\r\n", target_count, actually_active);
     return actually_active;
+}
+
+/* ========================== MPPT异步架构：决策函数 ========================== */
+
+/**
+ * @brief  计算单台设备的"加热优先级分数"（评分排序机制，可扩展）
+ * @note   当前只含温度因素。后期可在此函数内增加公平性/轮换等权重。
+ */
+static float mppt_calc_heater_score(uint16_t dev_idx)
+{
+    float score = 0.0f;
+    /* 温度越低优先级越高 */
+    score += (75.0f - (float)device_list[dev_idx].temperature) * 10.0f;
+    /* TODO: 后期扩展公平性/轮换权重 */
+    return score;
+}
+
+/**
+ * @brief  按评分选前n_target台设备填充g_mppt_target[]
+ */
+static void mppt_select_heaters_by_score(uint8_t n_target)
+{
+    uint16_t i;
+    uint8_t sel;
+    for (i = 0; i < device_count; i++) g_mppt_target[i] = 0;
+
+    for (sel = 0; sel < n_target; sel++)
+    {
+        float max_score = -1e9f;
+        int max_idx = -1;
+        for (i = 0; i < device_count; i++)
+        {
+            if (!device_list[i].state.bits.valid) continue;
+            if (g_mppt_target[i] == 1) continue;
+            if (device_list[i].temperature >= 75) continue;
+            float score = mppt_calc_heater_score(i);
+            if (score > max_score) { max_score = score; max_idx = (int)i; }
+        }
+        if (max_idx < 0) break;
+        g_mppt_target[max_idx] = 1;
+    }
+}
+
+/**
+ * @brief  MPPT决策（每轮轮询控制前调用一次）
+ *         基于上轮ACK回报数据做P&O决策，生成g_mppt_target[]
+ */
+void MPPT_Decide(void)
+{
+    float v, power, delta_p;
+    uint8_t n_actual, n_available, n_target;
+
+    v = Solar_GetVoltage();
+    g_mppt.voltage = v;
+
+    n_actual = count_active_heaters();
+    n_available = 0;
+    for (uint16_t i = 0; i < device_count; i++)
+    {
+        if (device_list[i].state.bits.valid && device_list[i].temperature < 75)
+            n_available++;
+    }
+    g_mppt.n_active = n_actual;
+    g_mppt.n_online = n_available;
+
+    if (v < MPPT_VOLTAGE_MIN || n_available == 0)
+    {
+        for (uint16_t i = 0; i < device_count; i++)
+            g_mppt_target[i] = (device_list[i].state.bits.valid &&
+                                device_list[i].state.bits.dc_heating) ? 1 : 0;
+        return;
+    }
+
+    power = MPPT_CalcPower(v, n_actual);
+    g_mppt.power = power;
+
+    if (g_mppt.cycle_count == 0)
+    {
+        n_target = n_actual;
+        g_mppt.direction = MPPT_DIR_INCREASE;
+    }
+    else
+    {
+        delta_p = power - g_mppt.power_prev;
+        if (delta_p > MPPT_POWER_THRESHOLD)
+        {
+            g_mppt.stable_count = 0;
+        }
+        else if (delta_p < -MPPT_POWER_THRESHOLD)
+        {
+            g_mppt.direction = (g_mppt.direction == MPPT_DIR_INCREASE)
+                               ? MPPT_DIR_DECREASE : MPPT_DIR_INCREASE;
+            g_mppt.stable_count = 0;
+        }
+        else
+        {
+            g_mppt.stable_count++;
+            g_mppt.direction = (g_mppt.direction == MPPT_DIR_INCREASE)
+                               ? MPPT_DIR_DECREASE : MPPT_DIR_INCREASE;
+        }
+        n_target = (g_mppt.direction == MPPT_DIR_INCREASE)
+                   ? n_actual + 1 : (n_actual > 0 ? n_actual - 1 : 0);
+    }
+
+    if (n_target > n_available) n_target = n_available;
+    if (n_target < 1) n_target = 1;
+
+    g_mppt.power_prev = power;
+    if (power > g_mppt.power_max)
+    {
+        g_mppt.power_max = power;
+        g_mppt.n_at_max_power = n_actual;
+    }
+    g_mppt.cycle_count++;
+
+    printf("MPPT: V=%.1f N=%d/%d target=%d P=%.1fW dir=%d\r\n",
+           v, n_actual, n_available, n_target, power, g_mppt.direction);
+
+    mppt_select_heaters_by_score(n_target);
 }

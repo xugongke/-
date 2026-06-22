@@ -570,13 +570,9 @@ void DevicePoll_Task(void *argument)
 //    {
       if(g_es1642_searching == 0)  /* 仅在非搜索状态下轮询设备 */
       {
-        device_poll_all_status();  /* 轮询设备并在获取数据成功时基于实际时间差计算用电量 */
+        device_poll_and_control_all();  /* MPPT轮询+控制合一（不等ACK，快速逐台发送控制命令） */
         alert_scan_devices();  /* 轮询后扫描告警数据，并更新卡片数据 */
-
-        //发电量不能这样计算,因为电压是实时变化的,每次扰动后功率都会有一个过渡过程,需要等功率稳定后才能计算发电量,所以发电量的计算放在MPPT_Task里更合适
-        float solar_voltage = Solar_GetVoltage(); /* 获取最新的太阳能阵列电压 */
-        g_mppt.power = MPPT_CalcPower(solar_voltage, g_mppt.n_active);
-        accumulate_energy(); /* 累积发电量 (更新 g_mppt.energy_wh) */
+        /* 发电量统计已移至 device_async_update_from_ack() 异步回调中 */
 
         /* 零点检测：读取当前日期，如果日期变化则说明跨过了零点 */
         if (RX8025T_GetDate(&cur_date) == HAL_OK)
@@ -594,7 +590,7 @@ void DevicePoll_Task(void *argument)
         }
       }
 //    }
-    osDelay(60000);  /* 每60秒轮询一次 */
+    osDelay(10000);  /* 10秒，给ACK留到达时间，缩短MPPT周期 */
   }
   /* USER CODE END DevicePoll_Task */
 }
