@@ -26,6 +26,7 @@ uint16_t device_count = 0;
 // 运行时临时数据
 float daily_energy_wh[MAX_DEVICES];   // 各设备当日累积电量 (Wh)
 uint32_t last_poll_time[MAX_DEVICES]; // 各设备上次成功获取数据的时间戳（秒数）
+uint8_t  no_ack_count[MAX_DEVICES];   // 各设备连续未收到ACK的轮次计数(MPPT异步通信失败检测)
 
 // 标志：设备是否有变化（用于减少SD写入）
 static uint8_t device_changed = 0;
@@ -785,5 +786,79 @@ void print_device_list(void)
 				}
 
         printf("\r\n");
+    }
+}
+
+// ================== 根据通信地址查找设备(MPPT异步回调用) ==================
+int find_device_by_addr(const uint8_t *addr)
+{
+    for (int i = 0; i < device_count; i++)
+    {
+        if (memcmp(device_list[i].addr, addr, 6) == 0)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+// ================== MPPT异步轮询+控制一体化 ==================
+void device_poll_and_control_all(void)
+{
+    if (device_count == 0) return;
+    if (g_es1642_searching)
+    {
+        printf("正在搜索设备，跳过本次轮询\r\n");
+        return;
+    }
+
+    /* ① 控制阶段：只给状态需要变化的设备发0x02/0x03（不等ACK） */
+    for (uint16_t i = 0; i < device_count; i++)
+    {
+        if (!device_list[i].state.bits.valid) continue;
+
+        uint8_t target = g_mppt_target[i];
+        if (target != g_mppt_last_cmd[i])
+        {
+            uint8_t cmd_buf[3];
+            if (target == 1)
+            {
+                cmd_buf[0] = SLAVE_CMD_HEATER_ON;   /* 0x02 */
+                cmd_buf[1] = 0x01;
+                cmd_buf[2] = 0x01;
+            }
+            else
+            {
+                cmd_buf[0] = SLAVE_CMD_HEATER_OFF;  /* 0x03 */
+                cmd_buf[1] = 0x01;
+                cmd_buf[2] = 0x00;
+            }
+            ES1642_SendNoAck((int)i, cmd_buf, 3, 0);
+            /* g_mppt_last_cmd 不在此处更新, 改为在0x04回调里用实际dc_heating更新,
+               这样从机执行失败时下一轮会自动重发纠正 */
+        }
+        no_ack_count[i]++;
+    }
+
+    /* ② 延时等待从机执行继电器动作 */
+    osDelay(3000);
+
+    /* ③ 采集阶段：给所有在线设备发0x04（不等ACK，ACK在回调异步处理） */
+    uint8_t read_cmd[2] = {SLAVE_CMD_READ_STATUS, 0x00};
+    for (uint16_t i = 0; i < device_count; i++)
+    {
+        if (!device_list[i].state.bits.valid) continue;
+        ES1642_SendNoAck((int)i, read_cmd, 2, 0);
+        osDelay(50);  /* 帧间间隔 */
+    }
+
+    /* ④ 通信失败检测（连续3轮没收到ACK标记comm_err，仅告警不跳过） */
+    for (uint16_t i = 0; i < device_count; i++)
+    {
+        if (!device_list[i].state.bits.valid) continue;
+        if (no_ack_count[i] >= 3)
+        {
+            device_list[i].state.bits.comm_err = 1;
+        }
     }
 }

@@ -566,19 +566,26 @@ void DevicePoll_Task(void *argument)
   /* Infinite loop */
   for(;;)
   {
-//    if(simcard_ready == 1)
-//    {
-      if(g_es1642_searching == 0)  /* 仅在非搜索状态下轮询设备 */
+      if(g_es1642_searching == 0)  /* 仅在非搜索状态下执行 */
       {
-        device_poll_all_status();  /* 轮询设备并在获取数据成功时基于实际时间差计算用电量 */
-        alert_scan_devices();  /* 轮询后扫描告警数据，并更新卡片数据 */
+        /* ① MPPT决策 + 选管策略(温度排序+加热时长公平) */
+        MPPT_Decide();
 
-        //发电量不能这样计算,因为电压是实时变化的,每次扰动后功率都会有一个过渡过程,需要等功率稳定后才能计算发电量,所以发电量的计算放在MPPT_Task里更合适
-        float solar_voltage = Solar_GetVoltage(); /* 获取最新的太阳能阵列电压 */
-        g_mppt.power = MPPT_CalcPower(solar_voltage, g_mppt.n_active);
-        accumulate_energy(); /* 累积发电量 (更新 g_mppt.energy_wh) */
+        /* ② 异步控制+采集一体化(只发变化设备→延时→全量0x04采集) */
+        device_poll_and_control_all();
 
-        /* 零点检测：读取当前日期，如果日期变化则说明跨过了零点 */
+        /* ③ 告警扫描 */
+        alert_scan_devices();
+
+        /* ④ 更新太阳能发电量 = Σ各从机用电量 */
+        float total_energy = 0.0f;
+        for (uint16_t i = 0; i < device_count; i++)
+        {
+            total_energy += daily_energy_wh[i];
+        }
+        g_mppt.energy_wh = total_energy;
+
+        /* ⑤ 零点结算检测 */
         if (RX8025T_GetDate(&cur_date) == HAL_OK)
         {
             if (last_date.day != 0 && cur_date.day != last_date.day)
@@ -587,14 +594,14 @@ void DevicePoll_Task(void *argument)
                       last_date.year, last_date.month, last_date.day,
                       cur_date.year, cur_date.month, cur_date.day);
                 daily_energy_flush_to_sd();  /* 将RAM中日累积电量写入SD卡 */
-                /* 太阳能发电量结算并保存到SD卡 */
-                solar_energy_flush();
+                solar_energy_flush();        /* 太阳能发电量结算并保存到SD卡 */
+                memset(heating_seconds, 0, sizeof(heating_seconds)); /* 清零加热时长(每日归零) */
+                memset(no_ack_count, 0, sizeof(no_ack_count));      /* 清零通信失败计数 */
             }
-            last_date = cur_date;  /* 更新日期缓存 */
+            last_date = cur_date;
         }
       }
-//    }
-    osDelay(60000);  /* 每60秒轮询一次 */
+    osDelay(10000);  /* 10秒(控制+采集已在device_poll_and_control_all内完成) */
   }
   /* USER CODE END DevicePoll_Task */
 }

@@ -6,7 +6,7 @@
 
 // ================== 配置参数 ==================
 #define MAX_DEVICES 256      // 最大设备数量
-#define LOAD_RESISTANCE 8    // 热水器负载电阻(Ω)
+#define LOAD_RESISTANCE 14.06f  // 热水器负载电阻(Ω), 150V/1600W=14.06Ω
 #define DEVICE_FILE "0:/devices.bin"   // 存储文件名
 
 // ================== 设备状态位图共用体 ==================
@@ -185,5 +185,26 @@ extern alert_item_t  g_alert_items[ALERT_MAX_ITEMS];
  * @note  在 device_poll_all_status() 之后调用, 不涉及LVGL API
  */
 void alert_scan_devices(void);
+
+// ================== MPPT 异步轮询控制接口 ==================
+
+/**
+ * @brief 根据通信地址查找设备索引
+ * @param addr 6字节通信地址
+ * @return >=0: 设备索引, -1: 未找到
+ */
+int find_device_by_addr(const uint8_t *addr);
+
+/**
+ * @brief MPPT异步轮询+控制一体化函数
+ * @note  每轮执行: ①只给状态需变化的设备发0x02/0x03(不等ACK)
+ *        ②延时3秒等继电器动作 ③给所有设备发0x04采集(不等ACK,回调异步处理)
+ *        ④通信失败检测(no_ack_count)
+ *        MPPT决策(target[])由 MPPT_Decide() 在调用本函数之前完成
+ */
+void device_poll_and_control_all(void);
+
+/** 各设备连续未收到ACK的轮次计数（回调收到ACK时清零，>=3标记comm_err） */
+extern uint8_t no_ack_count[MAX_DEVICES];
 
 #endif

@@ -38,7 +38,7 @@ extern "C" {
  * @brief 单台热水器加热管电阻 (Ω)
  * @note  硬件工程师确认: 直流加热管视为恒定 8Ω 电阻
  */
-#define MPPT_HEATER_RESISTANCE      8.0f
+#define MPPT_HEATER_RESISTANCE      14.06f  /* 150V/1600W = 14.06Ω */
 
 /**
  * @brief 直流总线最低工作电压 (V)
@@ -237,6 +237,22 @@ void MPPT_ForceRescan(void);
 uint8_t MPPT_SetActiveHeaters(uint8_t target_count);
 
 void accumulate_energy(void);
+
+/* ========================== MPPT 主动控制接口 ========================== */
+
+/* MPPT目标状态数组: 选管策略输出, device_poll_and_control_all() 读取 */
+extern uint8_t  g_mppt_target[MAX_DEVICES];      /* 每台设备本轮目标加热状态: 1=ON, 0=OFF */
+extern uint8_t  g_mppt_last_cmd[MAX_DEVICES];    /* 每台设备上次发出的命令(控制差分用) */
+extern uint32_t heating_seconds[MAX_DEVICES];    /* 每台设备累计加热秒数(公平性排序用) */
+
+/**
+ * @brief  MPPT 决策函数 (每轮控制前调用一次)
+ * @note   基于上轮采集的状态(n_active/voltage)做 P&O ±1 步长决策
+ *         调用选管策略(温度排序+加热时长公平)生成 g_mppt_target[]
+ *         由 DevicePoll_Task 在 device_poll_and_control_all() 之前调用
+ */
+void MPPT_Decide(void);
+
 #ifdef __cplusplus
 }
 #endif

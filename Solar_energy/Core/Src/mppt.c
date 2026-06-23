@@ -42,6 +42,12 @@
 mppt_data_t g_mppt = {0};
 solar_energy_data_t g_solar_energy = {0};
 
+/* MPPT 主动控制 - 选管策略数组 */
+uint8_t  g_mppt_target[MAX_DEVICES] = {0};    /* 每台设备目标加热状态: 1=ON, 0=OFF */
+uint8_t  g_mppt_last_cmd[MAX_DEVICES] = {0};  /* 每台设备上次发出的命令(控制差分用) */
+uint32_t heating_seconds[MAX_DEVICES] = {0};  /* 每台累计加热秒数(公平性排序用) */
+static   uint8_t mppt_first_round = 1;        /* 首轮标志(采集基准不扰动) */
+
 /* ========================== 私有变量 ========================== */
 
 /** 等待状态计数器 (秒) */
@@ -775,4 +781,159 @@ uint8_t MPPT_SetActiveHeaters(uint8_t target_count)
 
     printf("MPPT_SetActiveHeaters: 目标=%d, 实际=%d\r\n", target_count, actually_active);
     return actually_active;
+}
+
+/* ========================== MPPT 主动控制 (异步架构) ========================== */
+
+/**
+ * @brief  统计可调度设备数 (在线 且 温度<75 C)
+ */
+static uint8_t count_schedulable_devices(void)
+{
+    uint8_t count = 0;
+    for (uint16_t i = 0; i < device_count; i++)
+    {
+        if (device_list[i].state.bits.valid &&
+            device_list[i].temperature < 75)
+        {
+            count++;
+        }
+    }
+    return count;
+}
+
+/**
+ * @brief  选管策略: 温度排序 + 加热总时长公平 (可替换模块)
+ * @param  n_target: 目标开启数量
+ * @note   评分 score = temperature + heating_seconds/100
+ *         分数低的优先开 (温度低 + 加热时长少 = 优先)
+ *         温度 >= 75 C 的设备强制 target=0
+ */
+static void mppt_select_heaters(uint8_t n_target)
+{
+    memset(g_mppt_target, 0, MAX_DEVICES);
+
+    /* 收集可调度设备索引 */
+    int indices[MAX_DEVICES];
+    int n_avail = 0;
+
+    for (int i = 0; i < device_count; i++)
+    {
+        if (device_list[i].state.bits.valid &&
+            device_list[i].temperature < 75)
+        {
+            indices[n_avail++] = i;
+        }
+    }
+
+    if (n_target > (uint8_t)n_avail) n_target = (uint8_t)n_avail;
+    if (n_target == 0) return;
+
+    /* 冒泡排序: 按 score 升序 (温度低+加热少的排前面) */
+    for (int i = 0; i < n_avail - 1; i++)
+    {
+        for (int j = i + 1; j < n_avail; j++)
+        {
+            float si = (float)device_list[indices[i]].temperature
+                     + (float)heating_seconds[indices[i]] / 100.0f;
+            float sj = (float)device_list[indices[j]].temperature
+                     + (float)heating_seconds[indices[j]] / 100.0f;
+            if (sj < si)
+            {
+                int tmp = indices[i];
+                indices[i] = indices[j];
+                indices[j] = tmp;
+            }
+        }
+    }
+
+    /* 前 n_target 台设为 ON */
+    for (int i = 0; i < n_target; i++)
+    {
+        g_mppt_target[indices[i]] = 1;
+    }
+
+    printf("MPPT选管: 目标=%d, 可用=%d\r\n", n_target, n_avail);
+}
+
+/**
+ * @brief  MPPT 决策函数 (每轮控制前调用一次)
+ * @note   P&O 扰动观察法, ±1 台步长
+ *         基于上轮 0x04 采集的实际 n_active + Solar_GetVoltage() 做决策
+ *         调用 mppt_select_heaters() 生成 g_mppt_target[]
+ */
+void MPPT_Decide(void)
+{
+    float v = Solar_GetVoltage();
+    g_mppt.voltage = v;
+    g_mppt.n_active = count_active_heaters();
+    g_mppt.n_online = count_online_devices();
+
+    /* 载波断链区间或无在线设备, 不干预 */
+    if (v < 28.0f || g_mppt.n_online == 0)
+    {
+        memset(g_mppt_target, 0, MAX_DEVICES);
+        return;
+    }
+
+    /* 计算当前功率 */
+    g_mppt.power = MPPT_CalcPower(v, g_mppt.n_active);
+
+    /* 首轮: 保持现状, 采集基准, 所有设备默认ON(从机上电默认加热) */
+    if (mppt_first_round)
+    {
+        mppt_first_round = 0;
+        g_mppt.power_prev = g_mppt.power;
+        g_mppt.direction = MPPT_DIR_INCREASE;
+        g_mppt.cycle_count = 1;
+        /* 首轮: 所有在线设备 target=1 (保持默认全开) */
+        for (uint16_t i = 0; i < device_count; i++)
+        {
+            if (device_list[i].state.bits.valid)
+                g_mppt_target[i] = 1;
+        }
+        printf("MPPT首轮: V=%.1fV, N=%d, P=%.1fW, 全开采集基准\r\n",
+               v, g_mppt.n_active, g_mppt.power);
+        return;
+    }
+
+    /* P&O 决策 */
+    float delta_p = g_mppt.power - g_mppt.power_prev;
+    uint8_t n_schedulable = count_schedulable_devices();
+
+    if (delta_p > MPPT_POWER_THRESHOLD)
+    {
+        /* 功率增加, 方向正确, 继续 */
+        g_mppt.stable_count = 0;
+    }
+    else if (delta_p < -MPPT_POWER_THRESHOLD)
+    {
+        /* 功率下降, 反向 */
+        g_mppt.direction = (g_mppt.direction == MPPT_DIR_INCREASE)
+                         ? MPPT_DIR_DECREASE : MPPT_DIR_INCREASE;
+        g_mppt.stable_count = 0;
+    }
+    else
+    {
+        /* 功率变化不大, MPP附近振荡 */
+        g_mppt.stable_count++;
+        g_mppt.direction = (g_mppt.direction == MPPT_DIR_INCREASE)
+                         ? MPPT_DIR_DECREASE : MPPT_DIR_INCREASE;
+    }
+
+    /* 计算新目标加热数 (±1步长) */
+    uint8_t n_target = g_mppt.n_active;
+    if (g_mppt.direction == MPPT_DIR_INCREASE && n_target < n_schedulable)
+        n_target++;
+    else if (g_mppt.direction == MPPT_DIR_DECREASE && n_target > 1)
+        n_target--;
+
+    g_mppt.power_prev = g_mppt.power;
+    g_mppt.cycle_count++;
+
+    printf("MPPT决策: V=%.1fV, N_active=%d→N_target=%d, P=%.1fW(ΔP=%.1fW), dir=%d\r\n",
+           v, g_mppt.n_active, n_target, g_mppt.power, delta_p, g_mppt.direction);
+
+    /* 调用选管策略 */
+    mppt_select_heaters(n_target);
 }

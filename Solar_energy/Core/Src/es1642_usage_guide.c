@@ -18,6 +18,8 @@
 #include "device_manager.h"
 #include "user_data_manager.h"
 #include "host_comm.h"
+#include "cmsis_os.h"          /* xTaskGetTickCount, portTICK_PERIOD_MS */
+#include "mppt.h"              /* LOAD_RESISTANCE, g_mppt */
 
 /* ========================= 使用说明 ========================= */
 
@@ -448,26 +450,59 @@ void es1642_on_frame_received(es1642_handle_t *handle,
             status = ES1642_DecodeRecvData(frame, &recv_data);
             if (status == ES1642_STATUS_OK)
             {
-                printf("收到数据: 源地址=%02X:%02X:%02X:%02X:%02X:%02X, "
-                       "长度=%d, RSSI=%d, 中继深度:%d\r\n",
-                       recv_data.src_addr[0], recv_data.src_addr[1],
-                       recv_data.src_addr[2], recv_data.src_addr[3],
-                       recv_data.src_addr[4], recv_data.src_addr[5],
-                       recv_data.user_data_len, recv_data.rssi, recv_data.relay_depth);
+                /* ---- 阻塞模式处理（0x01设置地址等，ES1642_SendUserData 在等信号量） ---- */
+                if (g_es1642_wait_type == ES1642_WAIT_RECV_DATA)
+                {
+                    memcpy(g_es1642_response.src_addr, recv_data.src_addr, ES1642_ADDR_LEN);
+                    if (recv_data.user_data_len > 0 && recv_data.user_data != NULL && recv_data.user_data_len <= ES1642_RESP_MAX_LEN)
+                    {
+                        memcpy(g_es1642_response.data, recv_data.user_data, recv_data.user_data_len);
+                        g_es1642_response.data_len = recv_data.user_data_len;
+                    }
+                    else
+                    {
+                        g_es1642_response.data_len = 0;
+                    }
+                    osSemaphoreRelease(ES1642_sendHandle);
+                }
 
-								/* 将响应数据拷贝到全局响应缓冲区（供 ES1642_SendUserData 读取） */
-								memcpy(g_es1642_response.src_addr, recv_data.src_addr, ES1642_ADDR_LEN);
+                /* ---- 异步处理 0x04 状态响应（MPPT 采集，不等 ACK 模式下到达） ---- */
+                if (recv_data.user_data_len >= 6 && recv_data.user_data[0] == 0x04)
+                {
+                    int idx = find_device_by_addr(recv_data.src_addr);
+                    if (idx >= 0)
+                    {
+                        /* 更新设备温度/电压/状态 */
+                        device_list[idx].temperature = (int8_t)recv_data.user_data[2];
+                        device_list[idx].input_voltage = (uint16_t)recv_data.user_data[3] | ((uint16_t)recv_data.user_data[4] << 8);
+                        uint8_t st = recv_data.user_data[5];
+                        device_list[idx].state.bits.dc_heating    = (st & 0x02) ? 1 : 0;
+                        device_list[idx].state.bits.power_reverse = (st & 0x80) ? 1 : 0;
+                        device_list[idx].state.bits.temp_err      = (st & 0x40) ? 1 : 0;
+                        device_list[idx].state.bits.relay_err     = (st & 0x20) ? 1 : 0;
+                        device_list[idx].comm_fail_cnt = 0;
+                        device_list[idx].state.bits.comm_err = 0;
+                        no_ack_count[idx] = 0;  /* 清零未收到ACK计数 */
+                        g_mppt_last_cmd[idx] = device_list[idx].state.bits.dc_heating;  /* 用实际状态更新,执行失败的设备下轮自动重发 */
 
-								if (recv_data.user_data_len > 0 && recv_data.user_data != NULL && recv_data.user_data_len <= ES1642_RESP_MAX_LEN)
-								{
-										memcpy(g_es1642_response.data, recv_data.user_data, recv_data.user_data_len);
-										g_es1642_response.data_len = recv_data.user_data_len;
-								}
-								else
-								{
-										g_es1642_response.data_len = 0;
-								}
-								osSemaphoreRelease(ES1642_sendHandle); /* 释放信号量，解除 ES1642_SendUserData 的阻塞 */
+                        /* 记录时间戳并累加用电量 */
+                        uint32_t now = xTaskGetTickCount() * portTICK_PERIOD_MS / 1000;
+                        uint32_t prev = last_poll_time[idx];
+                        last_poll_time[idx] = now;
+
+                        if (device_list[idx].state.bits.dc_heating &&
+                            device_list[idx].input_voltage > 0 && prev != 0)
+                        {
+                            uint32_t elapsed = now - prev;
+                            if (elapsed > 0 && elapsed <= 7200)
+                            {
+                                float voltage = (float)device_list[idx].input_voltage;
+                                float power_w = voltage * voltage / (float)LOAD_RESISTANCE;
+                                daily_energy_wh[idx] += power_w * (float)elapsed / 3600.0f;
+                            }
+                        }
+                    }
+                }
             }
             break;
         }
@@ -706,6 +741,53 @@ int ES1642_SendUserData(int dev_index,
         osSemaphoreRelease(ES1642_mutexHandle);//解锁
         return -2; /* 响应超时 */
     }
+}
+
+/**
+ * @brief  非阻塞发送数据到指定设备（不等 ACK 响应）
+ * @param  dev_index: 目标设备在 device_list 中的下标
+ * @param  data: 要发送的用户数据
+ * @param  len: 数据长度
+ * @param  relay_depth: 中继深度（0 表示自动）
+ * @retval 0: 发送成功, -1: 发送失败
+ * @note   用于 0x02/0x03 控制命令和 0x04 采集命令的快速发送
+ *         发送后立即返回，从机的 ACK 响应在 es1642_on_frame_received 回调里异步处理
+ */
+int ES1642_SendNoAck(int dev_index,
+                     const uint8_t *data,
+                     uint16_t len,
+                     uint8_t relay_depth)
+{
+    es1642_status_t status;
+
+    if (dev_index < 0 || dev_index >= device_count || (len > 0 && data == NULL))
+    {
+        return -1;
+    }
+
+    if (g_es1642_searching)
+    {
+        return -1;
+    }
+
+    const uint8_t *dst_addr = device_list[dev_index].addr;
+
+    /* 获取互斥锁（保证发送串行化，不和 0x01 阻塞发送冲突） */
+    if (osSemaphoreAcquire(ES1642_mutexHandle, osWaitForever) != osOK)
+    {
+        return -1;
+    }
+
+    /* 标记为异步模式（回调里不会释放信号量，直接更新 device_list） */
+    g_es1642_wait_type = ES1642_WAIT_NONE;
+
+    /* 发送数据帧（不等 ACK） */
+    status = ES1642_SendData(&g_es1642_handle, dst_addr, data, len, relay_depth, true);
+
+    /* 释放互斥锁 */
+    osSemaphoreRelease(ES1642_mutexHandle);
+
+    return (status == ES1642_STATUS_OK) ? 0 : -1;
 }
 
 /**
