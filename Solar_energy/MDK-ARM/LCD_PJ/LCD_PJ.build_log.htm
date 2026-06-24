@@ -22,25 +22,22 @@ Dialog DLL:      TCM.DLL V1.46.0.0
  
 <h2>Project:</h2>
 F:\Cubemx_Project\TYNJFXT\Solar_energy\MDK-ARM\LCD_PJ.uvprojx
-Project File Date:  06/15/2026
+Project File Date:  06/23/2026
 
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 7 (build 960)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'LCD_PJ'
-compiling tcp_cmd_handler.c...
-compiling freertos.c...
-compiling mppt.c...
 compiling device_manager.c...
-..\Core\Src\device_manager.c(548): warning:  #177-D: variable "payload"  was declared but never referenced
+..\Core\Src\device_manager.c(557): warning:  #177-D: variable "payload"  was declared but never referenced
       char payload[128];
-..\Core\Src\device_manager.c: 1 warning, 0 errors
-compiling es1642_usage_guide.c...
-compiling events_init.c...
+..\Core\Src\device_manager.c(832): warning:  #550-D: variable "cmd_buf"  was set but never used
+              uint8_t cmd_buf[3];
+..\Core\Src\device_manager.c: 2 warnings, 0 errors
 linking...
-Program Size: Code=234864 RO-data=237080 RW-data=8788 ZI-data=169300  
+Program Size: Code=234956 RO-data=237080 RW-data=8788 ZI-data=169300  
 FromELF: creating hex file...
 After Build - User command #1: C:\Keil_v5\ARM\ARMCC\bin\fromelf.exe --bin --output ./BIN/LCD_PJ.bin ./LCD_PJ/LCD_PJ.axf
-"LCD_PJ\LCD_PJ.axf" - 0 Error(s), 1 Warning(s).
+"LCD_PJ\LCD_PJ.axf" - 0 Error(s), 2 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -63,7 +60,7 @@ Package Vendor: Keil
 
    * Component: ARM::CMSIS:CORE:5.4.0
       Include file:  CMSIS/Core/Include/tz_context.h
-Build Time Elapsed:  00:00:37
+Build Time Elapsed:  00:00:12
 </pre>
 </body>
 </html>

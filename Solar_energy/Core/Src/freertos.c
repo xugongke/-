@@ -159,7 +159,7 @@ const osThreadAttr_t RS485UARTProces_attributes = {
 osThreadId_t DevicePollTaskHandle;
 const osThreadAttr_t DevicePollTask_attributes = {
   .name = "DevicePollTask",
-  .stack_size = 512 * 4,
+  .stack_size = 640 * 4,
   .priority = (osPriority_t) osPriorityBelowNormal5,
 };
 /* Definitions for weatherTimer */

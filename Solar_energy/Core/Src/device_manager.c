@@ -329,6 +329,15 @@ FRESULT load_devices(void)
 		//br是实际读取到的字节数,也就是用户真实的数量
     device_count = br / sizeof(device_t);
 
+//    for (int i = 0; i < device_count; i++)
+//    {
+//        // 初始化运行时临时错误数据
+//        device_list[i].state.bits.comm_err = 1;
+//        device_list[i].state.bits.relay_err = 1;
+//        device_list[i].state.bits.temp_err = 1;
+//        device_list[i].state.bits.power_reverse = 1;
+//    }
+
     printf("加载设备数量:%d\r\n", device_count);
 
     return FR_OK;
@@ -833,11 +842,12 @@ void device_poll_and_control_all(void)
                 cmd_buf[1] = 0x01;
                 cmd_buf[2] = 0x00;
             }
-            ES1642_SendNoAck((int)i, cmd_buf, 3, 0);
+//            ES1642_SendNoAck((int)i, cmd_buf, 3, 0);
             /* g_mppt_last_cmd 不在此处更新, 改为在0x04回调里用实际dc_heating更新,
                这样从机执行失败时下一轮会自动重发纠正 */
         }
         no_ack_count[i]++;
+        osDelay(50);  /* 帧间间隔 */
     }
 
     /* ② 延时等待从机执行继电器动作 */
@@ -851,6 +861,8 @@ void device_poll_and_control_all(void)
         ES1642_SendNoAck((int)i, read_cmd, 2, 0);
         osDelay(50);  /* 帧间间隔 */
     }
+    printf("发送读取状态命令完成，延时100s等待从机回应\r\n");
+    osDelay(100000);
 
     /* ④ 通信失败检测（连续3轮没收到ACK标记comm_err，仅告警不跳过） */
     for (uint16_t i = 0; i < device_count; i++)

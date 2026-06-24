@@ -74,6 +74,8 @@ static uint8_t count_active_heaters(void)
     for (uint16_t i = 0; i < device_count; i++)
     {
         if (device_list[i].state.bits.valid &&
+            !device_list[i].state.bits.comm_err &&    /* 排除通信异常(状态过期不可信) */
+            !device_list[i].state.bits.relay_err &&   /* 排除继电器故障(无法执行控制) */
             device_list[i].state.bits.dc_heating)
         {
             count++;
@@ -794,6 +796,8 @@ static uint8_t count_schedulable_devices(void)
     for (uint16_t i = 0; i < device_count; i++)
     {
         if (device_list[i].state.bits.valid &&
+            !device_list[i].state.bits.comm_err &&    /* 排除通信异常 */
+            !device_list[i].state.bits.relay_err &&   /* 排除继电器故障 */
             device_list[i].temperature < 75)
         {
             count++;
@@ -820,6 +824,8 @@ static void mppt_select_heaters(uint8_t n_target)
     for (int i = 0; i < device_count; i++)
     {
         if (device_list[i].state.bits.valid &&
+            !device_list[i].state.bits.comm_err &&    /* 排除通信异常 */
+            !device_list[i].state.bits.relay_err &&   /* 排除继电器故障 */
             device_list[i].temperature < 75)
         {
             indices[n_avail++] = i;

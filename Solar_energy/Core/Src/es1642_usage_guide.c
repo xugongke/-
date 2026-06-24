@@ -470,6 +470,7 @@ void es1642_on_frame_received(es1642_handle_t *handle,
                 if (recv_data.user_data_len >= 6 && recv_data.user_data[0] == 0x04)
                 {
                     int idx = find_device_by_addr(recv_data.src_addr);
+                    printf("收到源地址=%d\r\n",recv_data.src_addr[3]);
                     if (idx >= 0)
                     {
                         /* 更新设备温度/电压/状态 */
@@ -494,7 +495,7 @@ void es1642_on_frame_received(es1642_handle_t *handle,
                             device_list[idx].input_voltage > 0 && prev != 0)
                         {
                             uint32_t elapsed = now - prev;
-                            if (elapsed > 0 && elapsed <= 7200)
+                            if (elapsed > 0 && elapsed <= 7200)/* 超过2小时(低压中断)则跳过 */
                             {
                                 float voltage = (float)device_list[idx].input_voltage;
                                 float power_w = voltage * voltage / (float)LOAD_RESISTANCE;
