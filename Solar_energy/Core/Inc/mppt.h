@@ -165,7 +165,7 @@ typedef struct {
     uint8_t n_at_max_power;     /* 最大功率对应的加热器数 */
 
     /* 累计发电量 */
-    float energy_wh;            /* 日发电量累计 (Wh) */
+    uint32_t energy_wh;            /* 日发电量累计 (Wh) */
 
     /* 统计 */
     uint32_t cycle_count;       /* P&O 循环计数 */
@@ -177,19 +177,6 @@ typedef struct {
 extern mppt_data_t g_mppt;
 
 /* ========================== 函数原型 ========================== */
-
-/**
- * @brief  MPPT 模块初始化
- * @note   应在设备表加载完成后调用 (lvgl_task 中 device_manager_init 之后)
- */
-void MPPT_Init(void);
-
-/**
- * @brief  MPPT 任务函数 (在 FreeRTOS 任务中循环调用)
- * @note   每次调用处理一个状态机步骤, 非阻塞
- *         调用间隔由 MPPT_TASK_PERIOD_MS 决定
- */
-void MPPT_Task(void);
 
 /**
  * @brief  使能/禁用 MPPT 功能
@@ -204,11 +191,6 @@ void MPPT_Enable(uint8_t enable);
  * @retval 估算功率 (W)
  */
 float MPPT_CalcPower(float voltage, uint8_t n_heaters);
-
-/**
- * @brief  重置日发电量 (每日零点调用)
- */
-void MPPT_ResetDailyEnergy(void);
 
 /**
  * @brief  获取日发电量
@@ -236,22 +218,17 @@ void MPPT_ForceRescan(void);
  */
 uint8_t MPPT_SetActiveHeaters(uint8_t target_count);
 
-void accumulate_energy(void);
-
 /* ========================== MPPT 主动控制接口 ========================== */
 
-/* MPPT目标状态数组: 选管策略输出, device_poll_and_control_all() 读取 */
-extern uint8_t  g_mppt_target[MAX_DEVICES];      /* 每台设备本轮目标加热状态: 1=ON, 0=OFF */
-extern uint8_t  g_mppt_last_cmd[MAX_DEVICES];    /* 每台设备上次发出的命令(控制差分用) */
 extern uint32_t heating_seconds[MAX_DEVICES];    /* 每台设备累计加热秒数(公平性排序用) */
 
 /**
- * @brief  MPPT 决策函数 (每轮控制前调用一次)
- * @note   基于上轮采集的状态(n_active/voltage)做 P&O ±1 步长决策
- *         调用选管策略(温度排序+加热时长公平)生成 g_mppt_target[]
- *         由 DevicePoll_Task 在 device_poll_and_control_all() 之前调用
+ * @brief  MPPT P&O 控制闭环 (在采集阶段之后调用)
+ * @note   快速控制循环: ±1台→发0x02/0.03等ACK→等3秒→读电压→P&O判断
+ *         功率增加继续搜索, 功率下降撤回最后一步并退出
+ *         选管基于采集阶段的温度数据(温度排序+加热时长公平)
  */
-void MPPT_Decide(void);
+void MPPT_ControlLoop(void);
 
 #ifdef __cplusplus
 }

@@ -18,8 +18,6 @@
 #include "device_manager.h"
 #include "user_data_manager.h"
 #include "host_comm.h"
-#include "cmsis_os.h"          /* xTaskGetTickCount, portTICK_PERIOD_MS */
-#include "mppt.h"              /* LOAD_RESISTANCE, g_mppt */
 
 /* ========================= 使用说明 ========================= */
 
@@ -261,8 +259,6 @@ void es1642_on_frame_received(es1642_handle_t *handle,
             if (status == ES1642_STATUS_OK)
             {
                 printf("启动搜索: OK\r\n");
-                /* 清空设备表之前，先将RAM中累积的用电量写入SD卡，避免数据丢失 */
-                daily_energy_flush_to_sd();
                 Clear_devices();//启动搜索成功之后，清空设备表和用电量缓存
                 g_es1642_searching = 1;  /* 标记搜索中，暂停设备轮询 */
                 /* ES1642确认启动搜索成功，通知上位机 */
@@ -279,17 +275,15 @@ void es1642_on_frame_received(es1642_handle_t *handle,
             {
                 printf("停止搜索: OK\r\n");
                 g_es1642_searching = 0;  /* 清除搜索标志，允许其他命令 */
-								if(device_count > 0)
-								{
-									save_devices();//保存RAM中的设备表到SD卡中
-									print_device_list();
-								}
-								else if(device_count == 0)
-								{
-									device_manager_init();//重新读取SD卡中的记录并加载到RAM中
-								}
-                /* 搜索结束后，从SD卡重新加载用户详情缓存 */
-                user_detail_cache_init();
+                if(device_count > 0)
+                {
+                    save_devices();//保存RAM中的设备表到SD卡中
+                    print_device_list();
+                }
+                else if(device_count == 0)
+                {
+                    device_manager_init();//重新读取SD卡中的记录并加载到RAM中
+                }
                 /* ES1642确认停止搜索成功，通知上位机搜索完成 */
                 tcp_send_search_done();
                 rs485_send_search_done();
@@ -303,34 +297,34 @@ void es1642_on_frame_received(es1642_handle_t *handle,
             status = ES1642_DecodeSearchResult(frame, &result);
             if (status == ES1642_STATUS_OK)
             {
-							printf("设备数目:%d\r\n搜索到设备: 通信地址=%02X:%02X:%02X:%02X:%02X:%02X, "
-                       "网络状态=%d\r\n",result.count,
-                       result.dev_addr[0], result.dev_addr[1],
-                       result.dev_addr[2], result.dev_addr[3],
-                       result.dev_addr[4], result.dev_addr[5],
-                       result.net_state);
-							if(find_device_by_mac((uint8_t *)result.attribute) == -1)//判断一下列表中有无重复MAC
-							{
-								if(result.attribute_len == 6)
-								{
-									/* 添加更新设备表到RAM中 */
-									add_device((uint8_t*)result.attribute, result.dev_addr, result.net_state);
-									
-									/* 实时推送搜索到的设备到TCP上位机 */
-									tcp_send_search_device((uint8_t*)result.attribute, result.dev_addr, result.net_state);
-									
-									/* 实时推送搜索到的设备到RS485上位机（USART6） */
-									rs485_send_search_device((uint8_t*)result.attribute, result.dev_addr, result.net_state);
-								}
-								else
-								{
-									printf("MAC地址获取失败,result.attribute_len:%d\r\n",result.attribute_len);
-								}
-							}
-							else
-							{
-								printf("设备重复搜索到\r\n");
-							}
+                printf("设备数目:%d\r\n搜索到设备: 通信地址=%02X:%02X:%02X:%02X:%02X:%02X, "
+                "网络状态=%d\r\n",result.count,
+                result.dev_addr[0], result.dev_addr[1],
+                result.dev_addr[2], result.dev_addr[3],
+                result.dev_addr[4], result.dev_addr[5],
+                result.net_state);
+                if(find_device_by_mac((uint8_t *)result.attribute) == -1)//判断一下列表中有无重复MAC
+                {
+                    if(result.attribute_len == 6)
+                    {
+                        /* 添加更新设备表device_list到RAM中 */
+                        add_device((uint8_t*)result.attribute, result.dev_addr, result.net_state);
+                        
+                        /* 实时推送搜索到的设备到TCP上位机 */
+                        tcp_send_search_device((uint8_t*)result.attribute, result.dev_addr, result.net_state);
+                        
+                        /* 实时推送搜索到的设备到RS485上位机（USART6） */
+                        rs485_send_search_device((uint8_t*)result.attribute, result.dev_addr, result.net_state);
+                    }
+                    else
+                    {
+                        printf("MAC地址获取失败,result.attribute_len:%d\r\n",result.attribute_len);
+                    }
+                }
+                else
+                {
+                    printf("设备重复搜索到\r\n");
+                }
             }
             break;
         }
@@ -450,60 +444,18 @@ void es1642_on_frame_received(es1642_handle_t *handle,
             status = ES1642_DecodeRecvData(frame, &recv_data);
             if (status == ES1642_STATUS_OK)
             {
-                /* ---- 阻塞模式处理（0x01设置地址等，ES1642_SendUserData 在等信号量） ---- */
-                if (g_es1642_wait_type == ES1642_WAIT_RECV_DATA)
+                /* 将响应数据拷贝到全局响应缓冲区（供 ES1642_SendUserData 读取） */
+                memcpy(g_es1642_response.src_addr, recv_data.src_addr, ES1642_ADDR_LEN);
+                if (recv_data.user_data_len > 0 && recv_data.user_data != NULL && recv_data.user_data_len <= ES1642_RESP_MAX_LEN)
                 {
-                    memcpy(g_es1642_response.src_addr, recv_data.src_addr, ES1642_ADDR_LEN);
-                    if (recv_data.user_data_len > 0 && recv_data.user_data != NULL && recv_data.user_data_len <= ES1642_RESP_MAX_LEN)
-                    {
-                        memcpy(g_es1642_response.data, recv_data.user_data, recv_data.user_data_len);
-                        g_es1642_response.data_len = recv_data.user_data_len;
-                    }
-                    else
-                    {
-                        g_es1642_response.data_len = 0;
-                    }
-                    osSemaphoreRelease(ES1642_sendHandle);
+                    memcpy(g_es1642_response.data, recv_data.user_data, recv_data.user_data_len);
+                    g_es1642_response.data_len = recv_data.user_data_len;
                 }
-
-                /* ---- 异步处理 0x04 状态响应（MPPT 采集，不等 ACK 模式下到达） ---- */
-                if (recv_data.user_data_len >= 6 && recv_data.user_data[0] == 0x04)
+                else
                 {
-                    int idx = find_device_by_addr(recv_data.src_addr);
-                    printf("收到源地址=%d\r\n",recv_data.src_addr[3]);
-                    if (idx >= 0)
-                    {
-                        /* 更新设备温度/电压/状态 */
-                        device_list[idx].temperature = (int8_t)recv_data.user_data[2];
-                        device_list[idx].input_voltage = (uint16_t)recv_data.user_data[3] | ((uint16_t)recv_data.user_data[4] << 8);
-                        uint8_t st = recv_data.user_data[5];
-                        device_list[idx].state.bits.dc_heating    = (st & 0x02) ? 1 : 0;
-                        device_list[idx].state.bits.power_reverse = (st & 0x80) ? 1 : 0;
-                        device_list[idx].state.bits.temp_err      = (st & 0x40) ? 1 : 0;
-                        device_list[idx].state.bits.relay_err     = (st & 0x20) ? 1 : 0;
-                        device_list[idx].comm_fail_cnt = 0;
-                        device_list[idx].state.bits.comm_err = 0;
-                        no_ack_count[idx] = 0;  /* 清零未收到ACK计数 */
-                        g_mppt_last_cmd[idx] = device_list[idx].state.bits.dc_heating;  /* 用实际状态更新,执行失败的设备下轮自动重发 */
-
-                        /* 记录时间戳并累加用电量 */
-                        uint32_t now = xTaskGetTickCount() * portTICK_PERIOD_MS / 1000;
-                        uint32_t prev = last_poll_time[idx];
-                        last_poll_time[idx] = now;
-
-                        if (device_list[idx].state.bits.dc_heating &&
-                            device_list[idx].input_voltage > 0 && prev != 0)
-                        {
-                            uint32_t elapsed = now - prev;
-                            if (elapsed > 0 && elapsed <= 7200)/* 超过2小时(低压中断)则跳过 */
-                            {
-                                float voltage = (float)device_list[idx].input_voltage;
-                                float power_w = voltage * voltage / (float)LOAD_RESISTANCE;
-                                daily_energy_wh[idx] += power_w * (float)elapsed / 3600.0f;
-                            }
-                        }
-                    }
+                    g_es1642_response.data_len = 0;
                 }
+                osSemaphoreRelease(ES1642_sendHandle); /* 释放信号量，解除 ES1642_SendUserData 的阻塞 */
             }
             break;
         }
@@ -711,7 +663,7 @@ int ES1642_SendUserData(int dev_index,
     ==============================================*/
     printf("数据发送成功,等待从机响应\r\n");
 
-    if (osSemaphoreAcquire(ES1642_sendHandle, pdMS_TO_TICKS(20000)) == osOK)
+    if (osSemaphoreAcquire(ES1642_sendHandle, pdMS_TO_TICKS(40000)) == osOK)
     {
         printf("成功接收到从机的响应\r\n");
         device_list[dev_index].comm_fail_cnt = 0;  /* 成功收到响应，通信失败次数清零 */
@@ -729,8 +681,8 @@ int ES1642_SendUserData(int dev_index,
     }
     else
     {
-				char addr_buf[30];
-				snprintf(addr_buf, sizeof(addr_buf), "%02X:%02X:%02X:%02X:%02X:%02X",dst_addr[0], dst_addr[1], dst_addr[2], dst_addr[3],dst_addr[4],dst_addr[5]);
+        char addr_buf[30];
+        snprintf(addr_buf, sizeof(addr_buf), "%02X:%02X:%02X:%02X:%02X:%02X",dst_addr[0], dst_addr[1], dst_addr[2], dst_addr[3],dst_addr[4],dst_addr[5]);
         printf("从机地址为%s响应超时\r\n", addr_buf);
         device_list[dev_index].comm_fail_cnt++;  /* 通信失败次数+1 */
         if(device_list[dev_index].comm_fail_cnt >= 3)
@@ -742,53 +694,6 @@ int ES1642_SendUserData(int dev_index,
         osSemaphoreRelease(ES1642_mutexHandle);//解锁
         return -2; /* 响应超时 */
     }
-}
-
-/**
- * @brief  非阻塞发送数据到指定设备（不等 ACK 响应）
- * @param  dev_index: 目标设备在 device_list 中的下标
- * @param  data: 要发送的用户数据
- * @param  len: 数据长度
- * @param  relay_depth: 中继深度（0 表示自动）
- * @retval 0: 发送成功, -1: 发送失败
- * @note   用于 0x02/0x03 控制命令和 0x04 采集命令的快速发送
- *         发送后立即返回，从机的 ACK 响应在 es1642_on_frame_received 回调里异步处理
- */
-int ES1642_SendNoAck(int dev_index,
-                     const uint8_t *data,
-                     uint16_t len,
-                     uint8_t relay_depth)
-{
-    es1642_status_t status;
-
-    if (dev_index < 0 || dev_index >= device_count || (len > 0 && data == NULL))
-    {
-        return -1;
-    }
-
-    if (g_es1642_searching)
-    {
-        return -1;
-    }
-
-    const uint8_t *dst_addr = device_list[dev_index].addr;
-
-    /* 获取互斥锁（保证发送串行化，不和 0x01 阻塞发送冲突） */
-    if (osSemaphoreAcquire(ES1642_mutexHandle, osWaitForever) != osOK)
-    {
-        return -1;
-    }
-
-    /* 标记为异步模式（回调里不会释放信号量，直接更新 device_list） */
-    g_es1642_wait_type = ES1642_WAIT_NONE;
-
-    /* 发送数据帧（不等 ACK） */
-    status = ES1642_SendData(&g_es1642_handle, dst_addr, data, len, relay_depth, true);
-
-    /* 释放互斥锁 */
-    osSemaphoreRelease(ES1642_mutexHandle);
-
-    return (status == ES1642_STATUS_OK) ? 0 : -1;
 }
 
 /**

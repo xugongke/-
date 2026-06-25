@@ -482,9 +482,6 @@ void RTC_Task(void *argument)
 	printf("RTCTask: LVGL UI已就绪\r\n");
 	osDelay(1500);
 
-	/* MPPT模块初始化 (设备表已在lvgl_task中加载) */
-//	MPPT_Init();
-
 	/* 跳转到home界面 (获取互斥锁保护LVGL操作) */
 	if(lvgl_mutex) osMutexAcquire(lvgl_mutex, osWaitForever);
 	ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_home,
@@ -562,23 +559,17 @@ void DevicePoll_Task(void *argument)
       printf("DevicePoll: 初始日期 20%02d-%02d-%02d\r\n",
              last_date.year, last_date.month, last_date.day);
   }
-
+	osDelay(5000);//等待es1642收到帧头错误
   /* Infinite loop */
   for(;;)
   {
       if(g_es1642_searching == 0)  /* 仅在非搜索状态下执行 */
       {
-        /* ① MPPT决策 + 选管策略(温度排序+加热时长公平) */
-        MPPT_Decide();
-
-        /* ② 异步控制+采集一体化(只发变化设备→延时→全量0x04采集) */
+        /* ① MPPT采集+控制一体化(慢速采集→告警扫描→快速P&O控制闭环) */
         device_poll_and_control_all();
 
-        /* ③ 告警扫描 */
-        alert_scan_devices();
-
-        /* ④ 更新太阳能发电量 = Σ各从机用电量 */
-        float total_energy = 0.0f;
+        /* ② 更新太阳能发电量 = Σ各从机用电量 */
+        uint32_t total_energy = 0;
         for (uint16_t i = 0; i < device_count; i++)
         {
             total_energy += daily_energy_wh[i];
@@ -596,7 +587,6 @@ void DevicePoll_Task(void *argument)
                 daily_energy_flush_to_sd();  /* 将RAM中日累积电量写入SD卡 */
                 solar_energy_flush();        /* 太阳能发电量结算并保存到SD卡 */
                 memset(heating_seconds, 0, sizeof(heating_seconds)); /* 清零加热时长(每日归零) */
-                memset(no_ack_count, 0, sizeof(no_ack_count));      /* 清零通信失败计数 */
             }
             last_date = cur_date;
         }

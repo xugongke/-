@@ -42,25 +42,9 @@
 mppt_data_t g_mppt = {0};
 solar_energy_data_t g_solar_energy = {0};
 
-/* MPPT 主动控制 - 选管策略数组 */
-uint8_t  g_mppt_target[MAX_DEVICES] = {0};    /* 每台设备目标加热状态: 1=ON, 0=OFF */
-uint8_t  g_mppt_last_cmd[MAX_DEVICES] = {0};  /* 每台设备上次发出的命令(控制差分用) */
+/* MPPT 主动控制 */
 uint32_t heating_seconds[MAX_DEVICES] = {0};  /* 每台累计加热秒数(公平性排序用) */
 static   uint8_t mppt_first_round = 1;        /* 首轮标志(采集基准不扰动) */
-
-/* ========================== 私有变量 ========================== */
-
-/** 等待状态计数器 (秒) */
-static uint8_t wait_counter = 0;
-
-/** 发电量累计的时间戳 (上次累计的时刻, 单位: 秒) */
-static uint32_t energy_last_tick = 0;
-
-/** 发电量累计初始化标志 (防止 energy_last_tick==0 时跳过第一次累计) */
-static uint8_t energy_initialized = 0;
-
-/** 发电量累计间隔 (秒) */
-#define ENERGY_ACCUM_INTERVAL_SEC   5
 
 /* ========================== 私有函数 ========================== */
 
@@ -102,385 +86,7 @@ static uint8_t count_online_devices(void)
     return count;
 }
 
-/**
- * @brief  累计发电量
- * @note   在 MEASURE 和 OBSERVE 状态时调用
- *         使用梯形积分: E += P × Δt
- */
-void accumulate_energy(void)
-{
-    /* 累计发电量 (每隔 ENERGY_ACCUM_INTERVAL_SEC 秒累计一次) */
-    uint32_t now = xTaskGetTickCount() * portTICK_PERIOD_MS / 1000; /* 当前秒数 */
-    if (!energy_initialized)
-    {
-        energy_last_tick = now;
-        energy_initialized = 1;
-        return;
-    }
-    uint32_t elapsed_sec = now - energy_last_tick;
-    if (elapsed_sec >= ENERGY_ACCUM_INTERVAL_SEC)
-    {
-        float power = g_mppt.power;
-        if (power > 0.0f)
-        {
-            /* power 单位 W, 间隔单位 秒, 转换为 Wh */
-            g_mppt.energy_wh += power * (float)(elapsed_sec) / 3600.0f;
-        }
-        printf("累计发电量:elapsed_sec=%lus +%.3fWh (总: %.3fWh)\r\n",
-               (unsigned long)elapsed_sec, power * (float)(elapsed_sec) / 3600.0f, g_mppt.energy_wh);
-        energy_last_tick = now;
-    }
-}
-
 /* ========================== 公共函数 ========================== */
-
-/**
- * @brief  MPPT 模块初始化
- */
-void MPPT_Init(void)
-{
-    g_mppt.state = MPPT_STATE_INIT;
-    g_mppt.n_active = 0;
-    g_mppt.n_online = 0;
-    g_mppt.direction = MPPT_DIR_INIT;
-    g_mppt.stable_count = 0;
-    g_mppt.voltage = 0.0f;
-    g_mppt.power = 0.0f;
-    g_mppt.power_prev = 0.0f;
-    g_mppt.power_max = 0.0f;
-    g_mppt.n_at_max_power = 0;
-    g_mppt.energy_wh = 0.0f;
-    g_mppt.cycle_count = 0;
-    g_mppt.enabled = 1;  /* 默认使能 */
-    wait_counter = 0;
-    energy_last_tick = 0;
-    energy_initialized = 0;
-
-    printf("MPPT: 模块初始化完成, 加热管电阻=%.1fΩ\r\n", MPPT_HEATER_RESISTANCE);
-}
-
-/**
- * @brief  MPPT 任务函数 - 状态机驱动
- * @note   每次 FreeRTOS 任务循环调用一次, 内部根据状态执行不同操作
- */
-void MPPT_Task(void)
-{
-    /* MPPT 未使能时跳过 */
-    if (!g_mppt.enabled)
-    {
-        return;
-    }
-
-    switch (g_mppt.state)
-    {
-        /*----------------------------------------------------------
-         * INIT: 初始化
-         * 检查在线设备数和总线电压, 决定是否启动 MPPT
-         *----------------------------------------------------------*/
-        case MPPT_STATE_INIT:
-        {
-            g_mppt.n_online = count_online_devices();
-            g_mppt.voltage = Solar_GetVoltage();
-
-            printf("MPPT INIT: 在线=%d, 电压=%.1fV\r\n",
-                   g_mppt.n_online, g_mppt.voltage);
-
-            /* 无在线设备 → 禁用 */
-            if (g_mppt.n_online == 0)
-            {
-                printf("MPPT: 无在线设备, 进入DISABLED\r\n");
-                g_mppt.state = MPPT_STATE_DISABLED;
-                break;
-            }
-
-            /* 电压太低 → 等待光照 */
-            if (g_mppt.voltage < MPPT_VOLTAGE_MIN)
-            {
-                printf("MPPT: 电压%.1fV < 阈值%.1fV, 等待光照\r\n",
-                       g_mppt.voltage, MPPT_VOLTAGE_MIN);
-                g_mppt.state = MPPT_STATE_DISABLED;
-                break;
-            }
-
-            /* 条件满足: 先关闭所有加热管, 从 N=0 开始测量 */
-            g_mppt.n_active = count_active_heaters();
-
-            /* 如果当前没有开启任何加热管, 先开1台作为起点 */
-            if (g_mppt.n_active == 0)
-            {
-                g_mppt.n_active = MPPT_SetActiveHeaters(1);
-                if (g_mppt.n_active == 0)
-                {
-                    printf("MPPT: 无法开启任何加热器, DISABLED\r\n");
-                    g_mppt.state = MPPT_STATE_DISABLED;
-                    break;
-                }
-                /* 等待开启后电压稳定 */
-                wait_counter = 0;
-                g_mppt.state = MPPT_STATE_WAIT;
-                printf("MPPT: 初始开启%d台, 等待稳定\r\n", g_mppt.n_active);
-            }
-            else
-            {
-                /* 已有加热管在运行, 直接进入测量 */
-                g_mppt.state = MPPT_STATE_MEASURE;
-            }
-            break;
-        }
-
-        /*----------------------------------------------------------
-         * DISABLED: 禁用状态
-         * 等待条件恢复 (有设备在线 + 电压足够)
-         *----------------------------------------------------------*/
-        case MPPT_STATE_DISABLED:
-        {
-            g_mppt.n_online = count_online_devices();
-            g_mppt.voltage = Solar_GetVoltage();
-
-            /* 条件恢复 → 回到 INIT */
-            if (g_mppt.n_online > 0 && g_mppt.voltage >= MPPT_VOLTAGE_MIN)
-            {
-                printf("MPPT: 条件恢复(在线=%d, V=%.1fV), 重新初始化\r\n",
-                       g_mppt.n_online, g_mppt.voltage);
-                g_mppt.state = MPPT_STATE_INIT;
-            }
-            break;
-        }
-
-        /*----------------------------------------------------------
-         * MEASURE: 测量当前状态
-         * 读取电压, 计算功率, 记录为 P_prev
-         *----------------------------------------------------------*/
-        case MPPT_STATE_MEASURE:
-        {
-            /* 更新在线设备数 (可能有设备掉线) */
-            g_mppt.n_online = count_online_devices();
-
-            /* 读取当前总线电压 */
-            g_mppt.voltage = Solar_GetVoltage();
-
-            /* 电压过低 → 暂停 MPPT */
-            if (g_mppt.voltage < MPPT_VOLTAGE_MIN)
-            {
-                printf("MPPT: 电压%.1fV过低, 暂停跟踪\r\n", g_mppt.voltage);
-                g_mppt.state = MPPT_STATE_DISABLED;
-                break;
-            }
-
-            /* 计算当前功率 */
-            g_mppt.power = MPPT_CalcPower(g_mppt.voltage, g_mppt.n_active);
-            g_mppt.power_prev = g_mppt.power;
-
-            /* 累计发电量 */
-            accumulate_energy();
-
-            printf("MPPT MEASURE: V=%.1fV, N=%d, P=%.1fW\r\n",
-                   g_mppt.voltage, g_mppt.n_active, g_mppt.power);
-
-            /* 记录最大功率 */
-            if (g_mppt.power > g_mppt.power_max)
-            {
-                g_mppt.power_max = g_mppt.power;
-                g_mppt.n_at_max_power = g_mppt.n_active;
-            }
-
-            /* 进入扰动 */
-            g_mppt.state = MPPT_STATE_PERTURB;
-            break;
-        }
-
-        /*----------------------------------------------------------
-         * PERTURB: 执行扰动
-         * 根据当前方向决定增加还是减少1台加热器
-         *----------------------------------------------------------*/
-        case MPPT_STATE_PERTURB:
-        {
-            uint8_t target = g_mppt.n_active;
-
-            /* 根据方向计算目标数量 */
-            if (g_mppt.direction == MPPT_DIR_INIT ||
-                g_mppt.direction == MPPT_DIR_INCREASE)
-            {
-                target = g_mppt.n_active + 1;
-            }
-            else
-            {
-                target = g_mppt.n_active - 1;
-            }
-
-            /* 边界检查 */
-            if (target < 1)
-            {
-                target = 1;
-                /* 已在最小值, 反向 */
-                g_mppt.direction = MPPT_DIR_INCREASE;
-            }
-            if (target > g_mppt.n_online)
-            {
-                target = g_mppt.n_online;
-                /* 已在最大值, 反向 */
-                g_mppt.direction = MPPT_DIR_DECREASE;
-            }
-
-            /* 如果 target 和当前相同, 说明已到边界且方向也改了, 无需扰动 */
-            if (target == g_mppt.n_active &&
-                g_mppt.direction != MPPT_DIR_INIT)
-            {
-                /* 两边都到头了, 回到测量维持当前状态 */
-                printf("MPPT: 已在边界(N=%d), 维持当前\r\n", g_mppt.n_active);
-                g_mppt.state = MPPT_STATE_MEASURE;
-                break;
-            }
-
-            printf("MPPT PERTURB: %d台 → %d台 (方向=%s)\r\n",
-                   g_mppt.n_active, target,
-                   g_mppt.direction == MPPT_DIR_INCREASE ? "增加" : "减少");
-
-            /* 执行加热器控制 */
-            uint8_t actual = MPPT_SetActiveHeaters(target);
-
-            if (actual != target)
-            {
-                printf("MPPT: 实际开启%d台(目标%d台), 调整计划\r\n", actual, target);
-            }
-
-            g_mppt.n_active = actual;
-
-            /* 进入等待, 让总线电压稳定 */
-            wait_counter = 0;
-            g_mppt.state = MPPT_STATE_WAIT;
-            break;
-        }
-
-        /*----------------------------------------------------------
-         * WAIT: 等待系统稳定
-         * 切换加热管后需要等待一段时间再测量
-         *----------------------------------------------------------*/
-        case MPPT_STATE_WAIT:
-        {
-            wait_counter++;
-
-            if (wait_counter >= MPPT_SETTLE_TIME_SEC)
-            {
-                /* 稳定时间到, 进入观察 */
-                g_mppt.state = MPPT_STATE_OBSERVE;
-                printf("MPPT: 稳定等待完成, 开始观察\r\n");
-            }
-            /* 等待期间也累计发电量 (使用上次的功率值) */
-            else
-            {
-                accumulate_energy();
-            }
-            break;
-        }
-
-        /*----------------------------------------------------------
-         * OBSERVE: 观察扰动结果
-         * 读取新电压, 计算新功率
-         *----------------------------------------------------------*/
-        case MPPT_STATE_OBSERVE:
-        {
-            /* 读取新的总线电压 */
-            g_mppt.voltage = Solar_GetVoltage();
-
-            /* 电压过低 → 暂停 */
-            if (g_mppt.voltage < MPPT_VOLTAGE_MIN)
-            {
-                printf("MPPT: 观察期电压%.1fV过低, 暂停\r\n", g_mppt.voltage);
-                g_mppt.state = MPPT_STATE_DISABLED;
-                break;
-            }
-
-            /* 计算新功率 */
-            g_mppt.power = MPPT_CalcPower(g_mppt.voltage, g_mppt.n_active);
-
-            /* 累计发电量 */
-            accumulate_energy();
-
-            printf("MPPT OBSERVE: V=%.1fV, N=%d, P=%.1fW (之前=%.1fW, Δ=%.1fW)\r\n",
-                   g_mppt.voltage, g_mppt.n_active, g_mppt.power,
-                   g_mppt.power_prev, g_mppt.power - g_mppt.power_prev);
-
-            /* 记录最大功率 */
-            if (g_mppt.power > g_mppt.power_max)
-            {
-                g_mppt.power_max = g_mppt.power;
-                g_mppt.n_at_max_power = g_mppt.n_active;
-            }
-
-            g_mppt.cycle_count++;
-
-            /* 进入决策 */
-            g_mppt.state = MPPT_STATE_DECIDE;
-            break;
-        }
-
-        /*----------------------------------------------------------
-         * DECIDE: 决策下一步
-         * 比较 P_new 和 P_old, 决定扰动方向
-         *----------------------------------------------------------*/
-        case MPPT_STATE_DECIDE:
-        {
-            float delta_p = g_mppt.power - g_mppt.power_prev;
-
-            if (delta_p > MPPT_POWER_THRESHOLD)
-            {
-                /* 功率增加 → 方向正确, 继续同方向 */
-                printf("MPPT DECIDE: 功率增加%.1fW, 继续%s方向\r\n",
-                       delta_p,
-                       g_mppt.direction == MPPT_DIR_INCREASE ? "增加" : "减少");
-
-                g_mppt.stable_count = 0;
-                /* direction 保持不变 */
-            }
-            else if (delta_p < -MPPT_POWER_THRESHOLD)
-            {
-                /* 功率下降 → 方向错误, 反向 */
-                if (g_mppt.direction == MPPT_DIR_INCREASE)
-                {
-                    g_mppt.direction = MPPT_DIR_DECREASE;
-                }
-                else
-                {
-                    g_mppt.direction = MPPT_DIR_INCREASE;
-                }
-
-                printf("MPPT DECIDE: 功率下降%.1fW, 反向(→%s)\r\n",
-                       -delta_p,
-                       g_mppt.direction == MPPT_DIR_INCREASE ? "增加" : "减少");
-
-                g_mppt.stable_count = 0;
-            }
-            else
-            {
-                /* 功率变化不大 → 可能已在 MPP 附近 */
-                g_mppt.stable_count++;
-                printf("MPPT DECIDE: 功率变化%.1fW(阈值±%.1fW), 稳定计数=%d/%d\r\n",
-                       delta_p, MPPT_POWER_THRESHOLD,
-                       g_mppt.stable_count, MPPT_STABLE_COUNT_MAX);
-
-                /* 交替扰动方向, 在 MPP 附近小幅振荡 */
-                if (g_mppt.direction == MPPT_DIR_INCREASE)
-                {
-                    g_mppt.direction = MPPT_DIR_DECREASE;
-                }
-                else
-                {
-                    g_mppt.direction = MPPT_DIR_INCREASE;
-                }
-            }
-
-            /* 回到扰动, 继续下一轮 */
-            g_mppt.state = MPPT_STATE_PERTURB;
-            break;
-        }
-
-        default:
-            g_mppt.state = MPPT_STATE_INIT;
-            break;
-    }
-}
-
 /**
  * @brief  计算估算功率
  * @param  voltage: 总线电压 (V)
@@ -510,18 +116,6 @@ void MPPT_Enable(uint8_t enable)
     }
 }
 
-/**
- * @brief  重置日发电量
- */
-void MPPT_ResetDailyEnergy(void)
-{
-    g_mppt.energy_wh = 0.0f;
-    g_mppt.power_max = 0.0f;
-    g_mppt.cycle_count = 0;
-    energy_last_tick = 0;
-    energy_initialized = 0;
-    printf("MPPT: 日发电量已重置\r\n");
-}
 
 /**
  * @brief  获取日发电量 (kWh)
@@ -664,7 +258,7 @@ void solar_energy_flush(void)
 
     float energy_kwh = g_mppt.energy_wh / 1000.0f;  /* Wh → kWh */
 
-    printf("太阳能发电量结算: 当前RAM累积=%.3fWh (%.3fkWh)\r\n", g_mppt.energy_wh, energy_kwh);
+    printf("太阳能发电量结算: 当前RAM累积=%dWh (%.3fkWh)\r\n", g_mppt.energy_wh, energy_kwh);
 
     /* 检查是否需要重置日发电量（日期变化时重置） */
     if (g_solar_energy.last_reset_day != rtc_now.day)
@@ -807,139 +401,170 @@ static uint8_t count_schedulable_devices(void)
 }
 
 /**
- * @brief  选管策略: 温度排序 + 加热总时长公平 (可替换模块)
- * @param  n_target: 目标开启数量
- * @note   评分 score = temperature + heating_seconds/100
- *         分数低的优先开 (温度低 + 加热时长少 = 优先)
- *         温度 >= 75 C 的设备强制 target=0
+ * @brief  选1台设备开启 (温度最低+加热时长最少的OFF设备)
+ * @retval >=0: 设备索引, -1: 无可开设备
  */
-static void mppt_select_heaters(uint8_t n_target)
+static int mppt_select_one_to_enable(void)
 {
-    memset(g_mppt_target, 0, MAX_DEVICES);
-
-    /* 收集可调度设备索引 */
-    int indices[MAX_DEVICES];
-    int n_avail = 0;
-
+    int best = -1;
+    float best_score = 1e9f;
     for (int i = 0; i < device_count; i++)
     {
         if (device_list[i].state.bits.valid &&
-            !device_list[i].state.bits.comm_err &&    /* 排除通信异常 */
-            !device_list[i].state.bits.relay_err &&   /* 排除继电器故障 */
-            device_list[i].temperature < 75)
+            !device_list[i].state.bits.comm_err &&
+            !device_list[i].state.bits.relay_err &&
+            device_list[i].temperature < 75 &&
+            !device_list[i].state.bits.dc_heating)  /* 当前OFF */
         {
-            indices[n_avail++] = i;
+            float score = (float)device_list[i].temperature
+                        + (float)heating_seconds[i] / 100.0f;
+            if (score < best_score) { best_score = score; best = i; }
         }
     }
-
-    if (n_target > (uint8_t)n_avail) n_target = (uint8_t)n_avail;
-    if (n_target == 0) return;
-
-    /* 冒泡排序: 按 score 升序 (温度低+加热少的排前面) */
-    for (int i = 0; i < n_avail - 1; i++)
-    {
-        for (int j = i + 1; j < n_avail; j++)
-        {
-            float si = (float)device_list[indices[i]].temperature
-                     + (float)heating_seconds[indices[i]] / 100.0f;
-            float sj = (float)device_list[indices[j]].temperature
-                     + (float)heating_seconds[indices[j]] / 100.0f;
-            if (sj < si)
-            {
-                int tmp = indices[i];
-                indices[i] = indices[j];
-                indices[j] = tmp;
-            }
-        }
-    }
-
-    /* 前 n_target 台设为 ON */
-    for (int i = 0; i < n_target; i++)
-    {
-        g_mppt_target[indices[i]] = 1;
-    }
-
-    printf("MPPT选管: 目标=%d, 可用=%d\r\n", n_target, n_avail);
+    return best;
 }
 
 /**
- * @brief  MPPT 决策函数 (每轮控制前调用一次)
- * @note   P&O 扰动观察法, ±1 台步长
- *         基于上轮 0x04 采集的实际 n_active + Solar_GetVoltage() 做决策
- *         调用 mppt_select_heaters() 生成 g_mppt_target[]
+ * @brief  选1台设备关闭 (温度最高+加热时长最多的ON设备)
+ * @retval >=0: 设备索引, -1: 无可关设备
  */
-void MPPT_Decide(void)
+static int mppt_select_one_to_disable(void)
+{
+    int best = -1;
+    float best_score = -1e9f;
+    for (int i = 0; i < device_count; i++)
+    {
+        if (device_list[i].state.bits.valid &&
+            !device_list[i].state.bits.comm_err &&
+            device_list[i].state.bits.dc_heating)  /* 当前ON */
+        {
+            float score = (float)device_list[i].temperature
+                        + (float)heating_seconds[i] / 100.0f;
+            if (score > best_score) { best_score = score; best = i; }
+        }
+    }
+    return best;
+}
+
+/**
+ * @brief  MPPT P&O 控制闭环 (采集阶段之后调用)
+ * @note   快速循环: ±1台→发0x02/0.03等ACK→等3秒→读电压→P&O判断
+ *         功率增加继续搜索, 功率下降撤回最后一步并退出
+ *         继电器不能频繁通断, 找到MPP后立即停止
+ */
+void MPPT_ControlLoop(void)
 {
     float v = Solar_GetVoltage();
     g_mppt.voltage = v;
     g_mppt.n_active = count_active_heaters();
     g_mppt.n_online = count_online_devices();
 
-    /* 载波断链区间或无在线设备, 不干预 */
-    if (v < 28.0f || g_mppt.n_online == 0)
-    {
-        memset(g_mppt_target, 0, MAX_DEVICES);
-        return;
-    }
+    /* 载波断链或无设备, 不控制 */
+    if (v < 28.0f || g_mppt.n_online == 0) return;
 
-    /* 计算当前功率 */
-    g_mppt.power = MPPT_CalcPower(v, g_mppt.n_active);
-
-    /* 首轮: 保持现状, 采集基准, 所有设备默认ON(从机上电默认加热) */
+    /* 首轮: 建立功率基准, 不扰动 */
     if (mppt_first_round)
     {
         mppt_first_round = 0;
-        g_mppt.power_prev = g_mppt.power;
-        g_mppt.direction = MPPT_DIR_INCREASE;
-        g_mppt.cycle_count = 1;
-        /* 首轮: 所有在线设备 target=1 (保持默认全开) */
-        for (uint16_t i = 0; i < device_count; i++)
-        {
-            if (device_list[i].state.bits.valid)
-                g_mppt_target[i] = 1;
-        }
-        printf("MPPT首轮: V=%.1fV, N=%d, P=%.1fW, 全开采集基准\r\n",
-               v, g_mppt.n_active, g_mppt.power);
+        g_mppt.power_prev = MPPT_CalcPower(v, g_mppt.n_active);
+        g_mppt.direction = MPPT_DIR_DECREASE;  /* 从机默认全开, 首次应尝试减载 */
+        printf("MPPT首轮: V=%.1fV, 当前开启加热的数量=%d, P=%.1fW, 建立基准\r\n",
+               v, g_mppt.n_active, g_mppt.power_prev);
         return;
     }
 
-    /* P&O 决策 */
-    float delta_p = g_mppt.power - g_mppt.power_prev;
     uint8_t n_schedulable = count_schedulable_devices();
+    if (n_schedulable == 0) return;
 
-    if (delta_p > MPPT_POWER_THRESHOLD)
+    printf("MPPT控制开始: 当前开启的加热器数量=%d, 扰动方向=%d\r\n", g_mppt.n_active, g_mppt.direction);
+
+    /* P&O 快速控制循环 */
+    while (1)
     {
-        /* 功率增加, 方向正确, 继续 */
-        g_mppt.stable_count = 0;
+        int idx;
+
+        /* ① 选管 + 发命令 (±1台) */
+        if (g_mppt.direction == MPPT_DIR_INCREASE)
+        {
+            idx = mppt_select_one_to_enable();
+            printf("MPPT: 选中设备[%d]开启\r\n", idx);
+            if (idx < 0)
+            {
+                printf("MPPT: 无可开启设备, 退出控制循环\r\n");
+                /* 反向方向, 下一轮采集后使用 */
+                g_mppt.direction = (g_mppt.direction == MPPT_DIR_INCREASE)
+                                ? MPPT_DIR_DECREASE : MPPT_DIR_INCREASE;
+                break;  /* 无可开设备, 退出 */
+            } 
+            if (device_ctrl_heater(idx, 1) != 0) {
+                device_list[idx].state.bits.relay_err = 1;  /* 标记跳过, 下轮采集纠正 */
+                continue;
+            }
+            device_list[idx].state.bits.dc_heating = 1;
+            g_mppt.n_active++;
+        }
+        else
+        {
+            idx = mppt_select_one_to_disable();
+            printf("MPPT: 选中设备[%d]关闭\r\n", idx);
+            if (idx < 0)
+            {
+                printf("MPPT: 无可关闭设备, 退出控制循环\r\n");
+                /* 反向方向, 下一轮采集后使用 */
+                g_mppt.direction = (g_mppt.direction == MPPT_DIR_INCREASE)
+                                ? MPPT_DIR_DECREASE : MPPT_DIR_INCREASE;
+                break;  /* 无可关设备, 退出 */
+            }
+            if (device_ctrl_heater(idx, 0) != 0) {
+                device_list[idx].state.bits.relay_err = 1;
+                continue;
+            }
+            device_list[idx].state.bits.dc_heating = 0;
+            g_mppt.n_active--;
+        }
+
+        /* ② 等继电器动作 */
+        osDelay(3000);
+
+        /* ③ 读电压算功率 */
+        v = Solar_GetVoltage();
+        g_mppt.voltage = v;
+        g_mppt.power = MPPT_CalcPower(v, g_mppt.n_active);
+
+        /* ④ P&O 判断 */
+        float delta_p = g_mppt.power - g_mppt.power_prev;
+        g_mppt.cycle_count++;
+
+        printf("MPPT控制: V=%.1fV, N=%d, P=%.1fW(ΔP=%.1fW)\r\n",
+               v, g_mppt.n_active, g_mppt.power, delta_p);
+
+        if (delta_p > MPPT_POWER_THRESHOLD)
+        {
+            /* 功率增加, 方向正确, 继续搜索 */
+            g_mppt.power_prev = g_mppt.power;
+        }
+        else
+        {
+            /* 功率下降或不变 → 找到MPP, 撤回最后一步 */
+            printf("MPPT: 功率未增加, 撤回最后一步, 退出控制\r\n");
+            if (g_mppt.direction == MPPT_DIR_INCREASE)
+            {
+                if (device_ctrl_heater(idx, 0) == 0)
+                    device_list[idx].state.bits.dc_heating = 0;
+                g_mppt.n_active--;
+            }
+            else
+            {
+                if (device_ctrl_heater(idx, 1) == 0)
+                    device_list[idx].state.bits.dc_heating = 1;
+                g_mppt.n_active++;
+            }
+            /* 反向方向, 下一轮采集后使用 */
+            g_mppt.direction = (g_mppt.direction == MPPT_DIR_INCREASE)
+                             ? MPPT_DIR_DECREASE : MPPT_DIR_INCREASE;
+            break;  /* 退出控制循环 */
+        }
     }
-    else if (delta_p < -MPPT_POWER_THRESHOLD)
-    {
-        /* 功率下降, 反向 */
-        g_mppt.direction = (g_mppt.direction == MPPT_DIR_INCREASE)
-                         ? MPPT_DIR_DECREASE : MPPT_DIR_INCREASE;
-        g_mppt.stable_count = 0;
-    }
-    else
-    {
-        /* 功率变化不大, MPP附近振荡 */
-        g_mppt.stable_count++;
-        g_mppt.direction = (g_mppt.direction == MPPT_DIR_INCREASE)
-                         ? MPPT_DIR_DECREASE : MPPT_DIR_INCREASE;
-    }
 
-    /* 计算新目标加热数 (±1步长) */
-    uint8_t n_target = g_mppt.n_active;
-    if (g_mppt.direction == MPPT_DIR_INCREASE && n_target < n_schedulable)
-        n_target++;
-    else if (g_mppt.direction == MPPT_DIR_DECREASE && n_target > 1)
-        n_target--;
-
-    g_mppt.power_prev = g_mppt.power;
-    g_mppt.cycle_count++;
-
-    printf("MPPT决策: V=%.1fV, N_active=%d→N_target=%d, P=%.1fW(ΔP=%.1fW), dir=%d\r\n",
-           v, g_mppt.n_active, n_target, g_mppt.power, delta_p, g_mppt.direction);
-
-    /* 调用选管策略 */
-    mppt_select_heaters(n_target);
+    printf("MPPT控制完成: 当前开启的加热器数量=%d\r\n", g_mppt.n_active);
 }

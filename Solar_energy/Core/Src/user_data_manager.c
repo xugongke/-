@@ -152,7 +152,7 @@ int ensure_user_data_file(const uint8_t *dev_addr, const uint8_t *mac)
     default_data.building       = info.building;
     default_data.unit           = info.unit;
     default_data.room           = info.room;
-    default_data.temperature    = 25.0f;     /* 默认温度25℃ - 内部使用 */
+    default_data.last_energy_read    = 0;     /* 搜索前暂存的上次读取到的从机累计用电量 */
     default_data.half_day_energy_wh = 0.0f;  /* 搜索前暂存的半日累积用电量0Wh */
     default_data.daily_energy   = 0.0f;      /* 日累积用电量0kWh */
     default_data.monthly_energy = 0.0f;      /* 月累积用电量0kWh */
@@ -274,7 +274,7 @@ int write_user_data(const uint8_t *dev_addr, user_data_file_t *data)
 
 /**
  * @brief  从SD卡加载所有已入网设备的用电量数据到RAM缓存
- * @note   在上电初始化和搜索设备结束后调用
+ * @note   只在上电初始化后调用
  *         仅加载已入网设备(valid==1)的数据，跳过未入网设备
  */
 void user_detail_cache_init(void)
@@ -298,7 +298,6 @@ void user_detail_cache_init(void)
             user_detail_cache[i].monthly_energy = file_data.monthly_energy;
             user_detail_cache[i].annual_energy  = file_data.annual_energy;
             user_detail_cache[i].total_energy   = file_data.total_energy;
-            daily_energy_wh[i] = file_data.half_day_energy_wh;  /* 从文件恢复搜索前暂存的半日累积Wh */
             memcpy(user_detail_cache[i].weekly_energy, file_data.weekly_energy,
                    sizeof(file_data.weekly_energy));
             memcpy(&user_detail_cache[i].update_time, &file_data.update_time,

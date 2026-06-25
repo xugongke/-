@@ -23,7 +23,6 @@
 /* ================== 用户数据文件结构体 ================== */
 #pragma pack(push, 1)
 
-/* 紧凑时间戳，与RX8025T_DateTimeCompact对应，共6字节 */
 typedef struct {
     uint8_t year;            /* 年: 0-99 (2000-2099) */
     uint8_t month;           /* 月: 1-12 */
@@ -41,8 +40,8 @@ typedef struct {
     uint8_t  building;       /* 楼栋号 */
     uint8_t  unit;           /* 单元号 */
     uint16_t room;           /* 房间号 */
-    float    temperature;    /* 热水器当前温度(℃) - 内部使用 */
-    float    half_day_energy_wh;  /* 搜索前暂存的半日累积用电量(Wh) - 搜索时写入，搜索结束后恢复 */
+    uint32_t    last_energy_read;    /* 上次读取的从机用电量(Wh) */
+    uint32_t    half_day_energy_wh;  /* 搜索前暂存的半日累积用电量(Wh) - 搜索时写入，搜索结束后恢复 */
     float    daily_energy;   /* 日累积用电量(kWh) - 当日0点重置 */
     float    monthly_energy; /* 月累积用电量(kWh) - 每月1号重置 */
     float    annual_energy;  /* 年累积用电量(kWh) - 每年1月1日重置 */
@@ -76,9 +75,7 @@ extern user_detail_cache_t user_detail_cache[MAX_DEVICES];
 
 /**
  * @brief  从SD卡加载所有已入网设备的用电量数据到RAM缓存
- * @note   在以下时机调用：
- *         1. 上电初始化后（lvgl_task中device_manager_init之后）
- *         2. 搜索设备结束后（ES1642_CMD_STOP_SEARCH处理中）
+ * @note   上电初始化后调用（lvgl_task中device_manager_init之后）
  */
 void user_detail_cache_init(void);
 

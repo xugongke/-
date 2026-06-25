@@ -38,18 +38,9 @@ typedef struct
 // ================== 运行时临时数据（不保存到SD卡） ==================
 /**
  * @brief 各设备当日累积电量 (Wh)
- * @note  每次轮询成功后由 device_poll_all_status() 根据实际时间差累加到该数组
- *        每天零点由 daily_energy_flush_to_sd() 写入SD卡并清零
- *        不保存到 device_t 结构体中，避免影响 SD 卡文件格式
  */
-extern float daily_energy_wh[MAX_DEVICES];
+extern uint32_t daily_energy_wh[MAX_DEVICES];
 
-/**
- * @brief 各设备上次成功获取数据的时间戳（秒数，用于计算两次轮询间的实际时间差）
- * @note  初始值为0表示尚未获取过数据，第一次获取时不计算用电量
- *        在 device_read_status_ex() 获取从机数据成功的瞬间由 RX8025T_GetTime() 记录
- */
-extern uint32_t last_poll_time[MAX_DEVICES];
 //通信地址解析结构体
 typedef struct
 {
@@ -204,7 +195,7 @@ int find_device_by_addr(const uint8_t *addr);
  */
 void device_poll_and_control_all(void);
 
-/** 各设备连续未收到ACK的轮次计数（回调收到ACK时清零，>=3标记comm_err） */
-extern uint8_t no_ack_count[MAX_DEVICES];
+/** 各设备上次从从机读取的累计用电量(Wh)，用于差值计算 */
+extern uint32_t last_energy_read[MAX_DEVICES];
 
 #endif

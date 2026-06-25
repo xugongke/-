@@ -161,21 +161,6 @@ int ES1642_SendUserData(int dev_index,
                         es1642_response_t *response);
 
 /**
- * @brief  非阻塞发送数据到指定设备（不等ACK响应）
- * @param  dev_index: 目标设备在device_list中的下标
- * @param  data: 要发送的用户数据
- * @param  len: 数据长度
- * @param  relay_depth: 中继深度（0表示自动）
- * @retval 0: 发送成功, -1: 发送失败
- * @note   用于0x02/0x03控制命令和0x04采集命令的快速发送
- *         发送后立即返回，从机的ACK响应在es1642_on_frame_received回调里异步处理
- */
-int ES1642_SendNoAck(int dev_index,
-                     const uint8_t *data,
-                     uint16_t len,
-                     uint8_t relay_depth);
-
-/**
  * @brief  发送广播数据
  * @param  data: 要发送的数据
  * @param  len: 数据长度

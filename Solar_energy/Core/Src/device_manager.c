@@ -24,15 +24,11 @@ device_t device_list[MAX_DEVICES];
 uint16_t device_count = 0;
 
 // 运行时临时数据
-float daily_energy_wh[MAX_DEVICES];   // 各设备当日累积电量 (Wh)
-uint32_t last_poll_time[MAX_DEVICES]; // 各设备上次成功获取数据的时间戳（秒数）
-uint8_t  no_ack_count[MAX_DEVICES];   // 各设备连续未收到ACK的轮次计数(MPPT异步通信失败检测)
+uint32_t daily_energy_wh[MAX_DEVICES];   // 各设备当日累积电量 (Wh)
+uint32_t last_energy_read[MAX_DEVICES];  // 各设备上次从从机读取的累计用电量(Wh), 差值计算用
 
 // 标志：设备是否有变化（用于减少SD写入）
 static uint8_t device_changed = 0;
-
-/* 标志：首次轮询是否已完成（首次只建立时间基准，不计算用电量） */
-static uint8_t poll_initialized = 0;
 
 /* 告警预扫描全局数据 */
 alert_stats_t g_alert_stats = {0};
@@ -264,10 +260,9 @@ void Clear_devices(void)
 {
 	memset(device_list,0,sizeof(device_list));
 	memset(daily_energy_wh,0,sizeof(daily_energy_wh));
-	memset(last_poll_time,0,sizeof(last_poll_time));
+	memset(last_energy_read,0,sizeof(last_energy_read));
 	memset(user_detail_cache,0,sizeof(user_detail_cache));
 	device_count = 0;
-    poll_initialized = 0;
 }
 
 // ================== 保存设备表 ==================
@@ -450,215 +445,6 @@ int device_ctrl_heater(int dev_index, uint8_t heater_on)
         return -4;  /* 发送失败 */
     }
 }
-
-// ================== 读取从机状态(扩展版,返回解析数据) ==================
-
-/**
- * @brief 读取从机状态并通过结构体返回解析后的数据
- * @param addr   从机通信地址 (6字节)
- * @param status 输出: 解析后的状态数据
- * @return 0=成功, -1=参数错误, -2=从机超时, -3=响应异常, -4=发送失败
- *
- * 从机响应: [cmd=0x04][data_len=0x04][temp][vol_lo][vol_hi][state]
- *   temp:  温度 (int8_t, 单位℃)
- *   vol:   电压 (uint16_t小端, 单位V)
- *   state: 状态字 (bit1=直流加热, bit7=电源反接)
- */
-int device_read_status_ex(int dev_index)
-{
-    es1642_response_t response;
-    uint8_t cmd_buf[2];  /* [cmd][data_len] */
-    int ret;
-
-    if (dev_index < 0 || dev_index >= device_count) { return -1; }
-
-    /* 组装读取命令: 命令字+数据长度(0) */
-    cmd_buf[0] = SLAVE_CMD_READ_STATUS;
-    cmd_buf[1] = 0x00;  /* 无附加数据 */
-
-    /* 发送 */
-    ret = ES1642_SendUserData(dev_index, cmd_buf, sizeof(cmd_buf), 0, &response);
-
-    if (ret == 0)
-    {
-        /* 检查响应: [cmd=0x04][len=0x04][temp][vol_lo][vol_hi][state] */
-        if (response.data_len >= 6 &&
-            response.data[0] == SLAVE_CMD_READ_STATUS &&
-            response.data[1] == 0x04)
-        {
-            device_list[dev_index].temperature = (int8_t)response.data[2];
-            device_list[dev_index].input_voltage = (uint16_t)response.data[3] | ((uint16_t)response.data[4] << 8);
-            uint8_t state_byte   = response.data[5];
-
-            /* bit1 = 直流加热, bit7 = 电源反接,bit6 = 温度异常，bit5 = 继电器控制异常 */
-            device_list[dev_index].state.bits.dc_heating    = (state_byte & 0x02) ? 1 : 0;
-            device_list[dev_index].state.bits.power_reverse = (state_byte & 0x80) ? 1 : 0;
-            device_list[dev_index].state.bits.temp_err  = (state_byte & 0x40) ? 1 : 0;
-            device_list[dev_index].state.bits.relay_err     = (state_byte & 0x20) ? 1 : 0;
-
-            /* 获取从机数据成功的瞬间，立即记录FreeRTOS tick时间戳（秒） */
-            last_poll_time[dev_index] = xTaskGetTickCount() * portTICK_PERIOD_MS / 1000;
-            return 0;
-        }
-        else
-        {
-            if (!poll_initialized)
-            {
-                /* 首次轮询时，响应异常也要记录时间基准，避免后续计算用电量时出现大数 */
-                last_poll_time[dev_index] = xTaskGetTickCount() * portTICK_PERIOD_MS / 1000;
-            }
-            printf("从机状态读取失败, 响应异常\r\n");
-            return -3;
-        }
-    }
-    else if (ret == -2)
-    {
-        if (!poll_initialized)
-        {
-            /* 首次轮询时，响应超时也要记录时间基准，避免后续计算用电量时出现大数 */
-            last_poll_time[dev_index] = xTaskGetTickCount() * portTICK_PERIOD_MS / 1000;
-        }
-        printf("从机状态读取超时\r\n");
-        return -2;
-    }
-    else
-    {
-        if (!poll_initialized)
-        {
-            /* 首次轮询时，发送失败也要记录时间基准，避免后续计算用电量时出现大数 */
-            last_poll_time[dev_index] = xTaskGetTickCount() * portTICK_PERIOD_MS / 1000;
-        }
-        printf("发送读取状态命令失败\r\n");
-        return -4;
-    }
-}
-
-// ================== 轮询所有从机状态并通过MQTT上报 ==================
-
-/**
- * @brief 轮询所有有效设备的状态并通过MQTT上报
- * @note  每个设备单独发布一条MQTT消息，topic格式: solar/status/楼栋_单元_房间
- *        JSON payload: {"t":25,"v":220,"dc":0,"pr":0}
- *        读取失败的设备也会上报（带ok字段标识）
- */
-void device_poll_all_status(void)
-{
-    float yongdianl = 0.0f;
-    if (device_count == 0) return;
-
-    /* 搜索设备期间不进行轮询，避免干扰搜索 */
-    if (g_es1642_searching)
-    {
-        printf("正在搜索设备，跳过本次轮询\r\n");
-        return;
-    }
-
-    char topic[48];
-    char payload[128];
-    house_info_t house;
-
-    printf("开始轮询%d个设备状态...\r\n", device_count);
-
-    for (uint16_t i = 0; i < device_count; i++)
-    {
-        /* 跳过未入网的设备 */
-        if (device_list[i].state.bits.valid == 0) continue;
-
-        /* 跳过通信异常的设备（连续3次失败，避免20s超时拖慢轮询） */
-        if (device_list[i].state.bits.comm_err == 1) continue;
-
-        /* 解析通信地址 */
-        parse_addr(device_list[i].addr, &house);
-
-        /* 构建MQTT topic: solar/status/楼栋_单元_房间号 */
-        snprintf(topic, sizeof(topic), "solar/status/%d_%d_%04d",
-                 house.building, house.unit, house.room);
-
-        /* 保存上次成功获取数据的时间戳（在调用device_read_status_ex之前读取） */
-        uint32_t prev_time = last_poll_time[i];
-
-        /* 读取从机状态（成功时内部会立即记录tick时间戳到last_poll_time[i]） */
-        int ret = device_read_status_ex(i);
-
-        /* 首次轮询：只建立时间基准，不计算用电量 */
-        if (!poll_initialized)
-        {
-            osDelay(200);
-            continue;
-        }
-
-        if (ret == 0)
-        {
-            /* 已有上一次记录，计算时间差并累积用电量 */
-            if (prev_time != 0)
-            {
-                /* 计算两次成功获取数据之间经过的时间（秒）
-                 * uint32_t无符号减法天然处理溢出回绕 */
-                uint32_t elapsed_sec = last_poll_time[i] - prev_time;
-
-                /* 只有正在直流加热 且 电压有效(>0) 时才计算功率 */
-                if (device_list[i].state.bits.dc_heating && device_list[i].input_voltage > 0
-                    && elapsed_sec > 0 && elapsed_sec <= 7200)  /* 合理范围: 0~2小时 */
-                {
-                    /* P = V² / R,  E = P × (elapsed_sec / 3600) Wh */
-                    float voltage = (float)device_list[i].input_voltage;
-                    float power_w = (voltage * voltage) / (float)LOAD_RESISTANCE;
-                    float energy_wh = power_w * ((float)elapsed_sec / 3600.0f);
-
-                    /* 累加到RAM中的日累积数组 */
-                    daily_energy_wh[i] += energy_wh;
-                    yongdianl += energy_wh;
-
-                    printf("从机状态: 温度=%d℃, 电压=%dV, 直流加热=%s, 电源反接=%s，温度异常=%s，继电器控制错误=%s\r\n",
-                        device_list[i].temperature, device_list[i].input_voltage,
-                        device_list[i].state.bits.dc_heating ? "是 " : "否 ",
-                        device_list[i].state.bits.power_reverse ? "是 " : "否 ",
-                        device_list[i].state.bits.temp_err ? "是 " : "否 ",
-                        device_list[i].state.bits.relay_err ? "是 " : "否 ");
-
-                    house_info_t h;
-                    parse_addr(device_list[i].addr, &h);
-                    printf("  用电量[%d_%d_%04d]: P=%.1fW, dt=%lus, E=%.3fWh, 日累=%.3fWh\r\n",
-                           h.building, h.unit, h.room,
-                           power_w, (unsigned long)elapsed_sec, energy_wh, daily_energy_wh[i]);
-                }
-            }
-        }
-
-//        if (ret == 0)
-//        {
-//            /* 读取成功 */
-//            snprintf(payload, sizeof(payload),
-//                     "{\"t\":%d,\"v\":%d,\"dc\":%d,\"pr\":%d,\"ok\":1}",
-//                     device_list[i].temperature, device_list[i].input_voltage,
-//                     device_list[i].state.bits.dc_heating, device_list[i].state.bits.power_reverse);
-//        }
-//        else
-//        {
-//            /* 读取失败 */
-//            snprintf(payload, sizeof(payload),
-//                     "{\"t\":0,\"v\":0,\"dc\":0,\"pr\":0,\"ok\":0,\"err\":%d}",
-//                     -ret);
-//        }
-
-//        /* 发布MQTT消息(带自动重连保护) */
-//        uint8_t mqtt_ret = A7680C_MQTT_Publish_Safe(topic, payload);
-//        if (mqtt_ret != AT_RESULT_OK)
-//        {
-//            printf("MQTT发布失败: %s\r\n", topic);
-//        }
-
-        /* 设备间间隔200ms，避免载波通信冲突 */
-        osDelay(200);
-    }
-    if (!poll_initialized)
-    {
-        poll_initialized = 1;
-        printf("首次轮询完成，已建立时间基准，后续将计算用电量\r\n");
-    }
-    printf("设备轮询完成, 累计用电量: %.3fWh\r\n", yongdianl);
-}
-
 // ================== 每日零点：将RAM中累积电量写入SD卡 ==================
 
 /**
@@ -700,7 +486,7 @@ void daily_energy_flush_to_sd(void)
                        i, user_data.last_reset_day, rtc_now.day);
                 user_data.daily_energy = energy_kwh;
                 user_data.last_reset_day = rtc_now.day;
-                user_data.half_day_energy_wh = 0.0f;
+                user_data.half_day_energy_wh = 0;
 
                 /* 累加到各维度用电量 */
                 user_data.monthly_energy += energy_kwh;
@@ -714,14 +500,9 @@ void daily_energy_flush_to_sd(void)
 
                 house_info_t house;
                 parse_addr(device_list[i].addr, &house);
-                printf("  设备[%d_%d_%04d] 本日用电: %.3f Wh, 日累: %.3f kWh\r\n",
+                printf("  设备[%d_%d_%04d] 本日用电: %d Wh, 本日用电: %.3f kWh\r\n",
                     house.building, house.unit, house.room,
                     daily_energy_wh[i], user_data.daily_energy);
-            }
-            else
-            {
-                //日期没有变化，说明是在开始搜索前调用的这个函数，这个时候把半日累积用电量存储到SD卡中
-                user_data.half_day_energy_wh = daily_energy_wh[i];
             }
 
             /* 检查是否需要重置月用电量（月份变化时重置） */
@@ -741,22 +522,29 @@ void daily_energy_flush_to_sd(void)
                 }
             }
             /* 在写入SD卡之前更新时间 */
-            memcpy(&user_data.update_time, &rtc_now, sizeof(user_data.update_time));
-            /* 同步更新RAM缓存 */
+            user_data.update_time.year    = rtc_now.year;
+            user_data.update_time.month   = rtc_now.month;
+            user_data.update_time.day     = rtc_now.day;
+            user_data.update_time.hours   = rtc_now.hours;
+            user_data.update_time.minutes = rtc_now.minutes;
+            user_data.update_time.seconds = rtc_now.seconds;
+
+            /* 同步更新RAM缓存，这样就不用再读取一遍sd卡了 */
             user_detail_cache[i].daily_energy   = user_data.daily_energy;
             user_detail_cache[i].monthly_energy = user_data.monthly_energy;
             user_detail_cache[i].annual_energy  = user_data.annual_energy;
             user_detail_cache[i].total_energy   = user_data.total_energy;
             memcpy(user_detail_cache[i].weekly_energy, user_data.weekly_energy,
                 sizeof(user_data.weekly_energy));
+            /* 更新RAM时间 */
             memcpy(&user_detail_cache[i].update_time, &user_data.update_time,
-                sizeof(user_data.update_time));
+                   sizeof(user_data.update_time));
 
             /* 写回SD卡 */
             write_user_data(device_list[i].addr, &user_data);
         }
         /* 清零该设备的RAM日累积 */
-        daily_energy_wh[i] = 0.0f;
+        daily_energy_wh[i] = 0;
     }
 
     printf("零点结算完成\r\n");
@@ -811,7 +599,7 @@ int find_device_by_addr(const uint8_t *addr)
     return -1;
 }
 
-// ================== MPPT异步轮询+控制一体化 ==================
+// ================== MPPT 采集+控制一体化 ==================
 void device_poll_and_control_all(void)
 {
     if (device_count == 0) return;
@@ -821,56 +609,91 @@ void device_poll_and_control_all(void)
         return;
     }
 
-    /* ① 控制阶段：只给状态需要变化的设备发0x02/0x03（不等ACK） */
-    for (uint16_t i = 0; i < device_count; i++)
-    {
-        if (!device_list[i].state.bits.valid) continue;
 
-        uint8_t target = g_mppt_target[i];
-        if (target != g_mppt_last_cmd[i])
-        {
-            uint8_t cmd_buf[3];
-            if (target == 1)
-            {
-                cmd_buf[0] = SLAVE_CMD_HEATER_ON;   /* 0x02 */
-                cmd_buf[1] = 0x01;
-                cmd_buf[2] = 0x01;
-            }
-            else
-            {
-                cmd_buf[0] = SLAVE_CMD_HEATER_OFF;  /* 0x03 */
-                cmd_buf[1] = 0x01;
-                cmd_buf[2] = 0x00;
-            }
-//            ES1642_SendNoAck((int)i, cmd_buf, 3, 0);
-            /* g_mppt_last_cmd 不在此处更新, 改为在0x04回调里用实际dc_heating更新,
-               这样从机执行失败时下一轮会自动重发纠正 */
-        }
-        no_ack_count[i]++;
-        osDelay(50);  /* 帧间间隔 */
-    }
-
-    /* ② 延时等待从机执行继电器动作 */
-    osDelay(3000);
-
-    /* ③ 采集阶段：给所有在线设备发0x04（不等ACK，ACK在回调异步处理） */
+    /* ===== ① 慢速采集阶段：逐台发0x04等ACK ===== */
     uint8_t read_cmd[2] = {SLAVE_CMD_READ_STATUS, 0x00};
-    for (uint16_t i = 0; i < device_count; i++)
-    {
-        if (!device_list[i].state.bits.valid) continue;
-        ES1642_SendNoAck((int)i, read_cmd, 2, 0);
-        osDelay(50);  /* 帧间间隔 */
-    }
-    printf("发送读取状态命令完成，延时100s等待从机回应\r\n");
-    osDelay(100000);
+    printf("MPPT采集: 开始轮询%d台设备...\r\n", device_count);
 
-    /* ④ 通信失败检测（连续3轮没收到ACK标记comm_err，仅告警不跳过） */
     for (uint16_t i = 0; i < device_count; i++)
     {
+        osDelay(200);  /* 设备间间隔200ms，避免载波通信冲突 */
         if (!device_list[i].state.bits.valid) continue;
-        if (no_ack_count[i] >= 3)
+        if (device_list[i].state.bits.comm_err) continue;
+
+        es1642_response_t response;
+        int ret = ES1642_SendUserData((int)i, read_cmd, 2, 0, &response);
+        
+        if (ret == 0 && response.data_len >= 10 &&
+            response.data[0] == SLAVE_CMD_READ_STATUS &&
+            response.data[1] == 0x08)
         {
-            device_list[i].state.bits.comm_err = 1;
+            /* 解析温度/电压/状态 */
+            device_list[i].temperature = (int8_t)response.data[2];
+            device_list[i].input_voltage = (uint16_t)response.data[3] | ((uint16_t)response.data[4] << 8);
+            uint8_t st = response.data[5];
+            device_list[i].state.bits.dc_heating    = (st & 0x02) ? 1 : 0;
+            device_list[i].state.bits.power_reverse = (st & 0x80) ? 1 : 0;
+            device_list[i].state.bits.temp_err      = (st & 0x40) ? 1 : 0;
+            device_list[i].state.bits.relay_err     = (st & 0x20) ? 1 : 0;
+
+            /* 解析从机累积用电量 (uint32_t 小端, 永不清零) */
+            uint32_t energy_accum = (uint32_t)response.data[6]
+                                  | ((uint32_t)response.data[7] << 8)
+                                  | ((uint32_t)response.data[8] << 16)
+                                  | ((uint32_t)response.data[9] << 24);
+
+            /* 用电量差值计算 */
+            uint32_t delta;
+            if (last_energy_read[i] == 0) {
+                delta = 0;  /* 首次/搜索后, 建立基准不累加 */
+            } else if (energy_accum < last_energy_read[i]) {
+                delta = energy_accum;  /* 从机重启/清零 */
+            } else {
+                delta = energy_accum - last_energy_read[i];  /* 正常差值 */
+            }
+            daily_energy_wh[i] += delta;
+            last_energy_read[i] = energy_accum;
+            printf("用户%d的今日累计用电量:%d Wh\r\n",device_list[i].addr[3],daily_energy_wh[i]);
+						
+//														char topic[48];
+//														char payload[128];
+//														house_info_t house;
+//														
+//														/* 解析通信地址 */
+//														parse_addr(device_list[i].addr, &house);
+
+//														/* 构建MQTT topic: solar/status/楼栋_单元_房间号 */
+//														snprintf(topic, sizeof(topic), "solar/status/%d_%d_%04d",
+//																		 house.building, house.unit, house.room);
+//														if (ret == 0)
+//														{
+//																/* 读取成功 */
+//																snprintf(payload, sizeof(payload),
+//																				 "{\"t\":%d,\"v\":%d,\"dc\":%d,\"pr\":%d,\"ok\":1}",
+//																				 device_list[i].temperature, device_list[i].input_voltage,
+//																				 device_list[i].state.bits.dc_heating, device_list[i].state.bits.power_reverse);
+//														}
+//														else
+//														{
+//																/* 读取失败 */
+//																snprintf(payload, sizeof(payload),
+//																				 "{\"t\":0,\"v\":0,\"dc\":0,\"pr\":0,\"ok\":0,\"err\":%d}",
+//																				 -ret);
+//														}
+
+//														/* 发布MQTT消息(带自动重连保护) */
+//														uint8_t mqtt_ret = A7680C_MQTT_Publish_Safe(topic, payload);
+//														if (mqtt_ret != AT_RESULT_OK)
+//														{
+//																printf("MQTT发布失败: %s\r\n", topic);
+//														}
         }
     }
+    printf("MPPT采集完成\r\n");
+
+    /* ===== 告警扫描（在控制阶段前执行，基于采集到的真实状态，不受控制阶段临时relay_err标记影响） ===== */
+    alert_scan_devices();
+
+    /* ===== ② 快速控制阶段：MPPT P&O 控制闭环 ===== */
+    MPPT_ControlLoop();
 }
