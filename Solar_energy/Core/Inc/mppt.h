@@ -210,14 +210,6 @@ float MPPT_GetPower(void);
  */
 void MPPT_ForceRescan(void);
 
-/**
- * @brief  开启指定数量的加热器
- * @param  target_count: 目标开启数量
- * @retval 实际成功开启的数量
- * @note   优先开启温度最低的设备; 若 target < current, 优先关闭温度最高的
- */
-uint8_t MPPT_SetActiveHeaters(uint8_t target_count);
-
 /* ========================== MPPT 主动控制接口 ========================== */
 
 extern uint32_t heating_seconds[MAX_DEVICES];    /* 每台设备累计加热秒数(公平性排序用) */

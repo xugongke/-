@@ -259,6 +259,7 @@ void es1642_on_frame_received(es1642_handle_t *handle,
             if (status == ES1642_STATUS_OK)
             {
                 printf("启动搜索: OK\r\n");
+                save_energy_before_search();//清空设备表前，先把当日累积电量暂存到SD卡
                 Clear_devices();//启动搜索成功之后，清空设备表和用电量缓存
                 g_es1642_searching = 1;  /* 标记搜索中，暂停设备轮询 */
                 /* ES1642确认启动搜索成功，通知上位机 */
@@ -284,6 +285,7 @@ void es1642_on_frame_received(es1642_handle_t *handle,
                 {
                     device_manager_init();//重新读取SD卡中的记录并加载到RAM中
                 }
+                restore_energy_after_search();//恢复日累积电量并重建用户详情缓存(>0和==0都更新)
                 /* ES1642确认停止搜索成功，通知上位机搜索完成 */
                 tcp_send_search_done();
                 rs485_send_search_done();

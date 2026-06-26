@@ -110,10 +110,10 @@ int ensure_user_data_file(const uint8_t *dev_addr, const uint8_t *mac)
     res = f_open(&SDFile, filepath, FA_OPEN_EXISTING | FA_READ);
     if (res == FR_OK)
     {
-				house_info_t info;
-				parse_addr((uint8_t *)dev_addr, &info);
-				printf("用户数据文件已存在: %s (楼栋%d 单元%d 房间%d)\r\n",
-							 filepath, info.building, info.unit, info.room);
+        house_info_t info;
+        parse_addr((uint8_t *)dev_addr, &info);
+        printf("用户数据文件已存在: %s (楼栋%d 单元%d 房间%d)\r\n",
+                        filepath, info.building, info.unit, info.room);
         /* 文件已存在，直接关闭跳过 */
         f_close(&SDFile);
         if(fs_mutex) osMutexRelease(fs_mutex);
@@ -168,6 +168,7 @@ int ensure_user_data_file(const uint8_t *dev_addr, const uint8_t *mac)
         default_data.create_time.hours   = rtc_now.hours;
         default_data.create_time.minutes = rtc_now.minutes;
         default_data.create_time.seconds = rtc_now.seconds;
+        //数据最新更新事件等于创建时间
         default_data.update_time = default_data.create_time;
     }
 

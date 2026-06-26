@@ -176,79 +176,79 @@ int update_device(uint8_t *mac, uint8_t *addr)
 		
 		if(device_list[index].state.bits.valid == 0)//如果是没入网，那就进行入网，入网了才能正常通信,下面的发送修改通信地址命令从机才能接收到
 		{
-				ret = ES1642_SetPsk(index, new_psk);
-				if (ret == 0)
-				{
-						printf("从机入网成功\r\n");
-						device_list[index].state.bits.valid = 1;
-						device_changed = 1;
-				}
-				else if (ret == -2)
-				{
-						printf("从机入网响应超时\r\n");
-						return 5; // 入网超时
-				}
-				else if (ret == -3)
-				{
-						printf("从机入网失败\r\n");
-						return 6; // 入网失败
-				}
-				else
-				{
-						printf("发送入网命令失败\r\n");
-						return 7;
-				}
+            ret = ES1642_SetPsk(index, new_psk);
+            if (ret == 0)
+            {
+                    printf("从机入网成功\r\n");
+                    device_list[index].state.bits.valid = 1;
+                    device_changed = 1;
+            }
+            else if (ret == -2)
+            {
+                    printf("从机入网响应超时\r\n");
+                    return 5; // 入网超时
+            }
+            else if (ret == -3)
+            {
+                    printf("从机入网失败\r\n");
+                    return 6; // 入网失败
+            }
+            else
+            {
+                    printf("发送入网命令失败\r\n");
+                    return 7;
+            }
 		}
 
 		// MAC已存在 → 判断通信地址是否变化，如果通信地址发生变化，就给从机发送设置通信地址命令
 		if (memcmp(device_list[index].addr, addr, 6) != 0)//通信地址发生变化就更新一下列表,并给从机发送修改通信地址命令
 		{
-				/* 给从机发送命令：[cmd][data_len][data...]
-				 * cmd = 0x01 (修改通信地址), data_len = 6, data = 6字节新通信地址
-				 * 注意：这里用 ES1642_ADDR_LEN(6) 而不是 sizeof(addr)，因为 addr 是指针，sizeof 指针为 4
-				 */
-				uint8_t cmd_buf[2 + ES1642_ADDR_LEN]; // cmd(1) + len(1) + data(6) = 8字节
-				cmd_buf[0] = SLAVE_CMD_SET_ADDR;       // 命令: 修改通信地址
-				cmd_buf[1] = ES1642_ADDR_LEN;           // 数据长度: 6
-				memcpy(&cmd_buf[2], addr, ES1642_ADDR_LEN); // 数据: 新通信地址
-				ret = ES1642_SendUserData(index, cmd_buf, sizeof(cmd_buf), 0, &response);
+            /* 给从机发送命令：[cmd][data_len][data...]
+                * cmd = 0x01 (修改通信地址), data_len = 6, data = 6字节新通信地址
+                * 注意：这里用 ES1642_ADDR_LEN(6) 而不是 sizeof(addr)，因为 addr 是指针，sizeof 指针为 4
+                */
+            uint8_t cmd_buf[2 + ES1642_ADDR_LEN]; // cmd(1) + len(1) + data(6) = 8字节
+            cmd_buf[0] = SLAVE_CMD_SET_ADDR;       // 命令: 修改通信地址
+            cmd_buf[1] = ES1642_ADDR_LEN;           // 数据长度: 6
+            memcpy(&cmd_buf[2], addr, ES1642_ADDR_LEN); // 数据: 新通信地址
+            ret = ES1642_SendUserData(index, cmd_buf, sizeof(cmd_buf), 0, &response);
 
-				if (ret == 0)
-				{
-						/* 从机响应格式: [cmd][data_len][data]
-						 * cmd=0x01(修改地址), data_len=0x01, data=0x01(成功)/0x00(失败)
-						 * 总共3字节
-						 */
-					  if (response.data_len >= 3 &&
-								response.data[0] == SLAVE_CMD_SET_ADDR &&
-								response.data[1] == 0x01 &&
-								response.data[2] == SLAVE_RESULT_OK)
-						{
-							printf("从机修改通信地址成功, 响应长度=%d\r\n", response.data_len);
-							memcpy(device_list[index].addr, addr, 6); // 通信地址修改成功，更新设备表
-							device_changed = 1;
-							/* 为新的通信地址创建数据文件,这里后面要加一个重复绑定判断 */
-							ensure_user_data_file(device_list[index].addr, device_list[index].mac);
-						}
-						else
-						{
-							printf("从机修改通信地址失败\r\n");
-							return 2;
-						}
+            if (ret == 0)
+            {
+                /* 从机响应格式: [cmd][data_len][data]
+                    * cmd=0x01(修改地址), data_len=0x01, data=0x01(成功)/0x00(失败)
+                    * 总共3字节
+                    */
+                if (response.data_len >= 3 &&
+                        response.data[0] == SLAVE_CMD_SET_ADDR &&
+                        response.data[1] == 0x01 &&
+                        response.data[2] == SLAVE_RESULT_OK)
+                {
+                    printf("从机修改通信地址成功, 响应长度=%d\r\n", response.data_len);
+                    memcpy(device_list[index].addr, addr, 6); // 通信地址修改成功，更新设备表
+                    device_changed = 1;
+                    /* 为新的通信地址创建数据文件,这里后面要加一个重复绑定判断 */
+                    ensure_user_data_file(device_list[index].addr, device_list[index].mac);
+                }
+                else
+                {
+                    printf("从机修改通信地址失败\r\n");
+                    return 2;
+                }
 
-				}
-				else if (ret == -2)
-				{
-						/* 从机响应超时，通信地址可能没有修改成功 */
-						printf("从机修改通信地址超时，请检查从机状态\r\n");
-						return 3; // 从机响应超时
-				}
-				else
-				{
-						/* 发送失败 */
-						printf("发送修改通信地址命令失败\r\n");
-						return 4;
-				}
+            }
+            else if (ret == -2)
+            {
+                /* 从机响应超时，通信地址可能没有修改成功 */
+                printf("从机修改通信地址超时，请检查从机状态\r\n");
+                return 3; // 从机响应超时
+            }
+            else
+            {
+                /* 发送失败 */
+                printf("发送修改通信地址命令失败\r\n");
+                return 4;
+            }
 		}
 		return 0;
 }
@@ -548,6 +548,98 @@ void daily_energy_flush_to_sd(void)
     }
 
     printf("零点结算完成\r\n");
+}
+
+// ================== 搜索前：暂存当日累积电量到SD卡 ==================
+
+/**
+ * @brief 搜索前把RAM中的 daily_energy_wh 和 last_energy_read 暂存到各用户数据文件
+ * @note  在 ES1642_CMD_START_SEARCH 收到模块确认后、Clear_devices() 之前调用。
+ *        只更新 user_data_file_t 中的 half_day_energy_wh 和 last_energy_read 两个字段，
+ *        其它用电量字段(daily/monthly/annual/total/weekly)保持不动，避免破坏已结算数据。
+ *        仅处理已入网设备(valid==1)，按"通信地址(楼栋_单元_房间)"匹配文件。
+ */
+void save_energy_before_search(void)
+{
+    if (device_count == 0) return;
+
+    printf("搜索前暂存: 将RAM中日累积电量写入用户数据文件... (设备数:%d)\r\n", device_count);
+
+    for (uint16_t i = 0; i < device_count; i++)
+    {
+        /* 跳过未入网设备 */
+        if (device_list[i].state.bits.valid == 0) continue;
+
+        user_data_file_t user_data;
+        if (read_user_data(device_list[i].addr, &user_data) == 0)
+        {
+            /* 只更新暂存字段，其它字段不动 */
+            user_data.half_day_energy_wh = daily_energy_wh[i];
+            user_data.last_energy_read   = last_energy_read[i];
+            write_user_data(device_list[i].addr, &user_data);
+        }
+        else
+        {
+            printf("  设备[%d] 用户数据文件读取失败，跳过暂存\r\n", i);
+        }
+    }
+
+    printf("搜索前暂存完成\r\n");
+}
+
+// ================== 搜索后：恢复当日累积电量并重建缓存 ==================
+
+/**
+ * @brief 搜索结束后从用户数据文件恢复 daily_energy_wh / last_energy_read，并重建缓存
+ * @note  在 ES1642_CMD_STOP_SEARCH 的 if/else 之后统一调用：
+ *          - device_count>0: 使用刚搜索到的新设备表
+ *          - device_count==0: device_manager_init() 已重新加载旧设备表
+ *        把文件中的 half_day_energy_wh 回填到 daily_energy_wh[i]、
+ *        last_energy_read 回填到 last_energy_read[i]；
+ *        随后将文件中的这两个暂存字段清零并写回，避免下次上电/搜索读到陈旧快照。
+ *        最后调用 user_detail_cache_init() 重建用户详情页缓存。
+ *        仅处理已入网设备(valid==1)。
+ */
+void restore_energy_after_search(void)
+{
+    if (device_count == 0)
+    {
+        /* 无设备，仍需重建(清空)缓存，保证状态一致 */
+        user_detail_cache_init();
+        return;
+    }
+
+    printf("搜索后恢复: 从用户数据文件恢复日累积电量... (设备数:%d)\r\n", device_count);
+
+    for (uint16_t i = 0; i < device_count; i++)
+    {
+        /* 跳过未入网设备 */
+        if (device_list[i].state.bits.valid == 0) continue;
+
+        user_data_file_t user_data;
+        if (read_user_data(device_list[i].addr, &user_data) == 0)
+        {
+            /* 把暂存值恢复到RAM */
+            daily_energy_wh[i]  = user_data.half_day_energy_wh;
+            last_energy_read[i] = user_data.last_energy_read;
+
+            /* 清零文件中的暂存字段并写回，避免陈旧快照残留 */
+            user_data.half_day_energy_wh = 0;
+            user_data.last_energy_read   = 0;
+            write_user_data(device_list[i].addr, &user_data);
+        }
+        else
+        {
+            /* 文件不存在/读取失败，保持RAM为0(Clear_devices已清零)，新设备按基准处理 */
+            daily_energy_wh[i]  = 0;
+            last_energy_read[i] = 0;
+        }
+    }
+
+    /* 重建用户详情页缓存(仅加载已入网设备) */
+    user_detail_cache_init();
+
+    printf("搜索后恢复完成\r\n");
 }
 
 // ================== 打印设备列表 ==================

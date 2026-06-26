@@ -133,6 +133,22 @@ void device_poll_all_status(void);
  */
 void daily_energy_flush_to_sd(void);
 
+/**
+ * @brief 搜索前把RAM中的 daily_energy_wh 和 last_energy_read 暂存到各用户数据文件
+ * @note  在 ES1642_CMD_START_SEARCH 确认后、Clear_devices() 之前调用。
+ *        只更新 user_data_file_t 的 half_day_energy_wh 和 last_energy_read 字段。
+ *        仅处理已入网设备(valid==1)。
+ */
+void save_energy_before_search(void);
+
+/**
+ * @brief 搜索结束后恢复 daily_energy_wh / last_energy_read 并重建 user_detail_cache
+ * @note  在 ES1642_CMD_STOP_SEARCH 的 if/else 之后统一调用(device_count>0 和 ==0 均覆盖)。
+ *        从用户数据文件读回暂存值恢复RAM，并将文件中的暂存字段清零写回。
+ *        最后调用 user_detail_cache_init() 重建缓存。仅处理已入网设备(valid==1)。
+ */
+void restore_energy_after_search(void);
+
 // ================== 告警预扫描数据 ==================
 
 /**

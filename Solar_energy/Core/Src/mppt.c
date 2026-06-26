@@ -59,7 +59,6 @@ static uint8_t count_active_heaters(void)
     {
         if (device_list[i].state.bits.valid &&
             !device_list[i].state.bits.comm_err &&    /* 排除通信异常(状态过期不可信) */
-            !device_list[i].state.bits.relay_err &&   /* 排除继电器故障(无法执行控制) */
             device_list[i].state.bits.dc_heating)
         {
             count++;
@@ -319,66 +318,6 @@ void solar_energy_flush(void)
            g_solar_energy.total_generation_kwh);
 }
 
-uint8_t MPPT_SetActiveHeaters(uint8_t target_count)
-{
-    uint8_t actually_active = 0;
-    uint8_t controlled = 0;
-
-    /* 先统计当前状态 */
-    for (uint16_t i = 0; i < device_count && controlled < 20; i++)
-    {
-        /* 只处理在线设备 */
-        if (!device_list[i].state.bits.valid) continue;
-        if (device_list[i].state.bits.comm_err) continue;
-
-        uint8_t is_heating = device_list[i].state.bits.dc_heating;
-
-        if (actually_active < target_count)
-        {
-            /* 需要开启 */
-            if (!is_heating)
-            {
-                int ret = device_ctrl_heater((int)i, 1);
-                if (ret == 0)
-                {
-                    device_list[i].state.bits.dc_heating = 1;
-                    actually_active++;
-                }
-                else
-                {
-                    printf("MPPT: 设备[%d]开启失败(ret=%d)\r\n", i, ret);
-                }
-            }
-            else
-            {
-                /* 已经在加热 */
-                actually_active++;
-            }
-        }
-        else
-        {
-            /* 需要关闭 */
-            if (is_heating)
-            {
-                int ret = device_ctrl_heater((int)i, 0);
-                if (ret == 0)
-                {
-                    device_list[i].state.bits.dc_heating = 0;
-                }
-                else
-                {
-                    printf("MPPT: 设备[%d]关闭失败(ret=%d)\r\n", i, ret);
-                    actually_active++;  /* 关闭失败, 仍然算激活 */
-                }
-            }
-        }
-        controlled++;
-    }
-
-    printf("MPPT_SetActiveHeaters: 目标=%d, 实际=%d\r\n", target_count, actually_active);
-    return actually_active;
-}
-
 /* ========================== MPPT 主动控制 (异步架构) ========================== */
 
 /**
@@ -436,6 +375,7 @@ static int mppt_select_one_to_disable(void)
     {
         if (device_list[i].state.bits.valid &&
             !device_list[i].state.bits.comm_err &&
+            !device_list[i].state.bits.relay_err &&
             device_list[i].state.bits.dc_heating)  /* 当前ON */
         {
             float score = (float)device_list[i].temperature
@@ -487,7 +427,7 @@ void MPPT_ControlLoop(void)
         if (g_mppt.direction == MPPT_DIR_INCREASE)
         {
             idx = mppt_select_one_to_enable();
-            printf("MPPT: 选中设备[%d]开启\r\n", idx);
+            printf("MPPT: 选中房号为[%d]开启\r\n", device_list[idx].addr[3]);
             if (idx < 0)
             {
                 printf("MPPT: 无可开启设备, 退出控制循环\r\n");
@@ -506,7 +446,7 @@ void MPPT_ControlLoop(void)
         else
         {
             idx = mppt_select_one_to_disable();
-            printf("MPPT: 选中设备[%d]关闭\r\n", idx);
+            printf("MPPT: 选中房号为[%d]关闭\r\n", device_list[idx].addr[3]);
             if (idx < 0)
             {
                 printf("MPPT: 无可关闭设备, 退出控制循环\r\n");
@@ -516,7 +456,7 @@ void MPPT_ControlLoop(void)
                 break;  /* 无可关设备, 退出 */
             }
             if (device_ctrl_heater(idx, 0) != 0) {
-                device_list[idx].state.bits.relay_err = 1;
+                device_list[idx].state.bits.relay_err = 1;/* 标记跳过, 下轮采集纠正 */
                 continue;
             }
             device_list[idx].state.bits.dc_heating = 0;
@@ -545,20 +485,7 @@ void MPPT_ControlLoop(void)
         }
         else
         {
-            /* 功率下降或不变 → 找到MPP, 撤回最后一步 */
-            printf("MPPT: 功率未增加, 撤回最后一步, 退出控制\r\n");
-            if (g_mppt.direction == MPPT_DIR_INCREASE)
-            {
-                if (device_ctrl_heater(idx, 0) == 0)
-                    device_list[idx].state.bits.dc_heating = 0;
-                g_mppt.n_active--;
-            }
-            else
-            {
-                if (device_ctrl_heater(idx, 1) == 0)
-                    device_list[idx].state.bits.dc_heating = 1;
-                g_mppt.n_active++;
-            }
+            printf("MPPT: 功率未增加,切换扰动方向,退出本轮控制\r\n");
             /* 反向方向, 下一轮采集后使用 */
             g_mppt.direction = (g_mppt.direction == MPPT_DIR_INCREASE)
                              ? MPPT_DIR_DECREASE : MPPT_DIR_INCREASE;
