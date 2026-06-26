@@ -586,7 +586,6 @@ void DevicePoll_Task(void *argument)
                       cur_date.year, cur_date.month, cur_date.day);
                 daily_energy_flush_to_sd();  /* 将RAM中日累积电量写入SD卡 */
                 solar_energy_flush();        /* 太阳能发电量结算并保存到SD卡 */
-                memset(heating_seconds, 0, sizeof(heating_seconds)); /* 清零加热时长(每日归零) */
             }
             last_date = cur_date;
         }

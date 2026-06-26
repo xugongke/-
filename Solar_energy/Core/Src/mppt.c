@@ -37,13 +37,22 @@
 #include "fatfs.h"
 #include "rx8025t.h"
 
+/* ========================== 公平性选管评分配置 ========================== */
+/**
+ * @brief 电量公平性权重 (单位: ℃当量)
+ * @note  daily_energy_wh 在候选设备内部做 min-max 归一化到 [0,1] 后乘以此权重。
+ *        含义: "本日累计电量"最多只能让评分浮动 W ℃。
+ *        当温度差 > W 时永远由温度决定; 温度差 ≤ W 时才由电量打破平局。
+ *        W 越小越偏温度公平, 越大越偏电量公平。
+ */
+#define FAIRNESS_ENERGY_WEIGHT  5.0f
+
 /* ========================== 全局实例 ========================== */
 
 mppt_data_t g_mppt = {0};
 solar_energy_data_t g_solar_energy = {0};
 
 /* MPPT 主动控制 */
-uint32_t heating_seconds[MAX_DEVICES] = {0};  /* 每台累计加热秒数(公平性排序用) */
 static   uint8_t mppt_first_round = 1;        /* 首轮标志(采集基准不扰动) */
 
 /* ========================== 私有函数 ========================== */
@@ -340,13 +349,18 @@ static uint8_t count_schedulable_devices(void)
 }
 
 /**
- * @brief  选1台设备开启 (温度最低+加热时长最少的OFF设备)
+ * @brief  选1台设备开启 (温度最低为主; 同温时本日累计用电量最少者优先)
+ * @note   评分 = 温度 + FAIRNESS_ENERGY_WEIGHT × 归一化本日累计电量
+ *         归一化在本批次"候选OFF设备"内部做 min-max, 无需估计日最大用电量。
+ *         评分越低越优先开启 (最冷 + 今日用电最少)。
  * @retval >=0: 设备索引, -1: 无可开设备
  */
 static int mppt_select_one_to_enable(void)
 {
-    int best = -1;
-    float best_score = 1e9f;
+    /* 第一遍: 统计候选OFF设备, 求本日累计电量的 min/max */
+    float e_min = 0.0f, e_max = 0.0f;
+    int   candidate_cnt = 0;
+
     for (int i = 0; i < device_count; i++)
     {
         if (device_list[i].state.bits.valid &&
@@ -355,8 +369,36 @@ static int mppt_select_one_to_enable(void)
             device_list[i].temperature < 75 &&
             !device_list[i].state.bits.dc_heating)  /* 当前OFF */
         {
+            float e = (float)daily_energy_wh[i];
+            if (candidate_cnt == 0) { e_min = e; e_max = e; }
+            else
+            {
+                if (e < e_min) e_min = e;
+                if (e > e_max) e_max = e;
+            }
+            candidate_cnt++;
+        }
+    }
+    if (candidate_cnt == 0) return -1;
+
+    float e_range = (e_max > e_min) ? (e_max - e_min) : 0.0f;
+
+    /* 第二遍: 算分, 选最低分(最冷 + 今日用电最少) */
+    int   best = -1;
+    float best_score = 1e9f;
+
+    for (int i = 0; i < device_count; i++)
+    {
+        if (device_list[i].state.bits.valid &&
+            !device_list[i].state.bits.comm_err &&
+            !device_list[i].state.bits.relay_err &&
+            device_list[i].temperature < 75 &&
+            !device_list[i].state.bits.dc_heating)
+        {
+            float e = (float)daily_energy_wh[i];
+            float e_norm = (e_range > 0.0f) ? ((e - e_min) / e_range) : 0.0f;
             float score = (float)device_list[i].temperature
-                        + (float)heating_seconds[i] / 100.0f;
+                        + FAIRNESS_ENERGY_WEIGHT * e_norm;
             if (score < best_score) { best_score = score; best = i; }
         }
     }
@@ -364,13 +406,18 @@ static int mppt_select_one_to_enable(void)
 }
 
 /**
- * @brief  选1台设备关闭 (温度最高+加热时长最多的ON设备)
+ * @brief  选1台设备关闭 (温度最高为主; 同温时本日累计用电量最多者优先)
+ * @note   评分 = 温度 + FAIRNESS_ENERGY_WEIGHT × 归一化本日累计电量
+ *         归一化在本批次"候选ON设备"内部做 min-max。
+ *         评分越高越优先关闭 (最热 + 今日用电最多)。
  * @retval >=0: 设备索引, -1: 无可关设备
  */
 static int mppt_select_one_to_disable(void)
 {
-    int best = -1;
-    float best_score = -1e9f;
+    /* 第一遍: 统计候选ON设备, 求本日累计电量的 min/max */
+    float e_min = 0.0f, e_max = 0.0f;
+    int   candidate_cnt = 0;
+
     for (int i = 0; i < device_count; i++)
     {
         if (device_list[i].state.bits.valid &&
@@ -378,8 +425,35 @@ static int mppt_select_one_to_disable(void)
             !device_list[i].state.bits.relay_err &&
             device_list[i].state.bits.dc_heating)  /* 当前ON */
         {
+            float e = (float)daily_energy_wh[i];
+            if (candidate_cnt == 0) { e_min = e; e_max = e; }
+            else
+            {
+                if (e < e_min) e_min = e;
+                if (e > e_max) e_max = e;
+            }
+            candidate_cnt++;
+        }
+    }
+    if (candidate_cnt == 0) return -1;
+
+    float e_range = (e_max > e_min) ? (e_max - e_min) : 0.0f;
+
+    /* 第二遍: 算分, 选最高分(最热 + 今日用电最多) */
+    int   best = -1;
+    float best_score = -1e9f;
+
+    for (int i = 0; i < device_count; i++)
+    {
+        if (device_list[i].state.bits.valid &&
+            !device_list[i].state.bits.comm_err &&
+            !device_list[i].state.bits.relay_err &&
+            device_list[i].state.bits.dc_heating)
+        {
+            float e = (float)daily_energy_wh[i];
+            float e_norm = (e_range > 0.0f) ? ((e - e_min) / e_range) : 0.0f;
             float score = (float)device_list[i].temperature
-                        + (float)heating_seconds[i] / 100.0f;
+                        + FAIRNESS_ENERGY_WEIGHT * e_norm;
             if (score > best_score) { best_score = score; best = i; }
         }
     }
@@ -427,7 +501,6 @@ void MPPT_ControlLoop(void)
         if (g_mppt.direction == MPPT_DIR_INCREASE)
         {
             idx = mppt_select_one_to_enable();
-            printf("MPPT: 选中房号为[%d]开启\r\n", device_list[idx].addr[3]);
             if (idx < 0)
             {
                 printf("MPPT: 无可开启设备, 退出控制循环\r\n");
@@ -435,7 +508,8 @@ void MPPT_ControlLoop(void)
                 g_mppt.direction = (g_mppt.direction == MPPT_DIR_INCREASE)
                                 ? MPPT_DIR_DECREASE : MPPT_DIR_INCREASE;
                 break;  /* 无可开设备, 退出 */
-            } 
+            }
+            printf("MPPT: 选中房号为[%d]开启\r\n", device_list[idx].addr[3]);
             if (device_ctrl_heater(idx, 1) != 0) {
                 device_list[idx].state.bits.relay_err = 1;  /* 标记跳过, 下轮采集纠正 */
                 continue;
@@ -446,7 +520,6 @@ void MPPT_ControlLoop(void)
         else
         {
             idx = mppt_select_one_to_disable();
-            printf("MPPT: 选中房号为[%d]关闭\r\n", device_list[idx].addr[3]);
             if (idx < 0)
             {
                 printf("MPPT: 无可关闭设备, 退出控制循环\r\n");
@@ -455,6 +528,7 @@ void MPPT_ControlLoop(void)
                                 ? MPPT_DIR_DECREASE : MPPT_DIR_INCREASE;
                 break;  /* 无可关设备, 退出 */
             }
+            printf("MPPT: 选中房号为[%d]关闭\r\n", device_list[idx].addr[3]);
             if (device_ctrl_heater(idx, 0) != 0) {
                 device_list[idx].state.bits.relay_err = 1;/* 标记跳过, 下轮采集纠正 */
                 continue;
@@ -478,14 +552,41 @@ void MPPT_ControlLoop(void)
         printf("MPPT控制: V=%.1fV, N=%d, P=%.1fW(ΔP=%.1fW)\r\n",
                v, g_mppt.n_active, g_mppt.power, delta_p);
 
-        if (delta_p > MPPT_POWER_THRESHOLD)
+       if (delta_p > MPPT_POWER_THRESHOLD)
         {
             /* 功率增加, 方向正确, 继续搜索 */
             g_mppt.power_prev = g_mppt.power;
         }
         else
         {
-            printf("MPPT: 功率未增加,切换扰动方向,退出本轮控制\r\n");
+            /* 功率下降或不变 → 找到MPP, 撤回最后一步 */
+            printf("MPPT: 功率未增加, 撤回最后一步, 退出控制\r\n");
+            if (g_mppt.direction == MPPT_DIR_INCREASE)
+            {
+                /* 撤回开启动作: 关掉该设备. 成功才更新状态与计数; 失败则标记下轮采集纠正 */
+                if (device_ctrl_heater(idx, 0) == 0)
+                {
+                    device_list[idx].state.bits.dc_heating = 0;
+                    g_mppt.n_active--;
+                }
+                else
+                {
+                    device_list[idx].state.bits.relay_err = 1;  /* 撤回失败, 下轮采集纠正 */
+                }
+            }
+            else
+            {
+                /* 撤回关闭动作: 重新开启该设备. 成功才更新状态与计数; 失败则标记下轮采集纠正 */
+                if (device_ctrl_heater(idx, 1) == 0)
+                {
+                    device_list[idx].state.bits.dc_heating = 1;
+                    g_mppt.n_active++;
+                }
+                else
+                {
+                    device_list[idx].state.bits.relay_err = 1;  /* 撤回失败, 下轮采集纠正 */
+                }
+            }
             /* 反向方向, 下一轮采集后使用 */
             g_mppt.direction = (g_mppt.direction == MPPT_DIR_INCREASE)
                              ? MPPT_DIR_DECREASE : MPPT_DIR_INCREASE;

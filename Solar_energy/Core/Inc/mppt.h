@@ -211,9 +211,6 @@ float MPPT_GetPower(void);
 void MPPT_ForceRescan(void);
 
 /* ========================== MPPT 主动控制接口 ========================== */
-
-extern uint32_t heating_seconds[MAX_DEVICES];    /* 每台设备累计加热秒数(公平性排序用) */
-
 /**
  * @brief  MPPT P&O 控制闭环 (在采集阶段之后调用)
  * @note   快速控制循环: ±1台→发0x02/0.03等ACK→等3秒→读电压→P&O判断
