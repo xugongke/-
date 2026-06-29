@@ -36,9 +36,9 @@ extern "C" {
 
 /**
  * @brief 单台热水器加热管电阻 (Ω)
- * @note  硬件工程师确认: 直流加热管视为恒定 8Ω 电阻
+ * @note  硬件工程师确认: 直流加热管视为恒定 14.0625Ω 电阻
  */
-#define MPPT_HEATER_RESISTANCE      14.06f  /* 150V/1600W = 14.06Ω */
+#define MPPT_HEATER_RESISTANCE      14.0625f  /* 150V/1600W = 14.0625Ω */
 
 /**
  * @brief 直流总线最低工作电压 (V)
@@ -70,10 +70,13 @@ extern "C" {
 #define MPPT_DIR_DECREASE           2
 
 /**
- * @brief 功率变化判定阈值 (W)
- * @note  功率变化小于此值视为"不变", 避免因测量噪声导致频繁切换
+ * @brief 功率变化判定阈值 (W) —— P&O 三区间死区
+ * @note  ΔP > +此值 : 功率上升, 继续同方向搜索;
+ *        ΔP < −此值 : 功率明显下降(越过峰值), 撤回最后一步;
+ *        |ΔP| ≤ 此值: 平台区, 视为到达MPP, 不撤回(省继电器), 保持当前点。
+ *        功率量级常在上百~上千W, 取10W既抗噪声又能减少继电器动作。
  */
-#define MPPT_POWER_THRESHOLD        5.0f
+#define MPPT_POWER_THRESHOLD        10.0f
 
 /**
  * @brief 连续无效扰动计数上限

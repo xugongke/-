@@ -665,7 +665,7 @@ int ES1642_SendUserData(int dev_index,
     ==============================================*/
     printf("数据发送成功,等待从机响应\r\n");
 
-    if (osSemaphoreAcquire(ES1642_sendHandle, pdMS_TO_TICKS(40000)) == osOK)
+    if (osSemaphoreAcquire(ES1642_sendHandle, pdMS_TO_TICKS(10000)) == osOK)
     {
         printf("成功接收到从机的响应\r\n");
         device_list[dev_index].comm_fail_cnt = 0;  /* 成功收到响应，通信失败次数清零 */

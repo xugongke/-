@@ -3,7 +3,7 @@
 <title>Static Call Graph - [LCD_PJ\LCD_PJ.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image LCD_PJ\LCD_PJ.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060960: Last Updated: Fri Jun 26 14:01:31 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060960: Last Updated: Mon Jun 29 08:38:11 2026
 <BR><P>
 <H3>Maximum Stack Usage =       2212 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -663,17 +663,17 @@ Global Symbols
 <P><STRONG><a name="[187]"></a>__aeabi_memcpy</STRONG> (Thumb, 64 bytes, Stack size 8 bytes, memmovea.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = __aeabi_memcpy
 </UL>
-<BR>[Called By]<UL><LI><a href="#[69e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;user_detail_cache_init
-<LI><a href="#[1e1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;daily_energy_flush_to_sd
-<LI><a href="#[18c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;at_process_data
-<LI><a href="#[164]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_SendAT
-<LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;es1642_on_frame_received
+<BR>[Called By]<UL><LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;es1642_on_frame_received
 <LI><a href="#[204]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_SendUserData
 <LI><a href="#[201]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_SendStartSearch
 <LI><a href="#[200]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_SendSetPsk
 <LI><a href="#[1fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_SendSearchReply
 <LI><a href="#[1f9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_SendData
 <LI><a href="#[1e3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_BuildFrame
+<LI><a href="#[69e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;user_detail_cache_init
+<LI><a href="#[1e1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;daily_energy_flush_to_sd
+<LI><a href="#[18c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;at_process_data
+<LI><a href="#[164]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_SendAT
 <LI><a href="#[6ef]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;prvWriteBytesToBuffer
 <LI><a href="#[6e9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;prvReadBytesFromBuffer
 <LI><a href="#[6d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;prvCopyDataToQueue
@@ -722,7 +722,8 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[1ce]"></a>__aeabi_memclr4</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, memseta.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[282]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UART_MspInit
+<BR><BR>[Called By]<UL><LI><a href="#[1cd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Clear_devices
+<LI><a href="#[282]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UART_MspInit
 <LI><a href="#[251]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_SPI_MspInit
 <LI><a href="#[244]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_SD_MspInit
 <LI><a href="#[21b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_I2C_MspInit
@@ -736,7 +737,6 @@ Global Symbols
 <LI><a href="#[2a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MX_FMC_Init
 <LI><a href="#[2fa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemClock_Config
 <LI><a href="#[69f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_init
-<LI><a href="#[1cd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Clear_devices
 <LI><a href="#[6dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;prvInitialiseNewStreamBuffer
 <LI><a href="#[323]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;refr_sync_areas
 <LI><a href="#[42a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;draw_bg
@@ -765,12 +765,12 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[178]"></a>strlen</STRONG> (Thumb, 14 bytes, Stack size 0 bytes, strlen.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[685]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_table_set_cell_value
-<LI><a href="#[2bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_send_device_list
-<LI><a href="#[6a0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_config_load
-<LI><a href="#[4a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_send_search_device
+<BR><BR>[Called By]<UL><LI><a href="#[4a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_send_search_device
 <LI><a href="#[4a6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_send_search_device
 <LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
+<LI><a href="#[685]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_table_set_cell_value
+<LI><a href="#[2bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_send_device_list
+<LI><a href="#[6a0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_config_load
 <LI><a href="#[58f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_fs_get_ext
 <LI><a href="#[331]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_img_decoder_open
 <LI><a href="#[5b2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_textarea_del_char
@@ -809,13 +809,13 @@ Global Symbols
 <P><STRONG><a name="[4d8]"></a>memcmp</STRONG> (Thumb, 26 bytes, Stack size 12 bytes, memcmp.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 12<LI>Call Chain = memcmp
 </UL>
-<BR>[Called By]<UL><LI><a href="#[6fd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_device
-<LI><a href="#[4a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;find_device_by_mac
+<BR>[Called By]<UL><LI><a href="#[4a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;find_device_by_mac
+<LI><a href="#[6fd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_device
 </UL>
 
 <P><STRONG><a name="[4e8]"></a>strcpy</STRONG> (Thumb, 18 bytes, Stack size 0 bytes, strcpy.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[685]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_table_set_cell_value
-<LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
+<BR><BR>[Called By]<UL><LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
+<LI><a href="#[685]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_table_set_cell_value
 <LI><a href="#[331]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_img_decoder_open
 <LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fs_dir_read
 <LI><a href="#[696]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_textarea_set_text
@@ -1376,11 +1376,11 @@ Global Symbols
 <P><STRONG><a name="[195]"></a>BANK_ProcessCommand</STRONG> (Thumb, 166 bytes, Stack size 80 bytes, bank_switch.o(i.BANK_ProcessCommand))
 <BR><BR>[Stack]<UL><LI>Max Depth = 272<LI>Call Chain = BANK_ProcessCommand &rArr; BANK_PrintInfo &rArr; __2snprintf
 </UL>
-<BR>[Calls]<UL><LI><a href="#[197]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BANK_SwitchAndReset
+<BR>[Calls]<UL><LI><a href="#[196]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_Delay
+<LI><a href="#[197]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BANK_SwitchAndReset
 <LI><a href="#[193]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BANK_PrintInfo
 <LI><a href="#[194]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BANK_GetActiveBank
 <LI><a href="#[190]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BANK_EnableDualBank
-<LI><a href="#[196]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_Delay
 <LI><a href="#[172]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2snprintf
 <LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[180]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strstr
@@ -1486,7 +1486,8 @@ Global Symbols
 <P><STRONG><a name="[1b1]"></a>Battery_Widget_Init</STRONG> (Thumb, 506 bytes, Stack size 16 bytes, battery.o(i.Battery_Widget_Init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 528<LI>Call Chain = Battery_Widget_Init &rArr; Solar_Widget_Update &rArr; lv_label_set_text &rArr; lv_label_refr_text &rArr; lv_obj_invalidate &rArr; lv_obj_invalidate_area &rArr; lv_obj_area_is_visible &rArr; lv_obj_get_transformed_area &rArr; lv_obj_transform_point &rArr;  lv_obj_transform_point (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[1c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Weather_Widget_Update
+<BR>[Calls]<UL><LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
+<LI><a href="#[1c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Weather_Widget_Update
 <LI><a href="#[1c7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Solar_Widget_Update
 <LI><a href="#[1c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Update
 <LI><a href="#[1c8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Device_Widget_Update
@@ -1511,7 +1512,6 @@ Global Symbols
 <LI><a href="#[1be]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_align
 <LI><a href="#[1c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_add_flag
 <LI><a href="#[1bf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_create
-<LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
 </UL>
 <BR>[Called By]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
 </UL>
@@ -1519,14 +1519,14 @@ Global Symbols
 <P><STRONG><a name="[1c5]"></a>Battery_Widget_Update</STRONG> (Thumb, 242 bytes, Stack size 32 bytes, battery.o(i.Battery_Widget_Update))
 <BR><BR>[Stack]<UL><LI>Max Depth = 496<LI>Call Chain = Battery_Widget_Update &rArr; lv_label_set_text &rArr; lv_label_refr_text &rArr; lv_obj_invalidate &rArr; lv_obj_invalidate_area &rArr; lv_obj_area_is_visible &rArr; lv_obj_get_transformed_area &rArr; lv_obj_transform_point &rArr;  lv_obj_transform_point (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[1ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_color_hex
+<BR>[Calls]<UL><LI><a href="#[18e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_is_valid
+<LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
+<LI><a href="#[1ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_color_hex
 <LI><a href="#[1ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_width
 <LI><a href="#[1c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_color
 <LI><a href="#[1bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_bg_color
 <LI><a href="#[1b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_clear_flag
 <LI><a href="#[1c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_add_flag
-<LI><a href="#[18e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_is_valid
-<LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
 <LI><a href="#[172]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2snprintf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[1b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Init
@@ -1690,11 +1690,11 @@ Global Symbols
 <P><STRONG><a name="[99]"></a>DevicePoll_Task</STRONG> (Thumb, 154 bytes, Stack size 24 bytes, freertos.o(i.DevicePoll_Task))
 <BR><BR>[Stack]<UL><LI>Max Depth = 1684<LI>Call Chain = DevicePoll_Task &rArr; device_poll_and_control_all &rArr; MPPT_ControlLoop &rArr; device_ctrl_heater &rArr; ES1642_SendUserData &rArr; ES1642_SendData &rArr; ES1642_SendFrame &rArr; ES1642_BuildFrame &rArr; es1642_calc_checksum
 </UL>
-<BR>[Calls]<UL><LI><a href="#[1df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osDelay
+<BR>[Calls]<UL><LI><a href="#[1de]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_GetDate
+<LI><a href="#[1df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osDelay
 <LI><a href="#[1e0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_poll_and_control_all
 <LI><a href="#[1e1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;daily_energy_flush_to_sd
 <LI><a href="#[1e2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_flush
-<LI><a href="#[1de]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_GetDate
 <LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> freertos.o(i.MX_FREERTOS_Init)
@@ -1964,9 +1964,9 @@ Global Symbols
 <LI><a href="#[146]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memclr
 <LI><a href="#[187]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memcpy
 </UL>
-<BR>[Called By]<UL><LI><a href="#[6fd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_device
+<BR>[Called By]<UL><LI><a href="#[299]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_ctrl_heater
+<LI><a href="#[6fd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_device
 <LI><a href="#[1e0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_poll_and_control_all
-<LI><a href="#[299]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_ctrl_heater
 </UL>
 
 <P><STRONG><a name="[205]"></a>ES1642_SetPsk</STRONG> (Thumb, 292 bytes, Stack size 56 bytes, es1642_usage_guide.o(i.ES1642_SetPsk))
@@ -2013,11 +2013,11 @@ Global Symbols
 <P><STRONG><a name="[95]"></a>ES1642_Task</STRONG> (Thumb, 86 bytes, Stack size 0 bytes, freertos.o(i.ES1642_Task))
 <BR><BR>[Stack]<UL><LI>Max Depth = 112<LI>Call Chain = ES1642_Task &rArr; xStreamBufferReceive &rArr; prvReadMessageFromBuffer &rArr; prvReadBytesFromBuffer &rArr; __aeabi_memcpy
 </UL>
-<BR>[Calls]<UL><LI><a href="#[18b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xStreamBufferReceive
-<LI><a href="#[208]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Error_Handler
-<LI><a href="#[17a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UARTEx_ReceiveToIdle_DMA
+<BR>[Calls]<UL><LI><a href="#[17a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UARTEx_ReceiveToIdle_DMA
 <LI><a href="#[1f6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_InitModule
 <LI><a href="#[1f8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_ProcessCompleteFrame
+<LI><a href="#[18b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xStreamBufferReceive
+<LI><a href="#[208]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Error_Handler
 <LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> freertos.o(i.MX_FREERTOS_Init)
@@ -2219,8 +2219,8 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[20e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GetTick
 </UL>
-<BR>[Called By]<UL><LI><a href="#[195]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BANK_ProcessCommand
-<LI><a href="#[288]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ILI9488_Init
+<BR>[Called By]<UL><LI><a href="#[288]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ILI9488_Init
+<LI><a href="#[195]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BANK_ProcessCommand
 <LI><a href="#[245]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_SD_InitCard
 </UL>
 
@@ -2262,7 +2262,8 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[275]"></a>HAL_GPIO_WritePin</STRONG> (Thumb, 10 bytes, Stack size 0 bytes, stm32f4xx_hal_gpio.o(i.HAL_GPIO_WritePin))
-<BR><BR>[Called By]<UL><LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fputc
+<BR><BR>[Called By]<UL><LI><a href="#[288]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ILI9488_Init
+<LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fputc
 <LI><a href="#[2c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_usart6_send
 <LI><a href="#[2c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RS485_USART6_Init
 <LI><a href="#[2c5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RS485_USART1_Init
@@ -2271,7 +2272,6 @@ Global Symbols
 <LI><a href="#[2c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RS485_UART4_Init
 <LI><a href="#[2a8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MX_GPIO_Init
 <LI><a href="#[26e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_TIM_PeriodElapsedCallback
-<LI><a href="#[288]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ILI9488_Init
 <LI><a href="#[525]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;keypad_get_key
 <LI><a href="#[11d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;wizchip_select
 <LI><a href="#[11c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;wizchip_deselect
@@ -2279,15 +2279,15 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[20e]"></a>HAL_GetTick</STRONG> (Thumb, 6 bytes, Stack size 0 bytes, stm32f4xx_hal.o(i.HAL_GetTick))
-<BR><BR>[Called By]<UL><LI><a href="#[1a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_ADC_PollForConversion
+<BR><BR>[Called By]<UL><LI><a href="#[221]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_I2C_Mem_Write
+<LI><a href="#[21d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_I2C_Mem_Read
+<LI><a href="#[196]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_Delay
+<LI><a href="#[1a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_ADC_PollForConversion
 <LI><a href="#[284]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UART_Transmit
 <LI><a href="#[212]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_DMA_Init
 <LI><a href="#[232]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_RCC_OscConfig
 <LI><a href="#[230]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_RCC_ClockConfig
 <LI><a href="#[22f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_PWREx_EnableOverDrive
-<LI><a href="#[221]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_I2C_Mem_Write
-<LI><a href="#[21d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_I2C_Mem_Read
-<LI><a href="#[196]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_Delay
 <LI><a href="#[211]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_DMA_Abort
 <LI><a href="#[223]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;I2C_WaitOnTXEFlagUntilTimeout
 <LI><a href="#[220]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;I2C_WaitOnRXNEFlagUntilTimeout
@@ -2375,12 +2375,12 @@ Global Symbols
 <P><STRONG><a name="[227]"></a>HAL_InitTick</STRONG> (Thumb, 132 bytes, Stack size 40 bytes, stm32f4xx_hal_timebase_tim.o(i.HAL_InitTick))
 <BR><BR>[Stack]<UL><LI>Max Depth = 72<LI>Call Chain = HAL_InitTick &rArr; HAL_TIM_Base_Init &rArr; HAL_TIM_Base_MspInit &rArr; HAL_NVIC_SetPriority
 </UL>
-<BR>[Calls]<UL><LI><a href="#[21c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_RCC_GetPCLK1Freq
+<BR>[Calls]<UL><LI><a href="#[22b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_TIM_Base_Start_IT
+<LI><a href="#[21c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_RCC_GetPCLK1Freq
 <LI><a href="#[229]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_RCC_GetClockConfig
 <LI><a href="#[22a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_TIM_Base_Init
 <LI><a href="#[22d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_NVIC_SetPriority
 <LI><a href="#[22c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_NVIC_EnableIRQ
-<LI><a href="#[22b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_TIM_Base_Start_IT
 </UL>
 <BR>[Called By]<UL><LI><a href="#[230]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_RCC_ClockConfig
 <LI><a href="#[225]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_Init
@@ -2802,8 +2802,8 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[22b]"></a>HAL_TIM_Base_Start_IT</STRONG> (Thumb, 100 bytes, Stack size 0 bytes, stm32f4xx_hal_tim.o(i.HAL_TIM_Base_Start_IT))
-<BR><BR>[Called By]<UL><LI><a href="#[227]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_InitTick
-<LI><a href="#[288]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ILI9488_Init
+<BR><BR>[Called By]<UL><LI><a href="#[288]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ILI9488_Init
+<LI><a href="#[227]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_InitTick
 <LI><a href="#[525]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;keypad_get_key
 <LI><a href="#[73b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;wiz_tim_irq_enable
 </UL>
@@ -2856,10 +2856,10 @@ Global Symbols
 <P><STRONG><a name="[26e]"></a>HAL_TIM_PeriodElapsedCallback</STRONG> (Thumb, 60 bytes, Stack size 8 bytes, main.o(i.HAL_TIM_PeriodElapsedCallback))
 <BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = HAL_TIM_PeriodElapsedCallback &rArr; wiz_timer_handler
 </UL>
-<BR>[Calls]<UL><LI><a href="#[273]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;wiz_timer_handler
+<BR>[Calls]<UL><LI><a href="#[275]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_WritePin
+<LI><a href="#[273]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;wiz_timer_handler
 <LI><a href="#[274]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_TIM_Base_Stop_IT
 <LI><a href="#[272]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_IncTick
-<LI><a href="#[275]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_WritePin
 </UL>
 <BR>[Called By]<UL><LI><a href="#[26a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_TIM_IRQHandler
 </UL>
@@ -2873,7 +2873,8 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[276]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART_Start_Receive_DMA
 </UL>
-<BR>[Called By]<UL><LI><a href="#[27c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UART_ErrorCallback
+<BR>[Called By]<UL><LI><a href="#[1f6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_InitModule
+<LI><a href="#[27c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UART_ErrorCallback
 <LI><a href="#[279]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UARTEx_RxEventCallback
 <LI><a href="#[2c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RS485_USART6_Init
 <LI><a href="#[2c5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RS485_USART1_Init
@@ -2881,7 +2882,6 @@ Global Symbols
 <LI><a href="#[2c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RS485_UART4_Init
 <LI><a href="#[179]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_Init
 <LI><a href="#[95]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_Task
-<LI><a href="#[1f6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_InitModule
 </UL>
 
 <P><STRONG><a name="[277]"></a>HAL_UARTEx_ReceiveToIdle_IT</STRONG> (Thumb, 78 bytes, Stack size 12 bytes, stm32f4xx_hal_uart.o(i.HAL_UARTEx_ReceiveToIdle_IT))
@@ -2896,10 +2896,10 @@ Global Symbols
 <P><STRONG><a name="[279]"></a>HAL_UARTEx_RxEventCallback</STRONG> (Thumb, 488 bytes, Stack size 32 bytes, usart.o(i.HAL_UARTEx_RxEventCallback))
 <BR><BR>[Stack]<UL><LI>Max Depth = 120<LI>Call Chain = HAL_UARTEx_RxEventCallback &rArr; xStreamBufferSendFromISR &rArr; prvWriteMessageToBuffer &rArr; prvWriteBytesToBuffer &rArr; __aeabi_memcpy
 </UL>
-<BR>[Calls]<UL><LI><a href="#[27a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xStreamBufferSendFromISR
+<BR>[Calls]<UL><LI><a href="#[17a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UARTEx_ReceiveToIdle_DMA
+<LI><a href="#[27a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xStreamBufferSendFromISR
 <LI><a href="#[27b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xQueueGenericSendFromISR
 <LI><a href="#[277]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UARTEx_ReceiveToIdle_IT
-<LI><a href="#[17a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UARTEx_ReceiveToIdle_DMA
 </UL>
 <BR>[Called By]<UL><LI><a href="#[27d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UART_IRQHandler
 <LI><a href="#[27e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART_Receive_IT
@@ -3075,17 +3075,17 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[293]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MPPT_ControlLoop
 </UL>
 
-<P><STRONG><a name="[293]"></a>MPPT_ControlLoop</STRONG> (Thumb, 622 bytes, Stack size 72 bytes, mppt.o(i.MPPT_ControlLoop))
+<P><STRONG><a name="[293]"></a>MPPT_ControlLoop</STRONG> (Thumb, 678 bytes, Stack size 72 bytes, mppt.o(i.MPPT_ControlLoop))
 <BR><BR>[Stack]<UL><LI>Max Depth = 1492<LI>Call Chain = MPPT_ControlLoop &rArr; device_ctrl_heater &rArr; ES1642_SendUserData &rArr; ES1642_SendData &rArr; ES1642_SendFrame &rArr; ES1642_BuildFrame &rArr; es1642_calc_checksum
 </UL>
-<BR>[Calls]<UL><LI><a href="#[294]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Solar_GetVoltage
+<BR>[Calls]<UL><LI><a href="#[299]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_ctrl_heater
+<LI><a href="#[294]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Solar_GetVoltage
 <LI><a href="#[1df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osDelay
 <LI><a href="#[171]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2d
 <LI><a href="#[295]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MPPT_CalcPower
 <LI><a href="#[298]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;mppt_select_one_to_enable
 <LI><a href="#[297]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;mppt_select_one_to_disable
 <LI><a href="#[296]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;count_schedulable_devices
-<LI><a href="#[299]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_ctrl_heater
 <LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[1e0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_poll_and_control_all
@@ -3165,10 +3165,10 @@ Global Symbols
 <P><STRONG><a name="[2a8]"></a>MX_GPIO_Init</STRONG> (Thumb, 598 bytes, Stack size 64 bytes, gpio.o(i.MX_GPIO_Init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 104<LI>Call Chain = MX_GPIO_Init &rArr; HAL_GPIO_Init
 </UL>
-<BR>[Calls]<UL><LI><a href="#[22d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_NVIC_SetPriority
+<BR>[Calls]<UL><LI><a href="#[275]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_WritePin
+<LI><a href="#[22d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_NVIC_SetPriority
 <LI><a href="#[22c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_NVIC_EnableIRQ
 <LI><a href="#[20d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_Init
-<LI><a href="#[275]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_WritePin
 <LI><a href="#[1ce]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memclr4
 </UL>
 <BR>[Called By]<UL><LI><a href="#[74]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
@@ -3338,12 +3338,12 @@ Global Symbols
 <P><STRONG><a name="[2bb]"></a>Process_USART6_Data</STRONG> (Thumb, 126 bytes, Stack size 8 bytes, rs485_usart.o(i.Process_USART6_Data))
 <BR><BR>[Stack]<UL><LI>Max Depth = 1548<LI>Call Chain = Process_USART6_Data &rArr; rs485_handle_bind_cmd &rArr; update_device &rArr; ES1642_SendUserData &rArr; ES1642_SendData &rArr; ES1642_SendFrame &rArr; ES1642_BuildFrame &rArr; es1642_calc_checksum
 </UL>
-<BR>[Calls]<UL><LI><a href="#[2c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_usart6_send
+<BR>[Calls]<UL><LI><a href="#[207]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_StopSearch
+<LI><a href="#[206]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_StartSearch
+<LI><a href="#[2c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_usart6_send
 <LI><a href="#[2bf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_set_search_active
 <LI><a href="#[2bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_send_device_list
 <LI><a href="#[2be]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_handle_bind_cmd
-<LI><a href="#[207]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_StopSearch
-<LI><a href="#[206]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_StartSearch
 <LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[2bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strncmp
 </UL>
@@ -3373,8 +3373,8 @@ Global Symbols
 <P><STRONG><a name="[2c3]"></a>RS485_UART8_Init</STRONG> (Thumb, 54 bytes, Stack size 8 bytes, rs485_usart.o(i.RS485_UART8_Init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 32<LI>Call Chain = RS485_UART8_Init &rArr; __2printf
 </UL>
-<BR>[Calls]<UL><LI><a href="#[277]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UARTEx_ReceiveToIdle_IT
-<LI><a href="#[275]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_WritePin
+<BR>[Calls]<UL><LI><a href="#[275]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_WritePin
+<LI><a href="#[277]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UARTEx_ReceiveToIdle_IT
 <LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[2c7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RS485_USART_Init_All
@@ -3430,15 +3430,15 @@ Global Symbols
 <P><STRONG><a name="[96]"></a>RTC_Task</STRONG> (Thumb, 138 bytes, Stack size 24 bytes, freertos.o(i.RTC_Task))
 <BR><BR>[Stack]<UL><LI>Max Depth = 688<LI>Call Chain = RTC_Task &rArr; ui_load_scr_animation &rArr; lv_scr_load_anim &rArr; lv_obj_set_pos &rArr; lv_obj_set_y &rArr; lv_obj_set_style_y &rArr; lv_obj_set_local_style_prop &rArr; lv_obj_refresh_style &rArr; refresh_children_style &rArr;  refresh_children_style (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[2cf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Solar_UpdateCache
+<BR>[Calls]<UL><LI><a href="#[2ce]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_Task
+<LI><a href="#[2c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_InitAndDisplay
+<LI><a href="#[2cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ui_load_scr_animation
+<LI><a href="#[2cf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Solar_UpdateCache
 <LI><a href="#[1ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_UpdateCache
 <LI><a href="#[2cd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osMutexRelease
 <LI><a href="#[2cb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osMutexAcquire
 <LI><a href="#[1df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osDelay
 <LI><a href="#[2ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osThreadFlagsWait
-<LI><a href="#[2ce]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_Task
-<LI><a href="#[2c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_InitAndDisplay
-<LI><a href="#[2cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ui_load_scr_animation
 <LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> freertos.o(i.MX_FREERTOS_Init)
@@ -3458,11 +3458,11 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[21d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_I2C_Mem_Read
 <LI><a href="#[2d0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_BCD2Dec
 </UL>
-<BR>[Called By]<UL><LI><a href="#[494]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ensure_user_data_file
+<BR>[Called By]<UL><LI><a href="#[2d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_UpdateTimeDisplay
+<LI><a href="#[494]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ensure_user_data_file
 <LI><a href="#[1e1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;daily_energy_flush_to_sd
 <LI><a href="#[69f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_init
 <LI><a href="#[1e2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_flush
-<LI><a href="#[2d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_UpdateTimeDisplay
 </UL>
 
 <P><STRONG><a name="[2d2]"></a>RX8025T_GetTime</STRONG> (Thumb, 80 bytes, Stack size 24 bytes, rx8025t.o(i.RX8025T_GetTime))
@@ -3848,9 +3848,10 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[2f5]"></a>Signal_Widget_Init</STRONG> (Thumb, 252 bytes, Stack size 32 bytes, battery.o(i.Signal_Widget_Init))
-<BR><BR>[Stack]<UL><LI>Max Depth = 496<LI>Call Chain = Signal_Widget_Init &rArr; lv_obj_create &rArr; lv_obj_class_init_obj &rArr; lv_theme_apply &rArr; lv_obj_remove_style &rArr; lv_obj_refresh_style &rArr; refresh_children_style &rArr;  refresh_children_style (Cycle)
+<BR><BR>[Stack]<UL><LI>Max Depth = 496<LI>Call Chain = Signal_Widget_Init &rArr; lv_label_set_text &rArr; lv_label_refr_text &rArr; lv_obj_invalidate &rArr; lv_obj_invalidate_area &rArr; lv_obj_area_is_visible &rArr; lv_obj_get_transformed_area &rArr; lv_obj_transform_point &rArr;  lv_obj_transform_point (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[1b3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_remove_style_all
+<BR>[Calls]<UL><LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
+<LI><a href="#[1b3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_remove_style_all
 <LI><a href="#[1ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_color_hex
 <LI><a href="#[1c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_font
 <LI><a href="#[1c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_color
@@ -3864,7 +3865,6 @@ Global Symbols
 <LI><a href="#[1be]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_align
 <LI><a href="#[1c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_add_flag
 <LI><a href="#[1bf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_create
-<LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
 </UL>
 <BR>[Called By]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
 </UL>
@@ -3872,11 +3872,11 @@ Global Symbols
 <P><STRONG><a name="[1c6]"></a>Signal_Widget_Update</STRONG> (Thumb, 142 bytes, Stack size 32 bytes, battery.o(i.Signal_Widget_Update))
 <BR><BR>[Stack]<UL><LI>Max Depth = 456<LI>Call Chain = Signal_Widget_Update &rArr; lv_obj_set_style_bg_color &rArr; lv_obj_set_local_style_prop &rArr; lv_obj_refresh_style &rArr; refresh_children_style &rArr;  refresh_children_style (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[1ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_color_hex
+<BR>[Calls]<UL><LI><a href="#[18e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_is_valid
+<LI><a href="#[1ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_color_hex
 <LI><a href="#[1bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_bg_color
 <LI><a href="#[1b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_clear_flag
 <LI><a href="#[1c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_add_flag
-<LI><a href="#[18e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_is_valid
 </UL>
 <BR>[Called By]<UL><LI><a href="#[1b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Init
 <LI><a href="#[7b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;status_bar_timer_cb
@@ -3901,9 +3901,9 @@ Global Symbols
 <P><STRONG><a name="[1c7]"></a>Solar_Widget_Update</STRONG> (Thumb, 60 bytes, Stack size 48 bytes, battery.o(i.Solar_Widget_Update))
 <BR><BR>[Stack]<UL><LI>Max Depth = 512<LI>Call Chain = Solar_Widget_Update &rArr; lv_label_set_text &rArr; lv_label_refr_text &rArr; lv_obj_invalidate &rArr; lv_obj_invalidate_area &rArr; lv_obj_area_is_visible &rArr; lv_obj_get_transformed_area &rArr; lv_obj_transform_point &rArr;  lv_obj_transform_point (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[171]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2d
-<LI><a href="#[18e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_is_valid
+<BR>[Calls]<UL><LI><a href="#[18e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_is_valid
 <LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
+<LI><a href="#[171]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2d
 <LI><a href="#[172]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2snprintf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[1b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Init
@@ -4190,13 +4190,13 @@ Global Symbols
 <P><STRONG><a name="[1c9]"></a>Weather_Widget_Update</STRONG> (Thumb, 164 bytes, Stack size 16 bytes, battery.o(i.Weather_Widget_Update))
 <BR><BR>[Stack]<UL><LI>Max Depth = 480<LI>Call Chain = Weather_Widget_Update &rArr; lv_label_set_text &rArr; lv_label_refr_text &rArr; lv_obj_invalidate &rArr; lv_obj_invalidate_area &rArr; lv_obj_area_is_visible &rArr; lv_obj_get_transformed_area &rArr; lv_obj_transform_point &rArr;  lv_obj_transform_point (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[30a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Weather_GetShortDesc
+<BR>[Calls]<UL><LI><a href="#[18e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_is_valid
+<LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
+<LI><a href="#[30a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Weather_GetShortDesc
 <LI><a href="#[30b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Weather_GetIconColor
 <LI><a href="#[1ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_color_hex
 <LI><a href="#[1c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_color
 <LI><a href="#[30c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Weather_GetSymbol
-<LI><a href="#[18e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_is_valid
-<LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
 </UL>
 <BR>[Called By]<UL><LI><a href="#[1b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Init
 <LI><a href="#[7b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;status_bar_timer_cb
@@ -4212,6 +4212,21 @@ Global Symbols
 <BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = __2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[c7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;screen_user_list_item_event_handler
+<LI><a href="#[49c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;save_energy_before_search
+<LI><a href="#[49f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;save_devices
+<LI><a href="#[4a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;restore_energy_after_search
+<LI><a href="#[4a0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;print_device_list
+<LI><a href="#[376]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;add_device
+<LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;es1642_on_frame_received
+<LI><a href="#[7e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;es1642_on_error
+<LI><a href="#[207]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_StopSearch
+<LI><a href="#[206]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_StartSearch
+<LI><a href="#[205]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_SetPsk
+<LI><a href="#[204]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_SendUserData
+<LI><a href="#[1fd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_SendSearch
+<LI><a href="#[1f6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_InitModule
+<LI><a href="#[7c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;es1642_uart_write
+<LI><a href="#[299]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_ctrl_heater
 <LI><a href="#[15]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UsageFault_Handler
 <LI><a href="#[13]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MemManage_Handler
 <LI><a href="#[12]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HardFault_Handler
@@ -4254,21 +4269,6 @@ Global Symbols
 <LI><a href="#[70e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_save
 <LI><a href="#[69f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_init
 <LI><a href="#[1e2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_flush
-<LI><a href="#[49c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;save_energy_before_search
-<LI><a href="#[49f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;save_devices
-<LI><a href="#[4a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;restore_energy_after_search
-<LI><a href="#[4a0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;print_device_list
-<LI><a href="#[376]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;add_device
-<LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;es1642_on_frame_received
-<LI><a href="#[7e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;es1642_on_error
-<LI><a href="#[207]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_StopSearch
-<LI><a href="#[206]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_StartSearch
-<LI><a href="#[205]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_SetPsk
-<LI><a href="#[204]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_SendUserData
-<LI><a href="#[1fd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_SendSearch
-<LI><a href="#[1f6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_InitModule
-<LI><a href="#[7c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;es1642_uart_write
-<LI><a href="#[299]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_ctrl_heater
 <LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fs_open
 <LI><a href="#[4e9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fs_init
 <LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fs_close
@@ -4315,7 +4315,8 @@ Global Symbols
 <P><STRONG><a name="[172]"></a>__2snprintf</STRONG> (Thumb, 0 bytes, Stack size 40 bytes, printfa.o(i.__0snprintf))
 <BR><BR>[Stack]<UL><LI>Max Depth = 40<LI>Call Chain = __2snprintf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[1c7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Solar_Widget_Update
+<BR>[Called By]<UL><LI><a href="#[204]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_SendUserData
+<LI><a href="#[1c7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Solar_Widget_Update
 <LI><a href="#[1c8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Device_Widget_Update
 <LI><a href="#[1c5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Update
 <LI><a href="#[18d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Alert_Widget_Update
@@ -4324,7 +4325,6 @@ Global Symbols
 <LI><a href="#[195]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BANK_ProcessCommand
 <LI><a href="#[170]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_HTTP_GetWeatherData
 <LI><a href="#[193]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BANK_PrintInfo
-<LI><a href="#[204]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_SendUserData
 <LI><a href="#[713]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_config_save
 <LI><a href="#[b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;screen_solar_event_handler
 <LI><a href="#[173]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_HTTP_SetConfig
@@ -4346,11 +4346,11 @@ Global Symbols
 <P><STRONG><a name="[502]"></a>__2sprintf</STRONG> (Thumb, 0 bytes, Stack size 24 bytes, printfa.o(i.__0sprintf))
 <BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = __2sprintf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[503]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;host_mac_to_string
+<BR>[Called By]<UL><LI><a href="#[4a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_send_search_device
+<LI><a href="#[4a6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_send_search_device
+<LI><a href="#[503]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;host_mac_to_string
 <LI><a href="#[501]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;host_addr_to_string
 <LI><a href="#[2bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_send_device_list
-<LI><a href="#[4a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_send_search_device
-<LI><a href="#[4a6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_send_search_device
 </UL>
 
 <P><STRONG><a name="[770]"></a>__c89sprintf</STRONG> (Thumb, 0 bytes, Stack size 24 bytes, printfa.o(i.__0sprintf), UNUSED)
@@ -5097,11 +5097,11 @@ Global Symbols
 <P><STRONG><a name="[1e1]"></a>daily_energy_flush_to_sd</STRONG> (Thumb, 486 bytes, Stack size 152 bytes, device_manager.o(i.daily_energy_flush_to_sd))
 <BR><BR>[Stack]<UL><LI>Max Depth = 1088<LI>Call Chain = daily_energy_flush_to_sd &rArr; write_user_data &rArr; f_open &rArr; dir_register &rArr; dir_find &rArr; dir_next &rArr; create_chain &rArr; put_fat &rArr; move_window &rArr; sync_window &rArr; disk_write
 </UL>
-<BR>[Calls]<UL><LI><a href="#[40f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;write_user_data
+<BR>[Calls]<UL><LI><a href="#[2d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_GetDateTime
+<LI><a href="#[40f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;write_user_data
 <LI><a href="#[40d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;read_user_data
 <LI><a href="#[171]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2d
 <LI><a href="#[38e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;parse_addr
-<LI><a href="#[2d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_GetDateTime
 <LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[40e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memmove4
 <LI><a href="#[187]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memcpy
@@ -5152,17 +5152,17 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[41b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;load_devices
 </UL>
-<BR>[Called By]<UL><LI><a href="#[92]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lvgl_task
-<LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;es1642_on_frame_received
+<BR>[Called By]<UL><LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;es1642_on_frame_received
+<LI><a href="#[92]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lvgl_task
 </UL>
 
 <P><STRONG><a name="[1e0]"></a>device_poll_and_control_all</STRONG> (Thumb, 254 bytes, Stack size 168 bytes, device_manager.o(i.device_poll_and_control_all))
 <BR><BR>[Stack]<UL><LI>Max Depth = 1660<LI>Call Chain = device_poll_and_control_all &rArr; MPPT_ControlLoop &rArr; device_ctrl_heater &rArr; ES1642_SendUserData &rArr; ES1642_SendData &rArr; ES1642_SendFrame &rArr; ES1642_BuildFrame &rArr; es1642_calc_checksum
 </UL>
-<BR>[Calls]<UL><LI><a href="#[1df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osDelay
+<BR>[Calls]<UL><LI><a href="#[204]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_SendUserData
+<LI><a href="#[1df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osDelay
 <LI><a href="#[293]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MPPT_ControlLoop
 <LI><a href="#[37b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;alert_scan_devices
-<LI><a href="#[204]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_SendUserData
 <LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[99]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DevicePoll_Task
@@ -5247,7 +5247,8 @@ Global Symbols
 <P><STRONG><a name="[494]"></a>ensure_user_data_file</STRONG> (Thumb, 414 bytes, Stack size 176 bytes, user_data_manager.o(i.ensure_user_data_file))
 <BR><BR>[Stack]<UL><LI>Max Depth = 1048<LI>Call Chain = ensure_user_data_file &rArr; f_open &rArr; dir_register &rArr; dir_find &rArr; dir_next &rArr; create_chain &rArr; put_fat &rArr; move_window &rArr; sync_window &rArr; disk_write
 </UL>
-<BR>[Calls]<UL><LI><a href="#[499]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_unlink
+<BR>[Calls]<UL><LI><a href="#[2d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_GetDateTime
+<LI><a href="#[499]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_unlink
 <LI><a href="#[495]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ensure_user_dir
 <LI><a href="#[3c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;build_filepath
 <LI><a href="#[2cd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osMutexRelease
@@ -5256,7 +5257,6 @@ Global Symbols
 <LI><a href="#[496]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_open
 <LI><a href="#[497]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_close
 <LI><a href="#[38e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;parse_addr
-<LI><a href="#[2d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_GetDateTime
 <LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[1ce]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memclr4
 </UL>
@@ -5371,14 +5371,14 @@ Global Symbols
 <LI><a href="#[4b5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;unlock_fs
 <LI><a href="#[4b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dec_lock
 </UL>
-<BR>[Called By]<UL><LI><a href="#[40f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;write_user_data
+<BR>[Called By]<UL><LI><a href="#[49f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;save_devices
+<LI><a href="#[40f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;write_user_data
 <LI><a href="#[40d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;read_user_data
 <LI><a href="#[494]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ensure_user_data_file
 <LI><a href="#[41b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;load_devices
 <LI><a href="#[6a0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_config_load
 <LI><a href="#[70e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_save
 <LI><a href="#[69f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_init
-<LI><a href="#[49f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;save_devices
 <LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fs_close
 <LI><a href="#[713]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_config_save
 </UL>
@@ -5487,14 +5487,14 @@ Global Symbols
 <LI><a href="#[4bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;disk_read
 <LI><a href="#[4bf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;get_fattime
 </UL>
-<BR>[Called By]<UL><LI><a href="#[40f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;write_user_data
+<BR>[Called By]<UL><LI><a href="#[49f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;save_devices
+<LI><a href="#[40f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;write_user_data
 <LI><a href="#[40d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;read_user_data
 <LI><a href="#[494]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ensure_user_data_file
 <LI><a href="#[41b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;load_devices
 <LI><a href="#[6a0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_config_load
 <LI><a href="#[70e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_save
 <LI><a href="#[69f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_init
-<LI><a href="#[49f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;save_devices
 <LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fs_open
 <LI><a href="#[713]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_config_save
 </UL>
@@ -5600,10 +5600,10 @@ Global Symbols
 <LI><a href="#[4bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;disk_write
 <LI><a href="#[4bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;disk_read
 </UL>
-<BR>[Called By]<UL><LI><a href="#[40f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;write_user_data
+<BR>[Called By]<UL><LI><a href="#[49f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;save_devices
+<LI><a href="#[40f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;write_user_data
 <LI><a href="#[494]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ensure_user_data_file
 <LI><a href="#[70e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_save
-<LI><a href="#[49f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;save_devices
 <LI><a href="#[f0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fs_write
 <LI><a href="#[713]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_config_save
 </UL>
@@ -5659,15 +5659,15 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[4d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;memcmp
 </UL>
-<BR>[Called By]<UL><LI><a href="#[6fd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_device
-<LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;es1642_on_frame_received
+<BR>[Called By]<UL><LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;es1642_on_frame_received
+<LI><a href="#[6fd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_device
 </UL>
 
 <P><STRONG><a name="[9d]"></a>fputc</STRONG> (Thumb, 42 bytes, Stack size 16 bytes, usart.o(i.fputc))
 <BR><BR>[Stack]<UL><LI>Max Depth = 80<LI>Call Chain = fputc &rArr; HAL_UART_Transmit &rArr; UART_WaitOnFlagUntilTimeout
 </UL>
-<BR>[Calls]<UL><LI><a href="#[284]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UART_Transmit
-<LI><a href="#[275]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_WritePin
+<BR>[Calls]<UL><LI><a href="#[275]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_WritePin
+<LI><a href="#[284]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UART_Transmit
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> printfa.o(i.__0printf)
 </UL>
@@ -5752,9 +5752,9 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[502]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2sprintf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[2bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_send_device_list
-<LI><a href="#[4a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_send_search_device
+<BR>[Called By]<UL><LI><a href="#[4a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_send_search_device
 <LI><a href="#[4a6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_send_search_device
+<LI><a href="#[2bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_send_device_list
 </UL>
 
 <P><STRONG><a name="[503]"></a>host_mac_to_string</STRONG> (Thumb, 30 bytes, Stack size 32 bytes, host_comm.o(i.host_mac_to_string))
@@ -5762,9 +5762,9 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[502]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2sprintf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[2bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_send_device_list
-<LI><a href="#[4a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_send_search_device
+<BR>[Called By]<UL><LI><a href="#[4a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_send_search_device
 <LI><a href="#[4a6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_send_search_device
+<LI><a href="#[2bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_send_device_list
 </UL>
 
 <P><STRONG><a name="[504]"></a>host_parse_mac_string</STRONG> (Thumb, 64 bytes, Stack size 56 bytes, host_comm.o(i.host_parse_mac_string))
@@ -6239,9 +6239,9 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[320]"></a>lv_disp_get_default</STRONG> (Thumb, 6 bytes, Stack size 0 bytes, lv_hal_disp.o(i.lv_disp_get_default))
-<BR><BR>[Called By]<UL><LI><a href="#[7b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;status_bar_timer_cb
+<BR><BR>[Called By]<UL><LI><a href="#[2cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ui_load_scr_animation
+<LI><a href="#[7b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;status_bar_timer_cb
 <LI><a href="#[51c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_disp_get_scr_act
-<LI><a href="#[2cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ui_load_scr_animation
 <LI><a href="#[34c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_lv_inv_area
 <LI><a href="#[34d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_disp_is_invalidation_enabled
 <LI><a href="#[56c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_disp_get_theme
@@ -6321,8 +6321,8 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[320]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_disp_get_default
 </UL>
-<BR>[Called By]<UL><LI><a href="#[7b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;status_bar_timer_cb
-<LI><a href="#[2cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ui_load_scr_animation
+<BR>[Called By]<UL><LI><a href="#[2cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ui_load_scr_animation
+<LI><a href="#[7b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;status_bar_timer_cb
 <LI><a href="#[5dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_area_is_visible
 <LI><a href="#[658]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_scr_act
 <LI><a href="#[508]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;indev_proc_press
@@ -7764,10 +7764,10 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[540]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_class_init_obj
 <LI><a href="#[53f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_class_create_obj
 </UL>
-<BR>[Called By]<UL><LI><a href="#[2f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Init
+<BR>[Called By]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<LI><a href="#[2f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Init
 <LI><a href="#[1b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Init
 <LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
 <LI><a href="#[38f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_msgbox_create
 <LI><a href="#[138]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_textarea_constructor
 <LI><a href="#[704]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_Startup_screen
@@ -7895,7 +7895,9 @@ Global Symbols
 <LI><a href="#[4e8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strcpy
 <LI><a href="#[178]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strlen
 </UL>
-<BR>[Called By]<UL><LI><a href="#[1c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Weather_Widget_Update
+<BR>[Called By]<UL><LI><a href="#[2d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_UpdateTimeDisplay
+<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<LI><a href="#[1c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Weather_Widget_Update
 <LI><a href="#[1c7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Solar_Widget_Update
 <LI><a href="#[2f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Init
 <LI><a href="#[1c8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Device_Widget_Update
@@ -7904,8 +7906,6 @@ Global Symbols
 <LI><a href="#[18d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Alert_Widget_Update
 <LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
 <LI><a href="#[c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;user_list_item_event_handler
-<LI><a href="#[2d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_UpdateTimeDisplay
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
 <LI><a href="#[5b2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_textarea_del_char
 <LI><a href="#[38f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_msgbox_create
 <LI><a href="#[5c4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_ins_text
@@ -8076,9 +8076,9 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[5cd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_tlsf_free
 </UL>
-<BR>[Called By]<UL><LI><a href="#[1c3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_timer_del
+<BR>[Called By]<UL><LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
+<LI><a href="#[1c3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_timer_del
 <LI><a href="#[37d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_remove_style
-<LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
 <LI><a href="#[53b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_anim_del
 <LI><a href="#[353]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_lv_ll_clear
 <LI><a href="#[597]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_group_remove_obj
@@ -8141,9 +8141,9 @@ Global Symbols
 <LI><a href="#[357]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_mem_alloc
 <LI><a href="#[5cf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_tlsf_realloc
 </UL>
-<BR>[Called By]<UL><LI><a href="#[685]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_table_set_cell_value
+<BR>[Called By]<UL><LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
+<LI><a href="#[685]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_table_set_cell_value
 <LI><a href="#[37d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_remove_style
-<LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
 <LI><a href="#[589]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_layout_register
 <LI><a href="#[622]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_remove_event_cb
 <LI><a href="#[38b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_add_event_cb
@@ -8280,14 +8280,14 @@ Global Symbols
 <P><STRONG><a name="[38f]"></a>lv_msgbox_create</STRONG> (Thumb, 528 bytes, Stack size 40 bytes, lv_msgbox.o(i.lv_msgbox_create))
 <BR><BR>[Stack]<UL><LI>Max Depth = 512<LI>Call Chain = lv_msgbox_create &rArr; lv_btnmatrix_set_map &rArr; lv_obj_refresh_ext_draw_size &rArr; lv_obj_invalidate &rArr; lv_obj_invalidate_area &rArr; lv_obj_area_is_visible &rArr; lv_obj_get_transformed_area &rArr; lv_obj_transform_point &rArr;  lv_obj_transform_point (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[1ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_width
+<BR>[Calls]<UL><LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
+<LI><a href="#[1ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_width
 <LI><a href="#[1b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_size
 <LI><a href="#[1b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_clear_flag
 <LI><a href="#[1be]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_align
 <LI><a href="#[1c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_add_flag
 <LI><a href="#[1bf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_create
 <LI><a href="#[320]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_disp_get_default
-<LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
 <LI><a href="#[5d2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_ext_click_area
 <LI><a href="#[51b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_disp_get_layer_top
 <LI><a href="#[38b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_add_event_cb
@@ -8362,11 +8362,11 @@ Global Symbols
 <LI><a href="#[40c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_invalidate_area
 <LI><a href="#[480]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_get_scrollbar_area
 </UL>
-<BR>[Called By]<UL><LI><a href="#[1c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Update
+<BR>[Called By]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<LI><a href="#[1c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Update
 <LI><a href="#[2f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Init
 <LI><a href="#[1c5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Update
 <LI><a href="#[1b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Init
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
 <LI><a href="#[5b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_keyboard_set_textarea
 <LI><a href="#[38f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_msgbox_create
 <LI><a href="#[54b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_btnmatrix_set_btn_ctrl
@@ -8415,10 +8415,10 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[1b5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_pos
 <LI><a href="#[5db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_align
 </UL>
-<BR>[Called By]<UL><LI><a href="#[2f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Init
+<BR>[Called By]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<LI><a href="#[2f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Init
 <LI><a href="#[1b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Init
 <LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
 <LI><a href="#[12b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_keyboard_constructor
 <LI><a href="#[38f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_msgbox_create
 <LI><a href="#[704]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_Startup_screen
@@ -8575,12 +8575,12 @@ Global Symbols
 <LI><a href="#[40c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_invalidate_area
 <LI><a href="#[480]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_get_scrollbar_area
 </UL>
-<BR>[Called By]<UL><LI><a href="#[1c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Update
+<BR>[Called By]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<LI><a href="#[1c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Update
 <LI><a href="#[2f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Init
 <LI><a href="#[1c5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Update
 <LI><a href="#[1b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Init
 <LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
 <LI><a href="#[12b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_keyboard_constructor
 <LI><a href="#[38f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_msgbox_create
 <LI><a href="#[563]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_disp_drv_register
@@ -8617,10 +8617,10 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[540]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_class_init_obj
 <LI><a href="#[53f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_class_create_obj
 </UL>
-<BR>[Called By]<UL><LI><a href="#[2f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Init
+<BR>[Called By]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<LI><a href="#[2f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Init
 <LI><a href="#[1b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Init
 <LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
 <LI><a href="#[563]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_disp_drv_register
 <LI><a href="#[704]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_Startup_screen
 <LI><a href="#[10a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_list
@@ -9432,11 +9432,11 @@ Global Symbols
 <LI><a href="#[52e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_lv_obj_get_ext_draw_size
 <LI><a href="#[40c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_invalidate_area
 </UL>
-<BR>[Called By]<UL><LI><a href="#[556]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_chart_set_range
+<BR>[Called By]<UL><LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
+<LI><a href="#[556]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_chart_set_range
 <LI><a href="#[552]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_chart_refresh
 <LI><a href="#[1b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_clear_flag
 <LI><a href="#[1c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_add_flag
-<LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
 <LI><a href="#[4e0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_refr_size
 <LI><a href="#[61c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_move_to
 <LI><a href="#[5d0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_del
@@ -9534,14 +9534,14 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[56a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_disp_get_next
 <LI><a href="#[61b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;obj_valid_child
 </UL>
-<BR>[Called By]<UL><LI><a href="#[1c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Weather_Widget_Update
+<BR>[Called By]<UL><LI><a href="#[2d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_UpdateTimeDisplay
+<LI><a href="#[2ce]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_Task
+<LI><a href="#[1c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Weather_Widget_Update
 <LI><a href="#[1c7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Solar_Widget_Update
 <LI><a href="#[1c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Update
 <LI><a href="#[1c8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Device_Widget_Update
 <LI><a href="#[1c5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Update
 <LI><a href="#[18d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Alert_Widget_Update
-<LI><a href="#[2d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_UpdateTimeDisplay
-<LI><a href="#[2ce]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_Task
 <LI><a href="#[bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;screen_user_list_event_handler
 <LI><a href="#[291]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;list_populate_current_page
 <LI><a href="#[39c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;alert_populate_current_page
@@ -10003,11 +10003,11 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[63a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_y
 <LI><a href="#[639]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_x
 </UL>
-<BR>[Called By]<UL><LI><a href="#[2f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Init
+<BR>[Called By]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<LI><a href="#[2f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Init
 <LI><a href="#[1b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Init
 <LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
 <LI><a href="#[1be]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_align
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
 <LI><a href="#[56e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_scr_load_anim
 <LI><a href="#[518]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;indev_pointer_proc
 <LI><a href="#[10a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_list
@@ -10027,8 +10027,8 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[35d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_invalidate
 <LI><a href="#[35b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_allocate_spec_attr
 </UL>
-<BR>[Called By]<UL><LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<BR>[Called By]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
 <LI><a href="#[563]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_disp_drv_register
 <LI><a href="#[704]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_Startup_screen
 <LI><a href="#[10a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_list
@@ -10043,10 +10043,10 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[1ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_width
 <LI><a href="#[636]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_height
 </UL>
-<BR>[Called By]<UL><LI><a href="#[2f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Init
+<BR>[Called By]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<LI><a href="#[2f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Init
 <LI><a href="#[1b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Init
 <LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
 <LI><a href="#[38f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_msgbox_create
 <LI><a href="#[704]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_Startup_screen
 <LI><a href="#[10a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_list
@@ -10089,12 +10089,12 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[638]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_local_style_prop
 </UL>
-<BR>[Called By]<UL><LI><a href="#[1c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Update
+<BR>[Called By]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<LI><a href="#[1c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Update
 <LI><a href="#[2f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Init
 <LI><a href="#[1c5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Update
 <LI><a href="#[1b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Init
 <LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
 <LI><a href="#[704]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_Startup_screen
 <LI><a href="#[10a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_list
 <LI><a href="#[10d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_tcp_setting
@@ -10111,10 +10111,10 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[638]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_local_style_prop
 </UL>
-<BR>[Called By]<UL><LI><a href="#[2f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Init
+<BR>[Called By]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<LI><a href="#[2f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Init
 <LI><a href="#[1b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Init
 <LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
 <LI><a href="#[704]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_Startup_screen
 <LI><a href="#[10a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_list
 <LI><a href="#[10d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_tcp_setting
@@ -10131,9 +10131,9 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[638]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_local_style_prop
 </UL>
-<BR>[Called By]<UL><LI><a href="#[1b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Init
+<BR>[Called By]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<LI><a href="#[1b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Init
 <LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
 <LI><a href="#[10a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_list
 <LI><a href="#[10d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_tcp_setting
 <LI><a href="#[10c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_solar
@@ -10152,9 +10152,9 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[638]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_local_style_prop
 </UL>
-<BR>[Called By]<UL><LI><a href="#[1b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Init
+<BR>[Called By]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<LI><a href="#[1b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Init
 <LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
 <LI><a href="#[10d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_tcp_setting
 <LI><a href="#[10c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_solar
 <LI><a href="#[10b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_alert
@@ -10182,9 +10182,9 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[638]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_local_style_prop
 </UL>
-<BR>[Called By]<UL><LI><a href="#[1b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Init
+<BR>[Called By]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<LI><a href="#[1b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Init
 <LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
 <LI><a href="#[10a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_list
 <LI><a href="#[10d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_tcp_setting
 <LI><a href="#[10c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_solar
@@ -10359,10 +10359,10 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[638]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_local_style_prop
 </UL>
-<BR>[Called By]<UL><LI><a href="#[2f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Init
+<BR>[Called By]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<LI><a href="#[2f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Init
 <LI><a href="#[1b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Init
 <LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
 <LI><a href="#[704]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_Startup_screen
 <LI><a href="#[10d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_tcp_setting
 <LI><a href="#[10c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_solar
@@ -10378,8 +10378,8 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[638]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_local_style_prop
 </UL>
-<BR>[Called By]<UL><LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<BR>[Called By]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
 <LI><a href="#[704]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_Startup_screen
 <LI><a href="#[10a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_list
 <LI><a href="#[10d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_tcp_setting
@@ -10401,8 +10401,8 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[638]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_local_style_prop
 </UL>
-<BR>[Called By]<UL><LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<BR>[Called By]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
 <LI><a href="#[704]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_Startup_screen
 <LI><a href="#[10a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_list
 <LI><a href="#[10d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_tcp_setting
@@ -10419,8 +10419,8 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[638]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_local_style_prop
 </UL>
-<BR>[Called By]<UL><LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<BR>[Called By]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
 <LI><a href="#[704]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_Startup_screen
 <LI><a href="#[10a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_list
 <LI><a href="#[10d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_tcp_setting
@@ -10448,8 +10448,8 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[638]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_local_style_prop
 </UL>
-<BR>[Called By]<UL><LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<BR>[Called By]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
 <LI><a href="#[704]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_Startup_screen
 <LI><a href="#[10a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_list
 <LI><a href="#[10d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_tcp_setting
@@ -10468,8 +10468,8 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[638]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_local_style_prop
 </UL>
-<BR>[Called By]<UL><LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<BR>[Called By]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
 <LI><a href="#[10c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_solar
 </UL>
 
@@ -10478,12 +10478,12 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[638]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_local_style_prop
 </UL>
-<BR>[Called By]<UL><LI><a href="#[1c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Weather_Widget_Update
+<BR>[Called By]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<LI><a href="#[1c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Weather_Widget_Update
 <LI><a href="#[2f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Init
 <LI><a href="#[1c5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Update
 <LI><a href="#[1b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Init
 <LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
 <LI><a href="#[704]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_Startup_screen
 <LI><a href="#[10a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_list
 <LI><a href="#[10d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_tcp_setting
@@ -10501,10 +10501,10 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[638]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_local_style_prop
 </UL>
-<BR>[Called By]<UL><LI><a href="#[2f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Init
+<BR>[Called By]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<LI><a href="#[2f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Init
 <LI><a href="#[1b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Init
 <LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
 <LI><a href="#[704]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_Startup_screen
 <LI><a href="#[10a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_list
 <LI><a href="#[10d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_tcp_setting
@@ -10613,8 +10613,8 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[5dd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_get_screen
 <LI><a href="#[530]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;layout_update_core
 </UL>
-<BR>[Called By]<UL><LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
-<LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<BR>[Called By]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_home
+<LI><a href="#[119]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setup_scr_screen_user_detail
 <LI><a href="#[5fc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_scroll_to_view_recursive
 <LI><a href="#[39a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_scroll_to_view
 <LI><a href="#[62d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_scroll_by_bounded
@@ -11798,7 +11798,8 @@ Global Symbols
 <P><STRONG><a name="[92]"></a>lvgl_task</STRONG> (Thumb, 120 bytes, Stack size 0 bytes, freertos.o(i.lvgl_task))
 <BR><BR>[Stack]<UL><LI>Max Depth = 1048<LI>Call Chain = lvgl_task &rArr; user_detail_cache_init &rArr; read_user_data &rArr; f_open &rArr; dir_register &rArr; dir_find &rArr; dir_next &rArr; create_chain &rArr; put_fat &rArr; move_window &rArr; sync_window &rArr; disk_write
 </UL>
-<BR>[Calls]<UL><LI><a href="#[69e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;user_detail_cache_init
+<BR>[Calls]<UL><LI><a href="#[41a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_manager_init
+<LI><a href="#[69e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;user_detail_cache_init
 <LI><a href="#[2cd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osMutexRelease
 <LI><a href="#[2cb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osMutexAcquire
 <LI><a href="#[1df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osDelay
@@ -11814,7 +11815,6 @@ Global Symbols
 <LI><a href="#[6a2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;events_init
 <LI><a href="#[6a3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;custom_init
 <LI><a href="#[69f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_init
-<LI><a href="#[41a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_manager_init
 <LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> freertos.o(i.MX_FREERTOS_Init)
@@ -11972,7 +11972,8 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[6b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xQueueTakeMutexRecursive
 <LI><a href="#[307]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xQueueSemaphoreTake
 </UL>
-<BR>[Called By]<UL><LI><a href="#[40f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;write_user_data
+<BR>[Called By]<UL><LI><a href="#[49f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;save_devices
+<LI><a href="#[40f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;write_user_data
 <LI><a href="#[40d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;read_user_data
 <LI><a href="#[494]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ensure_user_data_file
 <LI><a href="#[41b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;load_devices
@@ -11981,7 +11982,6 @@ Global Symbols
 <LI><a href="#[96]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RTC_Task
 <LI><a href="#[70e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_save
 <LI><a href="#[69f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_init
-<LI><a href="#[49f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;save_devices
 <LI><a href="#[713]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_config_save
 </UL>
 
@@ -12001,7 +12001,8 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[6bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xQueueGiveMutexRecursive
 <LI><a href="#[6b7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xQueueGenericSend
 </UL>
-<BR>[Called By]<UL><LI><a href="#[40f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;write_user_data
+<BR>[Called By]<UL><LI><a href="#[49f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;save_devices
+<LI><a href="#[40f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;write_user_data
 <LI><a href="#[40d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;read_user_data
 <LI><a href="#[494]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ensure_user_data_file
 <LI><a href="#[41b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;load_devices
@@ -12010,7 +12011,6 @@ Global Symbols
 <LI><a href="#[96]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RTC_Task
 <LI><a href="#[70e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_save
 <LI><a href="#[69f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_init
-<LI><a href="#[49f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;save_devices
 <LI><a href="#[713]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_config_save
 </UL>
 
@@ -12020,9 +12020,9 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[307]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xQueueSemaphoreTake
 <LI><a href="#[6b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xQueueReceiveFromISR
 </UL>
-<BR>[Called By]<UL><LI><a href="#[164]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_SendAT
-<LI><a href="#[205]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_SetPsk
+<BR>[Called By]<UL><LI><a href="#[205]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_SetPsk
 <LI><a href="#[204]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_SendUserData
+<LI><a href="#[164]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_SendAT
 <LI><a href="#[4d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ff_req_grant
 </UL>
 
@@ -12056,10 +12056,10 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[219]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xQueueGiveFromISR
 <LI><a href="#[6b7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xQueueGenericSend
 </UL>
-<BR>[Called By]<UL><LI><a href="#[164]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_SendAT
-<LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;es1642_on_frame_received
+<BR>[Called By]<UL><LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;es1642_on_frame_received
 <LI><a href="#[205]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_SetPsk
 <LI><a href="#[204]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_SendUserData
+<LI><a href="#[164]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_SendAT
 <LI><a href="#[4d3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ff_rel_grant
 <LI><a href="#[3ac]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;at_notify_result
 </UL>
@@ -12196,10 +12196,10 @@ Global Symbols
 <LI><a href="#[497]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_close
 <LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[69e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;user_detail_cache_init
-<LI><a href="#[1e1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;daily_energy_flush_to_sd
-<LI><a href="#[49c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;save_energy_before_search
+<BR>[Called By]<UL><LI><a href="#[49c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;save_energy_before_search
 <LI><a href="#[4a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;restore_energy_after_search
+<LI><a href="#[69e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;user_detail_cache_init
+<LI><a href="#[1e1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;daily_energy_flush_to_sd
 </UL>
 
 <P><STRONG><a name="[6f3]"></a>recv</STRONG> (Thumb, 224 bytes, Stack size 48 bytes, socket.o(i.recv))
@@ -12268,11 +12268,11 @@ Global Symbols
 <P><STRONG><a name="[2be]"></a>rs485_handle_bind_cmd</STRONG> (Thumb, 170 bytes, Stack size 80 bytes, host_comm.o(i.rs485_handle_bind_cmd))
 <BR><BR>[Stack]<UL><LI>Max Depth = 1540<LI>Call Chain = rs485_handle_bind_cmd &rArr; update_device &rArr; ES1642_SendUserData &rArr; ES1642_SendData &rArr; ES1642_SendFrame &rArr; ES1642_BuildFrame &rArr; es1642_calc_checksum
 </UL>
-<BR>[Calls]<UL><LI><a href="#[504]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;host_parse_mac_string
+<BR>[Calls]<UL><LI><a href="#[49f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;save_devices
+<LI><a href="#[504]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;host_parse_mac_string
 <LI><a href="#[2c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_usart6_send
 <LI><a href="#[6fd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_device
 <LI><a href="#[6fc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;make_addr
-<LI><a href="#[49f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;save_devices
 <LI><a href="#[149]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__0sscanf
 <LI><a href="#[1ce]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memclr4
 </UL>
@@ -12326,16 +12326,16 @@ Global Symbols
 <P><STRONG><a name="[2c0]"></a>rs485_usart6_send</STRONG> (Thumb, 62 bytes, Stack size 24 bytes, host_comm.o(i.rs485_usart6_send))
 <BR><BR>[Stack]<UL><LI>Max Depth = 96<LI>Call Chain = rs485_usart6_send &rArr; osDelay &rArr; vTaskDelay &rArr; xTaskResumeAll &rArr; xTaskIncrementTick
 </UL>
-<BR>[Calls]<UL><LI><a href="#[284]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UART_Transmit
+<BR>[Calls]<UL><LI><a href="#[275]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_WritePin
+<LI><a href="#[284]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UART_Transmit
 <LI><a href="#[1df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osDelay
-<LI><a href="#[275]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_WritePin
 </UL>
-<BR>[Called By]<UL><LI><a href="#[2bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_send_device_list
-<LI><a href="#[2be]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_handle_bind_cmd
-<LI><a href="#[2bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Process_USART6_Data
-<LI><a href="#[49e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_send_search_ok
+<BR>[Called By]<UL><LI><a href="#[49e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_send_search_ok
 <LI><a href="#[4a3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_send_search_done
 <LI><a href="#[4a6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_send_search_device
+<LI><a href="#[2bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_send_device_list
+<LI><a href="#[2be]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_handle_bind_cmd
+<LI><a href="#[2bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Process_USART6_Data
 </UL>
 
 <P><STRONG><a name="[49f]"></a>save_devices</STRONG> (Thumb, 98 bytes, Stack size 24 bytes, device_manager.o(i.save_devices))
@@ -12348,8 +12348,8 @@ Global Symbols
 <LI><a href="#[497]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_close
 <LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[2be]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_handle_bind_cmd
-<LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;es1642_on_frame_received
+<BR>[Called By]<UL><LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;es1642_on_frame_received
+<LI><a href="#[2be]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_handle_bind_cmd
 <LI><a href="#[716]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_resp_bind_device
 </UL>
 
@@ -12442,7 +12442,8 @@ Global Symbols
 <P><STRONG><a name="[704]"></a>setup_scr_Startup_screen</STRONG> (Thumb, 640 bytes, Stack size 96 bytes, setup_scr_startup_screen.o(i.setup_scr_Startup_screen))
 <BR><BR>[Stack]<UL><LI>Max Depth = 584<LI>Call Chain = setup_scr_Startup_screen &rArr; lv_obj_update_layout &rArr; layout_update_core &rArr;  layout_update_core (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[1c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_font
+<BR>[Calls]<UL><LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
+<LI><a href="#[1c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_font
 <LI><a href="#[1c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_color
 <LI><a href="#[1b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_radius
 <LI><a href="#[1b7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_bg_opa
@@ -12453,7 +12454,6 @@ Global Symbols
 <LI><a href="#[1b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_clear_flag
 <LI><a href="#[1be]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_align
 <LI><a href="#[1bf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_create
-<LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
 <LI><a href="#[321]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_update_layout
 <LI><a href="#[3a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_opa
 <LI><a href="#[364]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_anim_start
@@ -12473,7 +12473,8 @@ Global Symbols
 <P><STRONG><a name="[10b]"></a>setup_scr_screen_alert</STRONG> (Thumb, 1546 bytes, Stack size 32 bytes, setup_scr_screen_alert.o(i.setup_scr_screen_alert))
 <BR><BR>[Stack]<UL><LI>Max Depth = 520<LI>Call Chain = setup_scr_screen_alert &rArr; lv_obj_update_layout &rArr; layout_update_core &rArr;  layout_update_core (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[1c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_font
+<BR>[Calls]<UL><LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
+<LI><a href="#[1c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_font
 <LI><a href="#[1c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_color
 <LI><a href="#[1b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_radius
 <LI><a href="#[1b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_border_width
@@ -12488,7 +12489,6 @@ Global Symbols
 <LI><a href="#[1be]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_align
 <LI><a href="#[1c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_add_flag
 <LI><a href="#[1bf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_create
-<LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
 <LI><a href="#[321]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_update_layout
 <LI><a href="#[390]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_shadow_width
 <LI><a href="#[538]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_shadow_opa
@@ -12517,7 +12517,8 @@ Global Symbols
 <P><STRONG><a name="[10c]"></a>setup_scr_screen_solar</STRONG> (Thumb, 2012 bytes, Stack size 176 bytes, setup_scr_screen_solar.o(i.setup_scr_screen_solar))
 <BR><BR>[Stack]<UL><LI>Max Depth = 664<LI>Call Chain = setup_scr_screen_solar &rArr; lv_obj_update_layout &rArr; layout_update_core &rArr;  layout_update_core (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[685]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_table_set_cell_value
+<BR>[Calls]<UL><LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
+<LI><a href="#[685]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_table_set_cell_value
 <LI><a href="#[556]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_chart_set_range
 <LI><a href="#[552]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_chart_refresh
 <LI><a href="#[1c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_font
@@ -12534,7 +12535,6 @@ Global Symbols
 <LI><a href="#[1b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_clear_flag
 <LI><a href="#[1be]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_align
 <LI><a href="#[1bf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_create
-<LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
 <LI><a href="#[64e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_width
 <LI><a href="#[637]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_height
 <LI><a href="#[321]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_update_layout
@@ -12571,7 +12571,8 @@ Global Symbols
 <P><STRONG><a name="[10d]"></a>setup_scr_screen_tcp_setting</STRONG> (Thumb, 2330 bytes, Stack size 48 bytes, setup_scr_screen_tcp_setting.o(i.setup_scr_screen_tcp_setting))
 <BR><BR>[Stack]<UL><LI>Max Depth = 624<LI>Call Chain = setup_scr_screen_tcp_setting &rArr; lv_textarea_set_one_line &rArr; lv_obj_scroll_to &rArr; lv_obj_scroll_to_y &rArr; lv_obj_scroll_by_bounded &rArr; lv_obj_update_layout &rArr; layout_update_core &rArr;  layout_update_core (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[1c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_font
+<BR>[Calls]<UL><LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
+<LI><a href="#[1c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_font
 <LI><a href="#[1c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_color
 <LI><a href="#[1b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_radius
 <LI><a href="#[1b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_border_width
@@ -12586,7 +12587,6 @@ Global Symbols
 <LI><a href="#[1be]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_align
 <LI><a href="#[1c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_add_flag
 <LI><a href="#[1bf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_create
-<LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
 <LI><a href="#[321]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_update_layout
 <LI><a href="#[390]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_shadow_width
 <LI><a href="#[538]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_shadow_opa
@@ -12633,7 +12633,8 @@ Global Symbols
 <P><STRONG><a name="[119]"></a>setup_scr_screen_user_detail</STRONG> (Thumb, 1926 bytes, Stack size 40 bytes, setup_scr_screen_user_detail.o(i.setup_scr_screen_user_detail))
 <BR><BR>[Stack]<UL><LI>Max Depth = 528<LI>Call Chain = setup_scr_screen_user_detail &rArr; lv_obj_update_layout &rArr; layout_update_core &rArr;  layout_update_core (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[685]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_table_set_cell_value
+<BR>[Calls]<UL><LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
+<LI><a href="#[685]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_table_set_cell_value
 <LI><a href="#[556]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_chart_set_range
 <LI><a href="#[552]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_chart_refresh
 <LI><a href="#[1c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_font
@@ -12650,7 +12651,6 @@ Global Symbols
 <LI><a href="#[1b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_clear_flag
 <LI><a href="#[1be]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_align
 <LI><a href="#[1bf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_create
-<LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
 <LI><a href="#[64e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_width
 <LI><a href="#[637]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_height
 <LI><a href="#[321]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_update_layout
@@ -12685,7 +12685,8 @@ Global Symbols
 <P><STRONG><a name="[9a]"></a>setup_scr_screen_user_home</STRONG> (Thumb, 4012 bytes, Stack size 40 bytes, setup_scr_screen_user_home.o(i.setup_scr_screen_user_home))
 <BR><BR>[Stack]<UL><LI>Max Depth = 568<LI>Call Chain = setup_scr_screen_user_home &rArr; Battery_Widget_Init &rArr; Solar_Widget_Update &rArr; lv_label_set_text &rArr; lv_label_refr_text &rArr; lv_obj_invalidate &rArr; lv_obj_invalidate_area &rArr; lv_obj_area_is_visible &rArr; lv_obj_get_transformed_area &rArr; lv_obj_transform_point &rArr;  lv_obj_transform_point (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[2f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Init
+<BR>[Calls]<UL><LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
+<LI><a href="#[2f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Signal_Widget_Init
 <LI><a href="#[1b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Widget_Init
 <LI><a href="#[1c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_font
 <LI><a href="#[1c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_color
@@ -12702,7 +12703,6 @@ Global Symbols
 <LI><a href="#[1be]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_align
 <LI><a href="#[1c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_add_flag
 <LI><a href="#[1bf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_create
-<LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
 <LI><a href="#[321]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_update_layout
 <LI><a href="#[64d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_opa
 <LI><a href="#[64c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_align
@@ -12729,7 +12729,8 @@ Global Symbols
 <P><STRONG><a name="[10a]"></a>setup_scr_screen_user_list</STRONG> (Thumb, 752 bytes, Stack size 24 bytes, setup_scr_screen_user_list.o(i.setup_scr_screen_user_list))
 <BR><BR>[Stack]<UL><LI>Max Depth = 512<LI>Call Chain = setup_scr_screen_user_list &rArr; lv_obj_update_layout &rArr; layout_update_core &rArr;  layout_update_core (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[1c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_font
+<BR>[Calls]<UL><LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
+<LI><a href="#[1c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_font
 <LI><a href="#[1c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_color
 <LI><a href="#[1b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_border_width
 <LI><a href="#[1bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_border_color
@@ -12743,7 +12744,6 @@ Global Symbols
 <LI><a href="#[1be]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_align
 <LI><a href="#[1c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_add_flag
 <LI><a href="#[1bf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_create
-<LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
 <LI><a href="#[321]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_update_layout
 <LI><a href="#[390]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_shadow_width
 <LI><a href="#[64b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_shadow_spread
@@ -12800,9 +12800,9 @@ Global Symbols
 <P><STRONG><a name="[1e2]"></a>solar_energy_flush</STRONG> (Thumb, 352 bytes, Stack size 72 bytes, mppt.o(i.solar_energy_flush))
 <BR><BR>[Stack]<UL><LI>Max Depth = 960<LI>Call Chain = solar_energy_flush &rArr; solar_energy_save &rArr; f_open &rArr; dir_register &rArr; dir_find &rArr; dir_next &rArr; create_chain &rArr; put_fat &rArr; move_window &rArr; sync_window &rArr; disk_write
 </UL>
-<BR>[Calls]<UL><LI><a href="#[171]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2d
+<BR>[Calls]<UL><LI><a href="#[2d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_GetDateTime
+<LI><a href="#[171]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2d
 <LI><a href="#[70e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_save
-<LI><a href="#[2d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_GetDateTime
 <LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[40e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memmove4
 </UL>
@@ -12812,14 +12812,14 @@ Global Symbols
 <P><STRONG><a name="[69f]"></a>solar_energy_init</STRONG> (Thumb, 220 bytes, Stack size 72 bytes, mppt.o(i.solar_energy_init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 960<LI>Call Chain = solar_energy_init &rArr; solar_energy_save &rArr; f_open &rArr; dir_register &rArr; dir_find &rArr; dir_next &rArr; create_chain &rArr; put_fat &rArr; move_window &rArr; sync_window &rArr; disk_write
 </UL>
-<BR>[Calls]<UL><LI><a href="#[2cd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osMutexRelease
+<BR>[Calls]<UL><LI><a href="#[2d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_GetDateTime
+<LI><a href="#[2cd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osMutexRelease
 <LI><a href="#[2cb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osMutexAcquire
 <LI><a href="#[4b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_read
 <LI><a href="#[496]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_open
 <LI><a href="#[497]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_close
 <LI><a href="#[171]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2d
 <LI><a href="#[70e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_save
-<LI><a href="#[2d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_GetDateTime
 <LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[1ce]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memclr4
 </UL>
@@ -12904,9 +12904,9 @@ Global Symbols
 <P><STRONG><a name="[716]"></a>tcp_resp_bind_device</STRONG> (Thumb, 158 bytes, Stack size 40 bytes, tcp_cmd_handler.o(i.tcp_resp_bind_device))
 <BR><BR>[Stack]<UL><LI>Max Depth = 1500<LI>Call Chain = tcp_resp_bind_device &rArr; update_device &rArr; ES1642_SendUserData &rArr; ES1642_SendData &rArr; ES1642_SendFrame &rArr; ES1642_BuildFrame &rArr; es1642_calc_checksum
 </UL>
-<BR>[Calls]<UL><LI><a href="#[6fd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_device
+<BR>[Calls]<UL><LI><a href="#[49f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;save_devices
+<LI><a href="#[6fd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_device
 <LI><a href="#[6fc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;make_addr
-<LI><a href="#[49f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;save_devices
 <LI><a href="#[71e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_send_frame
 <LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[71b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_send_error
@@ -13072,10 +13072,10 @@ Global Symbols
 <P><STRONG><a name="[6fd]"></a>update_device</STRONG> (Thumb, 276 bytes, Stack size 192 bytes, device_manager.o(i.update_device))
 <BR><BR>[Stack]<UL><LI>Max Depth = 1460<LI>Call Chain = update_device &rArr; ES1642_SendUserData &rArr; ES1642_SendData &rArr; ES1642_SendFrame &rArr; ES1642_BuildFrame &rArr; es1642_calc_checksum
 </UL>
-<BR>[Calls]<UL><LI><a href="#[494]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ensure_user_data_file
-<LI><a href="#[4a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;find_device_by_mac
+<BR>[Calls]<UL><LI><a href="#[4a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;find_device_by_mac
 <LI><a href="#[205]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_SetPsk
 <LI><a href="#[204]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_SendUserData
+<LI><a href="#[494]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ensure_user_data_file
 <LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[4d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;memcmp
 </UL>
@@ -13091,22 +13091,22 @@ Global Symbols
 <LI><a href="#[1ce]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memclr4
 <LI><a href="#[187]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memcpy
 </UL>
-<BR>[Called By]<UL><LI><a href="#[92]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lvgl_task
-<LI><a href="#[4a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;restore_energy_after_search
+<BR>[Called By]<UL><LI><a href="#[4a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;restore_energy_after_search
+<LI><a href="#[92]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lvgl_task
 </UL>
 
 <P><STRONG><a name="[c6]"></a>user_list_item_event_handler</STRONG> (Thumb, 558 bytes, Stack size 120 bytes, user_data_manager.o(i.user_list_item_event_handler))
 <BR><BR>[Stack]<UL><LI>Max Depth = 784<LI>Call Chain = user_list_item_event_handler &rArr; ui_load_scr_animation &rArr; lv_scr_load_anim &rArr; lv_obj_set_pos &rArr; lv_obj_set_y &rArr; lv_obj_set_style_y &rArr; lv_obj_set_local_style_prop &rArr; lv_obj_refresh_style &rArr; refresh_children_style &rArr;  refresh_children_style (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[685]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_table_set_cell_value
+<BR>[Calls]<UL><LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
+<LI><a href="#[2cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ui_load_scr_animation
+<LI><a href="#[377]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_user_data
+<LI><a href="#[685]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_table_set_cell_value
 <LI><a href="#[556]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_chart_set_range
 <LI><a href="#[552]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_chart_refresh
 <LI><a href="#[3d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_chart_get_series_next
 <LI><a href="#[171]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2d
 <LI><a href="#[38e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;parse_addr
-<LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
-<LI><a href="#[2cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ui_load_scr_animation
-<LI><a href="#[377]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_user_data
 <LI><a href="#[172]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2snprintf
 <LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
@@ -13731,9 +13731,9 @@ Global Symbols
 <LI><a href="#[496]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_open
 <LI><a href="#[497]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_close
 </UL>
-<BR>[Called By]<UL><LI><a href="#[1e1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;daily_energy_flush_to_sd
-<LI><a href="#[49c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;save_energy_before_search
+<BR>[Called By]<UL><LI><a href="#[49c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;save_energy_before_search
 <LI><a href="#[4a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;restore_energy_after_search
+<LI><a href="#[1e1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;daily_energy_flush_to_sd
 </UL>
 
 <P><STRONG><a name="[730]"></a>xPortStartScheduler</STRONG> (Thumb, 222 bytes, Stack size 16 bytes, port.o(i.xPortStartScheduler))
@@ -13842,9 +13842,9 @@ Global Symbols
 <LI><a href="#[6d3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vPortExitCritical
 <LI><a href="#[6d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vPortEnterCritical
 </UL>
-<BR>[Called By]<UL><LI><a href="#[2cd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osMutexRelease
+<BR>[Called By]<UL><LI><a href="#[186]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSemaphoreRelease
+<LI><a href="#[2cd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osMutexRelease
 <LI><a href="#[2a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSemaphoreNew
-<LI><a href="#[186]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSemaphoreRelease
 <LI><a href="#[6bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xQueueGiveMutexRecursive
 <LI><a href="#[6d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;prvInitialiseMutex
 <LI><a href="#[6c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xTimerGenericCommand
@@ -13934,9 +13934,9 @@ Global Symbols
 <LI><a href="#[6d3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vPortExitCritical
 <LI><a href="#[6d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vPortEnterCritical
 </UL>
-<BR>[Called By]<UL><LI><a href="#[2cb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osMutexAcquire
+<BR>[Called By]<UL><LI><a href="#[185]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSemaphoreAcquire
+<LI><a href="#[2cb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osMutexAcquire
 <LI><a href="#[94]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;W5500_Task
-<LI><a href="#[185]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSemaphoreAcquire
 <LI><a href="#[6b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xQueueTakeMutexRecursive
 <LI><a href="#[120]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;wizchip_write_buff
 <LI><a href="#[121]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;wizchip_read_buff
@@ -18456,8 +18456,8 @@ Local Symbols
 <P><STRONG><a name="[132]"></a>lv_label_constructor</STRONG> (Thumb, 92 bytes, Stack size 8 bytes, lv_label.o(i.lv_label_constructor))
 <BR><BR>[Stack]<UL><LI>Max Depth = 472<LI>Call Chain = lv_label_constructor &rArr; lv_label_set_text &rArr; lv_label_refr_text &rArr; lv_obj_invalidate &rArr; lv_obj_invalidate_area &rArr; lv_obj_area_is_visible &rArr; lv_obj_get_transformed_area &rArr; lv_obj_transform_point &rArr;  lv_obj_transform_point (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[1b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_clear_flag
-<LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
+<BR>[Calls]<UL><LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
+<LI><a href="#[1b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_clear_flag
 <LI><a href="#[5b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_long_mode
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> lv_label.o(.constdata)
@@ -19027,10 +19027,10 @@ Local Symbols
 <P><STRONG><a name="[138]"></a>lv_textarea_constructor</STRONG> (Thumb, 150 bytes, Stack size 8 bytes, lv_textarea.o(i.lv_textarea_constructor))
 <BR><BR>[Stack]<UL><LI>Max Depth = 568<LI>Call Chain = lv_textarea_constructor &rArr; lv_textarea_set_cursor_pos &rArr; lv_obj_scroll_to_y &rArr; lv_obj_scroll_by_bounded &rArr; lv_obj_update_layout &rArr; layout_update_core &rArr;  layout_update_core (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[1ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_width
+<BR>[Calls]<UL><LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
+<LI><a href="#[1ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_width
 <LI><a href="#[1c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_add_flag
 <LI><a href="#[1bf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_create
-<LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
 <LI><a href="#[38b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_add_event_cb
 <LI><a href="#[5b5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_textarea_set_cursor_pos
 <LI><a href="#[52a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;start_cursor_blink
@@ -19136,9 +19136,9 @@ Local Symbols
 <P><STRONG><a name="[692]"></a>update_cursor_position_on_click</STRONG> (Thumb, 382 bytes, Stack size 48 bytes, lv_textarea.o(i.update_cursor_position_on_click))
 <BR><BR>[Stack]<UL><LI>Max Depth = 608<LI>Call Chain = update_cursor_position_on_click &rArr; lv_textarea_set_cursor_pos &rArr; lv_obj_scroll_to_y &rArr; lv_obj_scroll_by_bounded &rArr; lv_obj_update_layout &rArr; layout_update_core &rArr;  layout_update_core (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[1b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_clear_flag
+<BR>[Calls]<UL><LI><a href="#[38c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_code
+<LI><a href="#[1b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_clear_flag
 <LI><a href="#[1c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_add_flag
-<LI><a href="#[38c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_code
 <LI><a href="#[466]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_get_coords
 <LI><a href="#[35d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_invalidate
 <LI><a href="#[724]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_indev_get_vect
@@ -19210,8 +19210,8 @@ Local Symbols
 <P><STRONG><a name="[ed]"></a>fs_open</STRONG> (Thumb, 108 bytes, Stack size 272 bytes, lv_port_fs.o(i.fs_open))
 <BR><BR>[Stack]<UL><LI>Max Depth = 1144<LI>Call Chain = fs_open &rArr; f_open &rArr; dir_register &rArr; dir_find &rArr; dir_next &rArr; create_chain &rArr; put_fat &rArr; move_window &rArr; sync_window &rArr; disk_write
 </UL>
-<BR>[Calls]<UL><LI><a href="#[496]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_open
-<LI><a href="#[2d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_snprintf
+<BR>[Calls]<UL><LI><a href="#[2d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_snprintf
+<LI><a href="#[496]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_open
 <LI><a href="#[32b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_mem_free
 <LI><a href="#[357]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_mem_alloc
 <LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
@@ -19251,9 +19251,9 @@ Local Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[28b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;KEY_Scan
 <LI><a href="#[526]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;KEY_IsPressedStable
-<LI><a href="#[274]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_TIM_Base_Stop_IT
 <LI><a href="#[22b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_TIM_Base_Start_IT
 <LI><a href="#[275]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_WritePin
+<LI><a href="#[274]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_TIM_Base_Stop_IT
 <LI><a href="#[527]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;key_to_code
 </UL>
 <BR>[Called By]<UL><LI><a href="#[f6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;keypad_read
@@ -19269,9 +19269,9 @@ Local Symbols
 <P><STRONG><a name="[ab]"></a>alert_clear_all_dialog_btn_cb</STRONG> (Thumb, 100 bytes, Stack size 24 bytes, events_init.o(i.alert_clear_all_dialog_btn_cb))
 <BR><BR>[Stack]<UL><LI>Max Depth = 720<LI>Call Chain = alert_clear_all_dialog_btn_cb &rArr; alert_populate_list &rArr; alert_populate_current_page &rArr; lv_obj_clean &rArr; lv_obj_scroll_to &rArr; lv_obj_scroll_to_y &rArr; lv_obj_scroll_by_bounded &rArr; lv_obj_update_layout &rArr; layout_update_core &rArr;  layout_update_core (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[18d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Alert_Widget_Update
+<BR>[Calls]<UL><LI><a href="#[377]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_user_data
+<LI><a href="#[18d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Alert_Widget_Update
 <LI><a href="#[37b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;alert_scan_devices
-<LI><a href="#[377]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_user_data
 <LI><a href="#[378]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_msgbox_get_active_btn
 <LI><a href="#[379]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_msgbox_close
 <LI><a href="#[37a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;alert_populate_list
@@ -19279,9 +19279,10 @@ Local Symbols
 <BR>[Address Reference Count : 1]<UL><LI> events_init.o(i.alert_tip_event_handler)
 </UL>
 <P><STRONG><a name="[37c]"></a>alert_create_item</STRONG> (Thumb, 538 bytes, Stack size 32 bytes, events_init.o(i.alert_create_item))
-<BR><BR>[Stack]<UL><LI>Max Depth = 496<LI>Call Chain = alert_create_item &rArr; lv_obj_create &rArr; lv_obj_class_init_obj &rArr; lv_theme_apply &rArr; lv_obj_remove_style &rArr; lv_obj_refresh_style &rArr; refresh_children_style &rArr;  refresh_children_style (Cycle)
+<BR><BR>[Stack]<UL><LI>Max Depth = 496<LI>Call Chain = alert_create_item &rArr; lv_label_set_text &rArr; lv_label_refr_text &rArr; lv_obj_invalidate &rArr; lv_obj_invalidate_area &rArr; lv_obj_area_is_visible &rArr; lv_obj_get_transformed_area &rArr; lv_obj_transform_point &rArr;  lv_obj_transform_point (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[1c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_font
+<BR>[Calls]<UL><LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
+<LI><a href="#[1c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_font
 <LI><a href="#[1c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_color
 <LI><a href="#[1b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_radius
 <LI><a href="#[1b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_border_width
@@ -19296,7 +19297,6 @@ Local Symbols
 <LI><a href="#[1b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_clear_flag
 <LI><a href="#[1c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_add_flag
 <LI><a href="#[1bf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_create
-<LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
 <LI><a href="#[38b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_add_event_cb
 <LI><a href="#[388]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_add_style
 <LI><a href="#[381]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_style_set_border_width
@@ -19318,9 +19318,9 @@ Local Symbols
 <P><STRONG><a name="[aa]"></a>alert_dialog_btn_cb</STRONG> (Thumb, 170 bytes, Stack size 16 bytes, events_init.o(i.alert_dialog_btn_cb))
 <BR><BR>[Stack]<UL><LI>Max Depth = 712<LI>Call Chain = alert_dialog_btn_cb &rArr; alert_populate_list &rArr; alert_populate_current_page &rArr; lv_obj_clean &rArr; lv_obj_scroll_to &rArr; lv_obj_scroll_to_y &rArr; lv_obj_scroll_by_bounded &rArr; lv_obj_update_layout &rArr; layout_update_core &rArr;  layout_update_core (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[18d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Alert_Widget_Update
+<BR>[Calls]<UL><LI><a href="#[377]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_user_data
+<LI><a href="#[18d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Alert_Widget_Update
 <LI><a href="#[37b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;alert_scan_devices
-<LI><a href="#[377]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_user_data
 <LI><a href="#[378]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_msgbox_get_active_btn
 <LI><a href="#[379]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_msgbox_close
 <LI><a href="#[37a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;alert_populate_list
@@ -19336,17 +19336,17 @@ Local Symbols
 <P><STRONG><a name="[a9]"></a>alert_item_event_handler</STRONG> (Thumb, 586 bytes, Stack size 120 bytes, events_init.o(i.alert_item_event_handler))
 <BR><BR>[Stack]<UL><LI>Max Depth = 816<LI>Call Chain = alert_item_event_handler &rArr; alert_populate_current_page &rArr; lv_obj_clean &rArr; lv_obj_scroll_to &rArr; lv_obj_scroll_to_y &rArr; lv_obj_scroll_by_bounded &rArr; lv_obj_update_layout &rArr; layout_update_core &rArr;  layout_update_core (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[38e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;parse_addr
+<BR>[Calls]<UL><LI><a href="#[2d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_snprintf
+<LI><a href="#[2cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ui_load_scr_animation
+<LI><a href="#[377]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_user_data
+<LI><a href="#[38d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_key
+<LI><a href="#[38c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_code
+<LI><a href="#[38e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;parse_addr
 <LI><a href="#[1c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_font
 <LI><a href="#[1c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_color
 <LI><a href="#[1b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_radius
 <LI><a href="#[1b7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_bg_opa
 <LI><a href="#[1bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_bg_color
-<LI><a href="#[2d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_snprintf
-<LI><a href="#[2cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ui_load_scr_animation
-<LI><a href="#[377]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_user_data
-<LI><a href="#[38d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_key
-<LI><a href="#[38c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_code
 <LI><a href="#[398]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_indev_set_group
 <LI><a href="#[395]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_group_remove_all_objs
 <LI><a href="#[397]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_group_focus_obj
@@ -19380,11 +19380,11 @@ Local Symbols
 <P><STRONG><a name="[39c]"></a>alert_populate_current_page</STRONG> (Thumb, 404 bytes, Stack size 136 bytes, events_init.o(i.alert_populate_current_page))
 <BR><BR>[Stack]<UL><LI>Max Depth = 696<LI>Call Chain = alert_populate_current_page &rArr; lv_obj_clean &rArr; lv_obj_scroll_to &rArr; lv_obj_scroll_to_y &rArr; lv_obj_scroll_by_bounded &rArr; lv_obj_update_layout &rArr; layout_update_core &rArr;  layout_update_core (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[38e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;parse_addr
-<LI><a href="#[18e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_is_valid
+<BR>[Calls]<UL><LI><a href="#[18e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_is_valid
 <LI><a href="#[2d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_get_child
 <LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
 <LI><a href="#[2d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_snprintf
+<LI><a href="#[38e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;parse_addr
 <LI><a href="#[398]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_indev_set_group
 <LI><a href="#[395]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_group_remove_all_objs
 <LI><a href="#[397]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_group_focus_obj
@@ -19410,14 +19410,14 @@ Local Symbols
 <P><STRONG><a name="[107]"></a>alert_tip_event_handler</STRONG> (Thumb, 448 bytes, Stack size 40 bytes, events_init.o(i.alert_tip_event_handler))
 <BR><BR>[Stack]<UL><LI>Max Depth = 704<LI>Call Chain = alert_tip_event_handler &rArr; ui_load_scr_animation &rArr; lv_scr_load_anim &rArr; lv_obj_set_pos &rArr; lv_obj_set_y &rArr; lv_obj_set_style_y &rArr; lv_obj_set_local_style_prop &rArr; lv_obj_refresh_style &rArr; refresh_children_style &rArr;  refresh_children_style (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[1c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_font
+<BR>[Calls]<UL><LI><a href="#[2cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ui_load_scr_animation
+<LI><a href="#[38d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_key
+<LI><a href="#[38c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_code
+<LI><a href="#[1c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_font
 <LI><a href="#[1c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_color
 <LI><a href="#[1b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_radius
 <LI><a href="#[1b7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_bg_opa
 <LI><a href="#[1bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_bg_color
-<LI><a href="#[2cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ui_load_scr_animation
-<LI><a href="#[38d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_key
-<LI><a href="#[38c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_code
 <LI><a href="#[398]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_indev_set_group
 <LI><a href="#[395]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_group_remove_all_objs
 <LI><a href="#[397]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_group_focus_obj
@@ -19464,7 +19464,11 @@ Local Symbols
 <P><STRONG><a name="[291]"></a>list_populate_current_page</STRONG> (Thumb, 860 bytes, Stack size 200 bytes, events_init.o(i.list_populate_current_page))
 <BR><BR>[Stack]<UL><LI>Max Depth = 760<LI>Call Chain = list_populate_current_page &rArr; lv_obj_clean &rArr; lv_obj_scroll_to &rArr; lv_obj_scroll_to_y &rArr; lv_obj_scroll_by_bounded &rArr; lv_obj_update_layout &rArr; layout_update_core &rArr;  layout_update_core (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[38e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;parse_addr
+<BR>[Calls]<UL><LI><a href="#[18e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_is_valid
+<LI><a href="#[2d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_get_child
+<LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
+<LI><a href="#[2d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_snprintf
+<LI><a href="#[38e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;parse_addr
 <LI><a href="#[1c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_font
 <LI><a href="#[1c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_color
 <LI><a href="#[1b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_radius
@@ -19481,10 +19485,6 @@ Local Symbols
 <LI><a href="#[1be]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_align
 <LI><a href="#[1c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_add_flag
 <LI><a href="#[1bf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_create
-<LI><a href="#[18e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_is_valid
-<LI><a href="#[2d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_get_child
-<LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
-<LI><a href="#[2d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_snprintf
 <LI><a href="#[398]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_indev_set_group
 <LI><a href="#[395]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_group_remove_all_objs
 <LI><a href="#[50c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_group_get_focused
@@ -19557,15 +19557,15 @@ Local Symbols
 <P><STRONG><a name="[b6]"></a>screen_solar_event_handler</STRONG> (Thumb, 498 bytes, Stack size 80 bytes, events_init.o(i.screen_solar_event_handler))
 <BR><BR>[Stack]<UL><LI>Max Depth = 744<LI>Call Chain = screen_solar_event_handler &rArr; ui_load_scr_animation &rArr; lv_scr_load_anim &rArr; lv_obj_set_pos &rArr; lv_obj_set_y &rArr; lv_obj_set_style_y &rArr; lv_obj_set_local_style_prop &rArr; lv_obj_refresh_style &rArr; refresh_children_style &rArr;  refresh_children_style (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[685]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_table_set_cell_value
+<BR>[Calls]<UL><LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
+<LI><a href="#[2cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ui_load_scr_animation
+<LI><a href="#[38d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_key
+<LI><a href="#[38c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_code
+<LI><a href="#[685]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_table_set_cell_value
 <LI><a href="#[556]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_chart_set_range
 <LI><a href="#[552]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_chart_refresh
 <LI><a href="#[3d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_chart_get_series_next
 <LI><a href="#[171]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2d
-<LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
-<LI><a href="#[2cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ui_load_scr_animation
-<LI><a href="#[38d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_key
-<LI><a href="#[38c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_code
 <LI><a href="#[398]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_indev_set_group
 <LI><a href="#[395]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_group_remove_all_objs
 <LI><a href="#[397]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_group_focus_obj
@@ -19609,14 +19609,14 @@ Local Symbols
 <P><STRONG><a name="[bc]"></a>screen_user_home_card_alert_event_handler</STRONG> (Thumb, 296 bytes, Stack size 32 bytes, events_init.o(i.screen_user_home_card_alert_event_handler))
 <BR><BR>[Stack]<UL><LI>Max Depth = 696<LI>Call Chain = screen_user_home_card_alert_event_handler &rArr; ui_load_scr_animation &rArr; lv_scr_load_anim &rArr; lv_obj_set_pos &rArr; lv_obj_set_y &rArr; lv_obj_set_style_y &rArr; lv_obj_set_local_style_prop &rArr; lv_obj_refresh_style &rArr; refresh_children_style &rArr;  refresh_children_style (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[1b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_border_width
+<BR>[Calls]<UL><LI><a href="#[2d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_get_child
+<LI><a href="#[2cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ui_load_scr_animation
+<LI><a href="#[38c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_code
+<LI><a href="#[1b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_border_width
 <LI><a href="#[1bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_border_opa
 <LI><a href="#[1bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_border_color
 <LI><a href="#[1b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_size
 <LI><a href="#[1b5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_pos
-<LI><a href="#[2d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_get_child
-<LI><a href="#[2cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ui_load_scr_animation
-<LI><a href="#[38c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_code
 <LI><a href="#[390]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_shadow_width
 <LI><a href="#[538]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_shadow_opa
 <LI><a href="#[539]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_shadow_ofs_y
@@ -19627,14 +19627,14 @@ Local Symbols
 <P><STRONG><a name="[bb]"></a>screen_user_home_card_device_event_handler</STRONG> (Thumb, 292 bytes, Stack size 32 bytes, events_init.o(i.screen_user_home_card_device_event_handler))
 <BR><BR>[Stack]<UL><LI>Max Depth = 696<LI>Call Chain = screen_user_home_card_device_event_handler &rArr; ui_load_scr_animation &rArr; lv_scr_load_anim &rArr; lv_obj_set_pos &rArr; lv_obj_set_y &rArr; lv_obj_set_style_y &rArr; lv_obj_set_local_style_prop &rArr; lv_obj_refresh_style &rArr; refresh_children_style &rArr;  refresh_children_style (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[1b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_border_width
+<BR>[Calls]<UL><LI><a href="#[2d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_get_child
+<LI><a href="#[2cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ui_load_scr_animation
+<LI><a href="#[38c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_code
+<LI><a href="#[1b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_border_width
 <LI><a href="#[1bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_border_opa
 <LI><a href="#[1bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_border_color
 <LI><a href="#[1b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_size
 <LI><a href="#[1b5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_pos
-<LI><a href="#[2d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_get_child
-<LI><a href="#[2cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ui_load_scr_animation
-<LI><a href="#[38c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_code
 <LI><a href="#[390]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_shadow_width
 <LI><a href="#[538]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_shadow_opa
 <LI><a href="#[539]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_shadow_ofs_y
@@ -19645,13 +19645,13 @@ Local Symbols
 <P><STRONG><a name="[10e]"></a>screen_user_home_card_key_handler</STRONG> (Thumb, 220 bytes, Stack size 24 bytes, events_init.o(i.screen_user_home_card_key_handler))
 <BR><BR>[Stack]<UL><LI>Max Depth = 456<LI>Call Chain = screen_user_home_card_key_handler &rArr; lv_group_add_obj &rArr; lv_group_remove_obj &rArr; lv_group_refocus &rArr; lv_group_focus_prev &rArr; focus_next_core &rArr; lv_obj_invalidate &rArr; lv_obj_invalidate_area &rArr; lv_obj_area_is_visible &rArr; lv_obj_get_transformed_area &rArr; lv_obj_transform_point &rArr;  lv_obj_transform_point (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[1b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_border_width
+<BR>[Calls]<UL><LI><a href="#[38d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_key
+<LI><a href="#[38c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_code
+<LI><a href="#[1b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_border_width
 <LI><a href="#[1bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_border_opa
 <LI><a href="#[1bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_border_color
 <LI><a href="#[1b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_clear_flag
 <LI><a href="#[1c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_add_flag
-<LI><a href="#[38d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_key
-<LI><a href="#[38c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_code
 <LI><a href="#[597]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_group_remove_obj
 <LI><a href="#[50c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_group_get_focused
 <LI><a href="#[397]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_group_focus_obj
@@ -19665,14 +19665,14 @@ Local Symbols
 <P><STRONG><a name="[ba]"></a>screen_user_home_card_solar_event_handler</STRONG> (Thumb, 290 bytes, Stack size 32 bytes, events_init.o(i.screen_user_home_card_solar_event_handler))
 <BR><BR>[Stack]<UL><LI>Max Depth = 696<LI>Call Chain = screen_user_home_card_solar_event_handler &rArr; ui_load_scr_animation &rArr; lv_scr_load_anim &rArr; lv_obj_set_pos &rArr; lv_obj_set_y &rArr; lv_obj_set_style_y &rArr; lv_obj_set_local_style_prop &rArr; lv_obj_refresh_style &rArr; refresh_children_style &rArr;  refresh_children_style (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[1b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_border_width
+<BR>[Calls]<UL><LI><a href="#[2d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_get_child
+<LI><a href="#[2cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ui_load_scr_animation
+<LI><a href="#[38c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_code
+<LI><a href="#[1b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_border_width
 <LI><a href="#[1bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_border_opa
 <LI><a href="#[1bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_border_color
 <LI><a href="#[1b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_size
 <LI><a href="#[1b5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_pos
-<LI><a href="#[2d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_get_child
-<LI><a href="#[2cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ui_load_scr_animation
-<LI><a href="#[38c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_code
 <LI><a href="#[390]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_shadow_width
 <LI><a href="#[538]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_shadow_opa
 <LI><a href="#[539]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_shadow_ofs_y
@@ -19683,12 +19683,12 @@ Local Symbols
 <P><STRONG><a name="[10f]"></a>screen_user_home_cont3_key_handler</STRONG> (Thumb, 224 bytes, Stack size 40 bytes, events_init.o(i.screen_user_home_cont3_key_handler))
 <BR><BR>[Stack]<UL><LI>Max Depth = 704<LI>Call Chain = screen_user_home_cont3_key_handler &rArr; ui_load_scr_animation &rArr; lv_scr_load_anim &rArr; lv_obj_set_pos &rArr; lv_obj_set_y &rArr; lv_obj_set_style_y &rArr; lv_obj_set_local_style_prop &rArr; lv_obj_refresh_style &rArr; refresh_children_style &rArr;  refresh_children_style (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[1b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_border_width
-<LI><a href="#[1bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_border_opa
-<LI><a href="#[1bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_border_color
-<LI><a href="#[2cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ui_load_scr_animation
+<BR>[Calls]<UL><LI><a href="#[2cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ui_load_scr_animation
 <LI><a href="#[38d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_key
 <LI><a href="#[38c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_code
+<LI><a href="#[1b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_border_width
+<LI><a href="#[1bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_border_opa
+<LI><a href="#[1bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_border_color
 <LI><a href="#[597]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_group_remove_obj
 <LI><a href="#[397]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_group_focus_obj
 <LI><a href="#[396]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_group_add_obj
@@ -19701,10 +19701,10 @@ Local Symbols
 <P><STRONG><a name="[b9]"></a>screen_user_home_event_handler</STRONG> (Thumb, 178 bytes, Stack size 32 bytes, events_init.o(i.screen_user_home_event_handler))
 <BR><BR>[Stack]<UL><LI>Max Depth = 496<LI>Call Chain = screen_user_home_event_handler &rArr; lv_label_set_text &rArr; lv_label_refr_text &rArr; lv_obj_invalidate &rArr; lv_obj_invalidate_area &rArr; lv_obj_area_is_visible &rArr; lv_obj_get_transformed_area &rArr; lv_obj_transform_point &rArr;  lv_obj_transform_point (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[1b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_clear_flag
-<LI><a href="#[1c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_add_flag
-<LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
+<BR>[Calls]<UL><LI><a href="#[18f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_set_text
 <LI><a href="#[38c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_code
+<LI><a href="#[1b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_clear_flag
+<LI><a href="#[1c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_add_flag
 <LI><a href="#[398]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_indev_set_group
 <LI><a href="#[395]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_group_remove_all_objs
 <LI><a href="#[397]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_group_focus_obj
@@ -19716,12 +19716,12 @@ Local Symbols
 <P><STRONG><a name="[bd]"></a>screen_user_list_event_handler</STRONG> (Thumb, 110 bytes, Stack size 8 bytes, events_init.o(i.screen_user_list_event_handler))
 <BR><BR>[Stack]<UL><LI>Max Depth = 768<LI>Call Chain = screen_user_list_event_handler &rArr; list_populate_current_page &rArr; lv_obj_clean &rArr; lv_obj_scroll_to &rArr; lv_obj_scroll_to_y &rArr; lv_obj_scroll_by_bounded &rArr; lv_obj_update_layout &rArr; layout_update_core &rArr;  layout_update_core (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[1c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_font
+<BR>[Calls]<UL><LI><a href="#[18e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_is_valid
+<LI><a href="#[38c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_code
+<LI><a href="#[1c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_font
 <LI><a href="#[1c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_text_color
 <LI><a href="#[1be]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_align
 <LI><a href="#[1bf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_label_create
-<LI><a href="#[18e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_is_valid
-<LI><a href="#[38c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_code
 <LI><a href="#[37e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_color_hex
 <LI><a href="#[291]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;list_populate_current_page
 </UL>
@@ -19777,8 +19777,8 @@ Local Symbols
 <P><STRONG><a name="[115]"></a>detail_chart_draw_label_cb</STRONG> (Thumb, 238 bytes, Stack size 96 bytes, setup_scr_screen_user_detail.o(i.detail_chart_draw_label_cb))
 <BR><BR>[Stack]<UL><LI>Max Depth = 608<LI>Call Chain = detail_chart_draw_label_cb &rArr; lv_draw_label &rArr; lv_txt_get_size &rArr; _lv_txt_get_next_line &rArr; lv_txt_get_next_word &rArr; lv_font_get_glyph_width &rArr; lv_font_get_glyph_dsc
 </UL>
-<BR>[Calls]<UL><LI><a href="#[3d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_chart_get_series_next
-<LI><a href="#[2d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_snprintf
+<BR>[Calls]<UL><LI><a href="#[2d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_snprintf
+<LI><a href="#[3d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_chart_get_series_next
 <LI><a href="#[399]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_target
 <LI><a href="#[3d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_draw_part_dsc
 <LI><a href="#[3dd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_txt_get_size
@@ -19818,8 +19818,8 @@ Local Symbols
 <P><STRONG><a name="[114]"></a>chart_draw_value_label_cb</STRONG> (Thumb, 272 bytes, Stack size 96 bytes, setup_scr_screen_solar.o(i.chart_draw_value_label_cb))
 <BR><BR>[Stack]<UL><LI>Max Depth = 608<LI>Call Chain = chart_draw_value_label_cb &rArr; lv_draw_label &rArr; lv_txt_get_size &rArr; _lv_txt_get_next_line &rArr; lv_txt_get_next_word &rArr; lv_font_get_glyph_width &rArr; lv_font_get_glyph_dsc
 </UL>
-<BR>[Calls]<UL><LI><a href="#[3d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_chart_get_series_next
-<LI><a href="#[2d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_snprintf
+<BR>[Calls]<UL><LI><a href="#[2d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_snprintf
+<LI><a href="#[3d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_chart_get_series_next
 <LI><a href="#[399]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_target
 <LI><a href="#[3d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_event_get_draw_part_dsc
 <LI><a href="#[3dd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_txt_get_size

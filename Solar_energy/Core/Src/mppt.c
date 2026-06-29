@@ -552,15 +552,15 @@ void MPPT_ControlLoop(void)
         printf("MPPT控制: V=%.1fV, N=%d, P=%.1fW(ΔP=%.1fW)\r\n",
                v, g_mppt.n_active, g_mppt.power, delta_p);
 
-       if (delta_p > MPPT_POWER_THRESHOLD)
+        if (delta_p > MPPT_POWER_THRESHOLD)
         {
-            /* 功率增加, 方向正确, 继续搜索 */
+            /* 区间1: 功率明显增加, 方向正确, 继续同方向搜索 */
             g_mppt.power_prev = g_mppt.power;
         }
-        else
+        else if (delta_p < -MPPT_POWER_THRESHOLD)
         {
-            /* 功率下降或不变 → 找到MPP, 撤回最后一步 */
-            printf("MPPT: 功率未增加, 撤回最后一步, 退出控制\r\n");
+            /* 区间2: 功率明显下降 → 越过峰值, 撤回最后一步回到 N* */
+            printf("MPPT: 功率下降(ΔP=%.1fW), 撤回最后一步, 回到最大功率点\r\n", delta_p);
             if (g_mppt.direction == MPPT_DIR_INCREASE)
             {
                 /* 撤回开启动作: 关掉该设备. 成功才更新状态与计数; 失败则标记下轮采集纠正 */
@@ -588,6 +588,16 @@ void MPPT_ControlLoop(void)
                 }
             }
             /* 反向方向, 下一轮采集后使用 */
+            g_mppt.direction = (g_mppt.direction == MPPT_DIR_INCREASE)
+                             ? MPPT_DIR_DECREASE : MPPT_DIR_INCREASE;
+            break;  /* 退出控制循环 */
+        }
+        else
+        {
+            /* 区间3: |ΔP| ≤ 阈值 → 平台区, 视为到达MPP.
+             * 不撤回(省继电器), 保持当前点; 刷新基准为当前功率; 翻转方向后退出 */
+            printf("MPPT: 功率基本不变(平台区, ΔP=%.1fW), 视为到达MPP, 保持当前点\r\n", delta_p);
+            g_mppt.power_prev = g_mppt.power;
             g_mppt.direction = (g_mppt.direction == MPPT_DIR_INCREASE)
                              ? MPPT_DIR_DECREASE : MPPT_DIR_INCREASE;
             break;  /* 退出控制循环 */
