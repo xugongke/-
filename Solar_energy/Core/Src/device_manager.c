@@ -691,6 +691,64 @@ int find_device_by_addr(const uint8_t *addr)
     return -1;
 }
 
+/* ================== 通信错误金丝雀探测(恢复) ================== */
+
+/**
+ * @brief  每轮探测1台 comm_err 设备用于通信恢复(主要解决早晨载波恢复)
+ * @note   主机电压≠从机端电压(线损随距离/负载变化), 无法用主机电压判断某台从机
+ *         当前能否通信, 唯一可靠的可达性测试就是"试一下"。因此每轮只挑1台
+ *         comm_err 设备发0x04(最多1×10s超时), 避免对全部 comm_err 设备逐台超时
+ *         拖慢轮询周期(夜间全员comm_err时也只多花10s)。
+ *         一旦这台响应成功→载波恢复→把【所有】设备的 comm_err 清零
+ *         (comm_fail_cnt保留, 实现"1-strike"快速重新隔离); 本轮随后的正常轮询
+ *         会立即重新轮询它们。仍不可达的远端从机会在下一次超时后被重新标记。
+ *         金丝雀按游标轮询选取, 不解析响应数据(由本轮正常轮询刷新)。
+ */
+static void comm_err_canary_probe(void)
+{
+    static uint16_t cursor = 0;                  /* 轮询游标 */
+    uint8_t read_cmd[2] = {SLAVE_CMD_READ_STATUS, 0x00};
+
+    if (device_count == 0) return;
+
+    /* 从游标处开始找下一台 comm_err 设备 */
+    int target = -1;
+    for (uint16_t n = 0; n < device_count; n++)
+    {
+        uint16_t i = (uint16_t)((cursor + n) % device_count);
+        if (device_list[i].state.bits.valid && device_list[i].state.bits.comm_err)
+        {
+            target = (int)i;
+            break;
+        }
+    }
+    /* 游标前进一步(无论是否找到, 保持轮询节奏) */
+    cursor = (uint16_t)((cursor + 1) % device_count);
+
+    if (target < 0) return;   /* 没有 comm_err 设备, 白天稳定期零开销 */
+
+    /* 对这台发0x04探测(成功则 ES1642_SendUserData 已清它自己的 comm_err/comm_fail_cnt) */
+    es1642_response_t response;
+    int ret = ES1642_SendUserData(target, read_cmd, 2, 0, &response);
+
+    if (ret == 0 && response.data_len >= 10 &&
+        response.data[0] == SLAVE_CMD_READ_STATUS &&
+        response.data[1] == 0x08)
+    {
+        /* 金丝雀恢复 → 全员清除 comm_err。comm_fail_cnt保留(其它设备≥3),
+         * 故它们若下次轮询再超时会立即(1-strike)被重新标记 comm_err。 */
+        printf("金丝雀: 设备[%d]恢复通信, 全员清除comm_err\r\n", target);
+        for (uint16_t k = 0; k < device_count; k++)
+        {
+            if (device_list[k].state.bits.valid)
+            {
+                device_list[k].state.bits.comm_err = 0;
+            }
+        }
+    }
+    /* 探测失败(超时): 什么都不做, 游标已前进, 下轮换一台再试 */
+}
+
 // ================== MPPT 采集+控制一体化 ==================
 void device_poll_and_control_all(void)
 {
@@ -701,6 +759,10 @@ void device_poll_and_control_all(void)
         return;
     }
 
+    /* 金丝雀探测: 每轮挑1台 comm_err 设备发0x04; 一旦恢复→全员清 comm_err。
+     * 放在正常轮询前, 本轮正常轮询会立即重新轮询刚恢复的设备。
+     * 主机电压≠从机电压(线损+负载), 无法靠主机电压判断可达性, 只能"试一下"。 */
+    comm_err_canary_probe();
 
     /* ===== ① 慢速采集阶段：逐台发0x04等ACK ===== */
     uint8_t read_cmd[2] = {SLAVE_CMD_READ_STATUS, 0x00};

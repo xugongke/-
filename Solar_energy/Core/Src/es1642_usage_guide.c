@@ -686,7 +686,10 @@ int ES1642_SendUserData(int dev_index,
         char addr_buf[30];
         snprintf(addr_buf, sizeof(addr_buf), "%02X:%02X:%02X:%02X:%02X:%02X",dst_addr[0], dst_addr[1], dst_addr[2], dst_addr[3],dst_addr[4],dst_addr[5]);
         printf("从机地址为%s响应超时\r\n", addr_buf);
-        device_list[dev_index].comm_fail_cnt++;  /* 通信失败次数+1 */
+        if (device_list[dev_index].comm_fail_cnt < 255)  /* 饱和保护, 防止uint8溢出回绕破坏1-strike语义 */
+        {
+            device_list[dev_index].comm_fail_cnt++;  /* 通信失败次数+1 */
+        }
         if(device_list[dev_index].comm_fail_cnt >= 3)
         {
             device_list[dev_index].state.bits.comm_err = 1;  /* 标记为通信错误 */
