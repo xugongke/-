@@ -113,8 +113,8 @@ void tcp_dispatch_frame(uint8_t type, uint8_t cmd, const uint8_t *data, uint16_t
  *     + device_t[0..N-1] 原始字节
  *
  * 多字节字段均为小端序
- * 每个设备占 sizeof(device_t)=18 字节, 每包最多28个设备
- * 数据域最大 = 1(seq) + 2(total) + 2(count) + 28*18 = 509 ≤ 512
+ * 每个设备占 sizeof(device_t)=24 字节, 每包最多21个设备 (含 daily_energy_wh 字段)
+ * 数据域最大 = 1(seq) + 2(total) + 2(count) + 21*24 = 509 ≤ 512
  */
 void tcp_resp_device_list(void)
 {
@@ -149,7 +149,7 @@ void tcp_resp_device_list(void)
         remain = total_devices - dev_offset;
         count  = (remain > dev_per_pack) ? dev_per_pack : remain;
 
-        /* 计算数据域长度: 1(seq) + 2(total_dev) + 2(pack_count) + count*18 */
+        /* 计算数据域长度: 1(seq) + 2(total_dev) + 2(pack_count) + count*21 */
         data_len = 5 + (uint16_t)(count * sizeof(device_t));
         idx = 0;
 

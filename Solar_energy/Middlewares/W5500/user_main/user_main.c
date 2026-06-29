@@ -492,6 +492,7 @@ void tcp_set_server_addr(const uint8_t ip[4], uint16_t port)
 {
     memcpy(server_ip, ip, 4);
     server_port = port;
+    //只有在已经建立连接的时候才触发断线重连
     if(g_tcp_connected)
     {
         /* 触发断线重连 */

@@ -61,6 +61,7 @@ typedef struct {
  * @note   与 device_list[] 数组通过索引一一对应，避免每次点击都读取SD卡
  *         仅缓存UI展示所需的数据（用电量+更新时间）
  */
+#pragma pack(push, 1)
 typedef struct {
     float    daily_energy;      /* 日累积用电量(kWh) */
     float    monthly_energy;    /* 月累积用电量(kWh) */
@@ -69,6 +70,7 @@ typedef struct {
     float    weekly_energy[7];  /* 近7日用电量(kWh), [0]=7天前...[6]=最新(当天) */
     user_data_timestamp_t update_time; /* 最后更新时间 */
 } user_detail_cache_t;
+#pragma pack(pop)
 
 /* 全局缓存数组，与 device_list[] 索引对应 */
 extern user_detail_cache_t user_detail_cache[MAX_DEVICES];

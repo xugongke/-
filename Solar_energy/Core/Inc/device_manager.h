@@ -25,6 +25,7 @@ typedef union {
 } device_state_t;
 
 // ================== 设备结构体 ==================
+#pragma pack(push, 1)
 typedef struct
 {
     uint8_t mac[6];            // MAC地址（唯一标识）
@@ -33,13 +34,9 @@ typedef struct
     uint16_t input_voltage;     /**< 输入电压 (V) ，不会马上保存到SD卡 */
     device_state_t state;      // 状态位图 (共用体, 可按位域或整字节访问 ，不会马上保存到SD卡)
     uint8_t comm_fail_cnt;     // 通信失败次数计数 ，不会马上保存到SD卡
+    uint32_t daily_energy_wh;  // 当日累积用电量(Wh) - 随设备列表一并上报上位机; load_devices后清零(不跨重启携带)
 } device_t;
-
-// ================== 运行时临时数据（不保存到SD卡） ==================
-/**
- * @brief 各设备当日累积电量 (Wh)
- */
-extern uint32_t daily_energy_wh[MAX_DEVICES];
+#pragma pack(pop)
 
 //通信地址解析结构体
 typedef struct

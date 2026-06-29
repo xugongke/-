@@ -500,9 +500,7 @@ void RTC_Task(void *argument)
 		/* 更新电池和太阳能电压缓存 (ADC采集, 不涉及LVGL) */
 		Battery_UpdateCache();
 		Solar_UpdateCache();
-
-		/* MPPT 扰动观察法状态机 (每秒执行一次) */
-//		MPPT_Task();
+		
     osDelay(1000);
   }
   /* USER CODE END RTC_Task */
@@ -553,13 +551,13 @@ void DevicePoll_Task(void *argument)
   RX8025T_Date last_date = {0};  /* 记录上一次的日期，用于检测零点 */
   RX8025T_Date cur_date;
 
+  osDelay(10000);//等待es1642收到帧头错误
   /* 初始化：读取当前日期作为基准 */
   if (RX8025T_GetDate(&last_date) == HAL_OK)
   {
-      printf("DevicePoll: 初始日期 20%02d-%02d-%02d\r\n",
+      printf("零点结算初始日期 20%02d-%02d-%02d\r\n",
              last_date.year, last_date.month, last_date.day);
   }
-	osDelay(5000);//等待es1642收到帧头错误
   /* Infinite loop */
   for(;;)
   {
@@ -572,7 +570,7 @@ void DevicePoll_Task(void *argument)
         uint32_t total_energy = 0;
         for (uint16_t i = 0; i < device_count; i++)
         {
-            total_energy += daily_energy_wh[i];
+            total_energy += device_list[i].daily_energy_wh;
         }
         g_mppt.energy_wh = total_energy;
 

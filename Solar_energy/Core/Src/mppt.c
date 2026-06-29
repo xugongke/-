@@ -369,7 +369,7 @@ static int mppt_select_one_to_enable(void)
             device_list[i].temperature < 75 &&
             !device_list[i].state.bits.dc_heating)  /* 当前OFF */
         {
-            float e = (float)daily_energy_wh[i];
+            float e = (float)device_list[i].daily_energy_wh;
             if (candidate_cnt == 0) { e_min = e; e_max = e; }
             else
             {
@@ -395,14 +395,15 @@ static int mppt_select_one_to_enable(void)
             device_list[i].temperature < 75 &&
             !device_list[i].state.bits.dc_heating)
         {
-            float e = (float)daily_energy_wh[i];
+            float e = (float)device_list[i].daily_energy_wh;
             float e_norm = (e_range > 0.0f) ? ((e - e_min) / e_range) : 0.0f;
             float score = (float)device_list[i].temperature
                         + FAIRNESS_ENERGY_WEIGHT * e_norm;
             if (score < best_score) { best_score = score; best = i; }
         }
     }
-    return best;
+//		return best;
+    return 0;
 }
 
 /**
@@ -425,7 +426,7 @@ static int mppt_select_one_to_disable(void)
             !device_list[i].state.bits.relay_err &&
             device_list[i].state.bits.dc_heating)  /* 当前ON */
         {
-            float e = (float)daily_energy_wh[i];
+            float e = (float)device_list[i].daily_energy_wh;
             if (candidate_cnt == 0) { e_min = e; e_max = e; }
             else
             {
@@ -450,14 +451,15 @@ static int mppt_select_one_to_disable(void)
             !device_list[i].state.bits.relay_err &&
             device_list[i].state.bits.dc_heating)
         {
-            float e = (float)daily_energy_wh[i];
+            float e = (float)device_list[i].daily_energy_wh;
             float e_norm = (e_range > 0.0f) ? ((e - e_min) / e_range) : 0.0f;
             float score = (float)device_list[i].temperature
                         + FAIRNESS_ENERGY_WEIGHT * e_norm;
             if (score > best_score) { best_score = score; best = i; }
         }
     }
-    return best;
+//		return best;
+    return 0;
 }
 
 /**

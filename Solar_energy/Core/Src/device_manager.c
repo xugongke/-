@@ -23,8 +23,7 @@
 device_t device_list[MAX_DEVICES];
 uint16_t device_count = 0;
 
-// 运行时临时数据
-uint32_t daily_energy_wh[MAX_DEVICES];   // 各设备当日累积电量 (Wh)
+// 运行时临时数据 (daily_energy_wh 已并入 device_t; last_energy_read 仍为独立数组)
 uint32_t last_energy_read[MAX_DEVICES];  // 各设备上次从从机读取的累计用电量(Wh), 差值计算用
 
 // 标志：设备是否有变化（用于减少SD写入）
@@ -258,8 +257,7 @@ int update_device(uint8_t *mac, uint8_t *addr)
 // ================== 清空设备表 ==================
 void Clear_devices(void)
 {
-	memset(device_list,0,sizeof(device_list));
-	memset(daily_energy_wh,0,sizeof(daily_energy_wh));
+	memset(device_list,0,sizeof(device_list));  // daily_energy_wh 现为 device_t 字段, 随之一起清零
 	memset(last_energy_read,0,sizeof(last_energy_read));
 	memset(user_detail_cache,0,sizeof(user_detail_cache));
 	device_count = 0;
@@ -323,6 +321,12 @@ FRESULT load_devices(void)
     if(fs_mutex) osMutexRelease(fs_mutex);
 		//br是实际读取到的字节数,也就是用户真实的数量
     device_count = br / sizeof(device_t);
+
+    /* daily_energy_wh 是运行时当日累积量, 不应跨重启携带(load_devices读出的是SD上的陈旧值), 清零 */
+    for (uint16_t i = 0; i < device_count; i++)
+    {
+        device_list[i].daily_energy_wh = 0;
+    }
 
 //    for (int i = 0; i < device_count; i++)
 //    {
@@ -478,7 +482,7 @@ void daily_energy_flush_to_sd(void)
         int ret = read_user_data(device_list[i].addr, &user_data);
         if (ret == 0)
         {
-            float energy_kwh = daily_energy_wh[i] / 1000.0f;  /* Wh → kWh */
+            float energy_kwh = device_list[i].daily_energy_wh / 1000.0f;  /* Wh → kWh */
             /* 检查是否需要重置日用电量（日期变化时重置） */
             if (user_data.last_reset_day != rtc_now.day)
             {
@@ -502,7 +506,7 @@ void daily_energy_flush_to_sd(void)
                 parse_addr(device_list[i].addr, &house);
                 printf("  设备[%d_%d_%04d] 本日用电: %d Wh, 本日用电: %.3f kWh\r\n",
                     house.building, house.unit, house.room,
-                    daily_energy_wh[i], user_data.daily_energy);
+                    device_list[i].daily_energy_wh, user_data.daily_energy);
             }
 
             /* 检查是否需要重置月用电量（月份变化时重置） */
@@ -544,7 +548,7 @@ void daily_energy_flush_to_sd(void)
             write_user_data(device_list[i].addr, &user_data);
         }
         /* 清零该设备的RAM日累积 */
-        daily_energy_wh[i] = 0;
+        device_list[i].daily_energy_wh = 0;
     }
 
     printf("零点结算完成\r\n");
@@ -574,7 +578,7 @@ void save_energy_before_search(void)
         if (read_user_data(device_list[i].addr, &user_data) == 0)
         {
             /* 只更新暂存字段，其它字段不动 */
-            user_data.half_day_energy_wh = daily_energy_wh[i];
+            user_data.half_day_energy_wh = device_list[i].daily_energy_wh;
             user_data.last_energy_read   = last_energy_read[i];
             write_user_data(device_list[i].addr, &user_data);
         }
@@ -620,7 +624,7 @@ void restore_energy_after_search(void)
         if (read_user_data(device_list[i].addr, &user_data) == 0)
         {
             /* 把暂存值恢复到RAM */
-            daily_energy_wh[i]  = user_data.half_day_energy_wh;
+            device_list[i].daily_energy_wh  = user_data.half_day_energy_wh;
             last_energy_read[i] = user_data.last_energy_read;
 
             /* 清零文件中的暂存字段并写回，避免陈旧快照残留 */
@@ -631,7 +635,7 @@ void restore_energy_after_search(void)
         else
         {
             /* 文件不存在/读取失败，保持RAM为0(Clear_devices已清零)，新设备按基准处理 */
-            daily_energy_wh[i]  = 0;
+            device_list[i].daily_energy_wh  = 0;
             last_energy_read[i] = 0;
         }
     }
@@ -770,7 +774,6 @@ void device_poll_and_control_all(void)
 
     for (uint16_t i = 0; i < device_count; i++)
     {
-        osDelay(200);  /* 设备间间隔200ms，避免载波通信冲突 */
         if (!device_list[i].state.bits.valid) continue;
         if (device_list[i].state.bits.comm_err) continue;
 
@@ -805,43 +808,44 @@ void device_poll_and_control_all(void)
             } else {
                 delta = energy_accum - last_energy_read[i];  /* 正常差值 */
             }
-            daily_energy_wh[i] += delta;
+            device_list[i].daily_energy_wh += delta;
             last_energy_read[i] = energy_accum;
-            printf("用户%d的今日累计用电量:%d Wh\r\n",device_list[i].addr[3],daily_energy_wh[i]);
+            printf("用户%d的今日累计用电量:%d Wh\r\n",device_list[i].addr[3],device_list[i].daily_energy_wh);
 						
-//														char topic[48];
-//														char payload[128];
-//														house_info_t house;
-//														
-//														/* 解析通信地址 */
-//														parse_addr(device_list[i].addr, &house);
+														char topic[48];
+														char payload[128];
+														house_info_t house;
+														
+														/* 解析通信地址 */
+														parse_addr(device_list[i].addr, &house);
 
-//														/* 构建MQTT topic: solar/status/楼栋_单元_房间号 */
-//														snprintf(topic, sizeof(topic), "solar/status/%d_%d_%04d",
-//																		 house.building, house.unit, house.room);
-//														if (ret == 0)
-//														{
-//																/* 读取成功 */
-//																snprintf(payload, sizeof(payload),
-//																				 "{\"t\":%d,\"v\":%d,\"dc\":%d,\"pr\":%d,\"ok\":1}",
-//																				 device_list[i].temperature, device_list[i].input_voltage,
-//																				 device_list[i].state.bits.dc_heating, device_list[i].state.bits.power_reverse);
-//														}
-//														else
-//														{
-//																/* 读取失败 */
-//																snprintf(payload, sizeof(payload),
-//																				 "{\"t\":0,\"v\":0,\"dc\":0,\"pr\":0,\"ok\":0,\"err\":%d}",
-//																				 -ret);
-//														}
+														/* 构建MQTT topic: solar/status/楼栋_单元_房间号 */
+														snprintf(topic, sizeof(topic), "solar/status/%d_%d_%04d",
+																		 house.building, house.unit, house.room);
+														if (ret == 0)
+														{
+																/* 读取成功 */
+																snprintf(payload, sizeof(payload),
+																				 "{\"t\":%d,\"v\":%d,\"dc\":%d,\"pr\":%d,\"ok\":1}",
+																				 device_list[i].temperature, device_list[i].input_voltage,
+																				 device_list[i].state.bits.dc_heating, device_list[i].state.bits.power_reverse);
+														}
+														else
+														{
+																/* 读取失败 */
+																snprintf(payload, sizeof(payload),
+																				 "{\"t\":0,\"v\":0,\"dc\":0,\"pr\":0,\"ok\":0,\"err\":%d}",
+																				 -ret);
+														}
 
-//														/* 发布MQTT消息(带自动重连保护) */
-//														uint8_t mqtt_ret = A7680C_MQTT_Publish_Safe(topic, payload);
-//														if (mqtt_ret != AT_RESULT_OK)
-//														{
-//																printf("MQTT发布失败: %s\r\n", topic);
-//														}
+														/* 发布MQTT消息(带自动重连保护) */
+														uint8_t mqtt_ret = A7680C_MQTT_Publish_Safe(topic, payload);
+														if (mqtt_ret != AT_RESULT_OK)
+														{
+																printf("MQTT发布失败: %s\r\n", topic);
+														}
         }
+        osDelay(250);  /* 设备间间隔250ms，避免载波通信冲突 */
     }
     printf("MPPT采集完成\r\n");
 

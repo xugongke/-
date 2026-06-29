@@ -248,7 +248,7 @@ void es1642_on_frame_received(es1642_handle_t *handle,
             status = ES1642_DecodeEmptyResponse(frame, ES1642_CMD_SEND_DATA);
             if (status == ES1642_STATUS_OK)
             {
-                printf("发送数据命令已被模块接收\r\n");
+                printf("发送数据命令已被模块接收!!!!!!\r\n");
             }
             break;
         }
@@ -647,8 +647,6 @@ int ES1642_SendUserData(int dev_index,
     /* ==============================================
     【第四步：给从机发送命令】
     ==============================================*/
-    printf("正在发送数据到设备...\r\n");
-
     /* prm=false表示发送请求（非响应） */
     status = ES1642_SendData(&g_es1642_handle, dst_addr, data, len, relay_depth, true);
 
@@ -663,11 +661,8 @@ int ES1642_SendUserData(int dev_index,
     /* ==============================================
     【第五步：等待从机响应】
     ==============================================*/
-    printf("数据发送成功,等待从机响应\r\n");
-
-    if (osSemaphoreAcquire(ES1642_sendHandle, pdMS_TO_TICKS(10000)) == osOK)
+    if (osSemaphoreAcquire(ES1642_sendHandle, pdMS_TO_TICKS(15000)) == osOK)
     {
-        printf("成功接收到从机的响应\r\n");
         device_list[dev_index].comm_fail_cnt = 0;  /* 成功收到响应，通信失败次数清零 */
         device_list[dev_index].state.bits.comm_err = 0; /* 清除通信错误标志 */
         /* 将响应数据拷贝给调用者（如果调用者需要） */
@@ -979,7 +974,7 @@ int ES1642_SetPsk(int dev_index,
     ==============================================*/
     printf("设置PSK命令已发送,等待从机入网结果...\r\n");
 
-    if (osSemaphoreAcquire(ES1642_sendHandle, pdMS_TO_TICKS(10000)) == osOK)
+    if (osSemaphoreAcquire(ES1642_sendHandle, pdMS_TO_TICKS(20000)) == osOK)
     {
         device_list[dev_index].comm_fail_cnt = 0;  /* 成功收到响应，通信失败次数清零 */
         device_list[dev_index].state.bits.comm_err = 0; /* 清除通信错误标志 */

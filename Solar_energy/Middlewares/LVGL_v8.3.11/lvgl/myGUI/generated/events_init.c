@@ -1390,6 +1390,7 @@ static void screen_tcp_setting_event_handler(lv_event_t *e)
         /* 移除默认键盘事件处理器, 替换为自定义处理器 */
         lv_obj_remove_event_cb(guider_ui.screen_tcp_setting_kb,
                                lv_keyboard_def_event_cb);
+        /* 为数字按键添加对应的自定义事件 */
         lv_obj_add_event_cb(guider_ui.screen_tcp_setting_kb,
                             tcp_kb_custom_handler, LV_EVENT_VALUE_CHANGED, NULL);
 
