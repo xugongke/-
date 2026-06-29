@@ -44,7 +44,7 @@
 #define ERR_SEND_FAILED      0x08  /* 发送失败 */
 
 /* ==================== 分包配置 ==================== */
-#define DEVICE_PER_PACKET    28    /* 每包最大设备数 (512/18≈28) */
+#define DEVICE_PER_PACKET    28    /* 读取设备列表每包最大设备数 (512/18≈28) */
 #define USER_DATA_PER_PACKET 10    /* 每包最大用户数据数 (512-5)/50≈10) */
 
 /**

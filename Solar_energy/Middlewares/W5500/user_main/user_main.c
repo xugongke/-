@@ -351,7 +351,7 @@ void tcp_send_frame(uint8_t type, uint8_t cmd, const uint8_t *data, uint16_t len
 
     uint16_t frame_len = build_frame(send_buf, type, cmd, data, len);
     int lenl = send(TCP_SOCKET_ID, send_buf, frame_len);
-    printf("Sent frame: %d bytes\r\n", lenl);
+    printf("给上位机发送了: %d 字节的数据\r\n", lenl);
 }
 
 /* ================================================================

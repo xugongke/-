@@ -416,10 +416,9 @@ void tcp_resp_solar_energy(void)
     tcp_send_frame(FRAME_TYPE_RESPONSE, CMD_GET_SOLAR_ENERGY,
                    g_frame_data_buf, sizeof(solar_energy_resp_t));
 
-    // printf("Solar energy sent: 日=%.3f, 月=%.3f, 年=%.3f, 总=%.3f kWh, %d bytes\r\n",
-    //        g_solar_energy.daily_generation_kwh,
-    //        g_solar_energy.monthly_generation_kwh,
-    //        g_solar_energy.annual_generation_kwh,
-    //        g_solar_energy.total_generation_kwh,
-    //        (int)sizeof(solar_energy_resp_t));
+    printf("太阳能发电量: 日=%.3f, 月=%.3f, 年=%.3f, 总=%.3f kWh\r\n",
+            resp.daily_generation_kwh,
+            resp.monthly_generation_kwh,
+            resp.annual_generation_kwh,
+            resp.total_generation_kwh);
 }

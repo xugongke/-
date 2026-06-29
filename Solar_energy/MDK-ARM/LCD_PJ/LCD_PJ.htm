@@ -3,7 +3,7 @@
 <title>Static Call Graph - [LCD_PJ\LCD_PJ.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image LCD_PJ\LCD_PJ.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060960: Last Updated: Mon Jun 29 11:28:55 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060960: Last Updated: Mon Jun 29 14:03:26 2026
 <BR><P>
 <H3>Maximum Stack Usage =       2212 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -878,6 +878,7 @@ Global Symbols
 <LI><a href="#[6a0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_init
 <LI><a href="#[1e2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_flush
 <LI><a href="#[b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;screen_solar_event_handler
+<LI><a href="#[71b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_resp_solar_energy
 </UL>
 
 <P><STRONG><a name="[760]"></a>__aeabi_uidiv</STRONG> (Thumb, 0 bytes, Stack size 12 bytes, uidiv.o(.text), UNUSED)
@@ -4296,6 +4297,7 @@ Global Symbols
 <LI><a href="#[71a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_resp_user_data
 <LI><a href="#[719]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_resp_stop_search
 <LI><a href="#[718]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_resp_start_search
+<LI><a href="#[71b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_resp_solar_energy
 <LI><a href="#[716]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_resp_device_list
 <LI><a href="#[717]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_resp_bind_device
 <LI><a href="#[740]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;wizchip_version_check
@@ -12928,11 +12930,13 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[715]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_dispatch_frame
 </UL>
 
-<P><STRONG><a name="[71b]"></a>tcp_resp_solar_energy</STRONG> (Thumb, 84 bytes, Stack size 96 bytes, tcp_cmd_handler.o(i.tcp_resp_solar_energy))
-<BR><BR>[Stack]<UL><LI>Max Depth = 208<LI>Call Chain = tcp_resp_solar_energy &rArr; tcp_send_frame &rArr; send &rArr; wiz_send_data &rArr; WIZCHIP_WRITE_BUF
+<P><STRONG><a name="[71b]"></a>tcp_resp_solar_energy</STRONG> (Thumb, 142 bytes, Stack size 136 bytes, tcp_cmd_handler.o(i.tcp_resp_solar_energy))
+<BR><BR>[Stack]<UL><LI>Max Depth = 248<LI>Call Chain = tcp_resp_solar_energy &rArr; tcp_send_frame &rArr; send &rArr; wiz_send_data &rArr; WIZCHIP_WRITE_BUF
 </UL>
-<BR>[Calls]<UL><LI><a href="#[71f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_send_frame
+<BR>[Calls]<UL><LI><a href="#[171]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2d
+<LI><a href="#[71f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_send_frame
 <LI><a href="#[187]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memcpy
+<LI><a href="#[166]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[715]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_dispatch_frame
 </UL>
@@ -14422,14 +14426,14 @@ Local Symbols
 <BR>[Called By]<UL><LI><a href="#[293]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MPPT_ControlLoop
 </UL>
 
-<P><STRONG><a name="[297]"></a>mppt_select_one_to_disable</STRONG> (Thumb, 82 bytes, Stack size 16 bytes, mppt.o(i.mppt_select_one_to_disable))
-<BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = mppt_select_one_to_disable
+<P><STRONG><a name="[297]"></a>mppt_select_one_to_disable</STRONG> (Thumb, 262 bytes, Stack size 20 bytes, mppt.o(i.mppt_select_one_to_disable))
+<BR><BR>[Stack]<UL><LI>Max Depth = 20<LI>Call Chain = mppt_select_one_to_disable
 </UL>
 <BR>[Called By]<UL><LI><a href="#[293]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MPPT_ControlLoop
 </UL>
 
-<P><STRONG><a name="[298]"></a>mppt_select_one_to_enable</STRONG> (Thumb, 86 bytes, Stack size 16 bytes, mppt.o(i.mppt_select_one_to_enable))
-<BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = mppt_select_one_to_enable
+<P><STRONG><a name="[298]"></a>mppt_select_one_to_enable</STRONG> (Thumb, 274 bytes, Stack size 20 bytes, mppt.o(i.mppt_select_one_to_enable))
+<BR><BR>[Stack]<UL><LI>Max Depth = 20<LI>Call Chain = mppt_select_one_to_enable
 </UL>
 <BR>[Called By]<UL><LI><a href="#[293]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MPPT_ControlLoop
 </UL>
