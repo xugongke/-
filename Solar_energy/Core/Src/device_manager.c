@@ -812,38 +812,38 @@ void device_poll_and_control_all(void)
             last_energy_read[i] = energy_accum;
             printf("用户%d的今日累计用电量:%d Wh\r\n",device_list[i].addr[3],device_list[i].daily_energy_wh);
 						
-														char topic[48];
-														char payload[128];
-														house_info_t house;
-														
-														/* 解析通信地址 */
-														parse_addr(device_list[i].addr, &house);
+//														char topic[48];
+//														char payload[128];
+//														house_info_t house;
+//														
+//														/* 解析通信地址 */
+//														parse_addr(device_list[i].addr, &house);
 
-														/* 构建MQTT topic: solar/status/楼栋_单元_房间号 */
-														snprintf(topic, sizeof(topic), "solar/status/%d_%d_%04d",
-																		 house.building, house.unit, house.room);
-														if (ret == 0)
-														{
-																/* 读取成功 */
-																snprintf(payload, sizeof(payload),
-																				 "{\"t\":%d,\"v\":%d,\"dc\":%d,\"pr\":%d,\"ok\":1}",
-																				 device_list[i].temperature, device_list[i].input_voltage,
-																				 device_list[i].state.bits.dc_heating, device_list[i].state.bits.power_reverse);
-														}
-														else
-														{
-																/* 读取失败 */
-																snprintf(payload, sizeof(payload),
-																				 "{\"t\":0,\"v\":0,\"dc\":0,\"pr\":0,\"ok\":0,\"err\":%d}",
-																				 -ret);
-														}
+//														/* 构建MQTT topic: solar/status/楼栋_单元_房间号 */
+//														snprintf(topic, sizeof(topic), "solar/status/%d_%d_%04d",
+//																		 house.building, house.unit, house.room);
+//														if (ret == 0)
+//														{
+//																/* 读取成功 */
+//																snprintf(payload, sizeof(payload),
+//																				 "{\"t\":%d,\"v\":%d,\"dc\":%d,\"pr\":%d,\"ok\":1}",
+//																				 device_list[i].temperature, device_list[i].input_voltage,
+//																				 device_list[i].state.bits.dc_heating, device_list[i].state.bits.power_reverse);
+//														}
+//														else
+//														{
+//																/* 读取失败 */
+//																snprintf(payload, sizeof(payload),
+//																				 "{\"t\":0,\"v\":0,\"dc\":0,\"pr\":0,\"ok\":0,\"err\":%d}",
+//																				 -ret);
+//														}
 
-														/* 发布MQTT消息(带自动重连保护) */
-														uint8_t mqtt_ret = A7680C_MQTT_Publish_Safe(topic, payload);
-														if (mqtt_ret != AT_RESULT_OK)
-														{
-																printf("MQTT发布失败: %s\r\n", topic);
-														}
+//														/* 发布MQTT消息(带自动重连保护) */
+//														uint8_t mqtt_ret = A7680C_MQTT_Publish_Safe(topic, payload);
+//														if (mqtt_ret != AT_RESULT_OK)
+//														{
+//																printf("MQTT发布失败: %s\r\n", topic);
+//														}
         }
         osDelay(250);  /* 设备间间隔250ms，避免载波通信冲突 */
     }

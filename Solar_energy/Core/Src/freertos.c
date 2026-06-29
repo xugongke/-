@@ -326,7 +326,7 @@ void MX_FREERTOS_Init(void) {
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
-	A7680C_NetManager_Init(weatherTimerHandle);
+//	A7680C_NetManager_Init(weatherTimerHandle);
 
   /* Infinite loop */
   for(;;)
@@ -334,11 +334,12 @@ void StartDefaultTask(void *argument)
 		HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
 		HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
 
-		uint32_t delay = A7680C_NetManager_Process();
-		if (delay > 0)
-		{
-			osDelay(delay);
-		}
+//		uint32_t delay = A7680C_NetManager_Process();
+//		if (delay > 0)
+//		{
+//			osDelay(delay);
+//		}
+		osDelay(1000);
   }
   /* USER CODE END StartDefaultTask */
 }
