@@ -593,6 +593,17 @@ void DevicePoll_Task(void *argument)
             last_date = cur_date;
         }
       }
+      else if(g_es1642_searching == 1)//就算是搜索期间tcp断开连接了，也会搜索完成之后再启动轮询
+      {
+        /* 搜索空闲超时检测: 60秒内无新设备被搜索到, 自动停止搜索
+         * (解决TCP断连后无人发送停止搜索命令导致搜索永不结束的问题)
+         * REPORT_SEARCH_RESULT每次收到新设备会刷新g_last_search_result_tick */
+        if((osKernelGetTickCount() - g_last_search_result_tick) > SEARCH_IDLE_TIMEOUT_MS)
+        {
+            printf("搜索空闲超时(60秒无新设备), 自动停止搜索\r\n");
+            ES1642_StopSearch();
+        }
+      }
     osDelay(10000);  /* 10秒(控制+采集已在device_poll_and_control_all内完成) */
   }
   /* USER CODE END DevicePoll_Task */

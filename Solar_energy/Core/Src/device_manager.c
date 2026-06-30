@@ -778,6 +778,11 @@ void device_poll_and_control_all(void)
 
     for (uint16_t i = 0; i < device_count; i++)
     {
+        if(g_device_manage_mode == 1 || g_es1642_searching == 1)
+        {
+            printf("设备管理模式或搜索模式下，跳过轮询\r\n");
+            return;  /* 搜索/管理模式下不轮询 */
+        }
         if (!device_list[i].state.bits.valid) continue;
         if (device_list[i].state.bits.comm_err) continue;
 

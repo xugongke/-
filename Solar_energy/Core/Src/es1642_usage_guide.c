@@ -89,6 +89,9 @@ es1642_wait_type_t g_es1642_wait_type = ES1642_WAIT_NONE;
 /* 搜索状态标志: 1=正在搜索设备, 0=空闲 */
 volatile uint8_t g_es1642_searching = 0;
 
+/* 上次收到新搜索结果的时间戳, DevicePoll_Task用于检测搜索空闲超时 */
+volatile uint32_t g_last_search_result_tick = 0;
+
 /* PSK设置结果缓冲区 */
 es1642_psk_result_response_t g_es1642_psk_result;
 
@@ -262,6 +265,7 @@ void es1642_on_frame_received(es1642_handle_t *handle,
                 save_energy_before_search();//清空设备表前，先把当日累积电量暂存到SD卡
                 Clear_devices();//启动搜索成功之后，清空设备表和用电量缓存
                 g_es1642_searching = 1;  /* 标记搜索中，暂停设备轮询 */
+                g_last_search_result_tick = osKernelGetTickCount();  /* 初始化搜索空闲计时器 */
                 /* ES1642确认启动搜索成功，通知上位机 */
                 rs485_send_search_ok();
             }
@@ -295,6 +299,7 @@ void es1642_on_frame_received(es1642_handle_t *handle,
         {
             es1642_search_result_t result;
             status = ES1642_DecodeSearchResult(frame, &result);
+            g_last_search_result_tick = osKernelGetTickCount();  /* 刷新搜索空闲计时器(发现新设备) */
             if (status == ES1642_STATUS_OK)
             {
                 printf("设备数目:%d\r\n搜索到设备: 通信地址=%02X:%02X:%02X:%02X:%02X:%02X, "

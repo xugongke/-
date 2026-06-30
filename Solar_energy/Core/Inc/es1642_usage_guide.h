@@ -67,6 +67,11 @@ extern es1642_psk_result_response_t g_es1642_psk_result;
 /* 搜索状态标志: 1=正在搜索设备, 0=空闲 */
 extern volatile uint8_t g_es1642_searching;
 
+/* 搜索空闲超时(毫秒): 60秒内无新设备被搜索到, 自动停止搜索 */
+#define SEARCH_IDLE_TIMEOUT_MS  60000
+/* 上次收到新搜索结果的时间戳(osKernelGetTickCount), DevicePoll_Task用于检测空闲超时 */
+extern volatile uint32_t g_last_search_result_tick;
+
 /* ======== 步骤2：实现串口发送回调函数 ======== */
 
 /**
