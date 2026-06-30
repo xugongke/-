@@ -57,6 +57,11 @@ void tcp_dispatch_frame(uint8_t type, uint8_t cmd, const uint8_t *data, uint16_t
 
     switch (cmd)
     {
+        case CMD_DEVICE_MANAGE_MODE:
+            /* 设备管理模式: 数据域 = [0x01=进入 / 0x00=退出] (1字节) */
+            tcp_resp_device_manage_mode(data, len);
+            break;
+
         case CMD_GET_DEVICE_LIST:
             /* 读取设备列表: 数据域为空 */
             tcp_resp_device_list();
@@ -242,6 +247,55 @@ void tcp_resp_bind_device(const uint8_t *data, uint16_t len)
         tcp_send_frame(FRAME_TYPE_ERROR, CMD_BIND_DEVICE, resp, 1);
         printf("Bind failed: ret=%d, err=0x%02X\r\n", ret, err);
     }
+}
+
+/**
+ * @brief   处理设备管理模式命令 (CMD_DEVICE_MANAGE_MODE)
+ *
+ * 请求数据域: [0x01=进入管理模式 / 0x00=退出管理模式] (1字节)
+ *   - 进入管理模式: 暂停 DevicePoll_Task 的从机轮询, 便于搜索/绑定设备
+ *   - 退出管理模式: 恢复从机轮询
+ * 成功响应:   数据域=[0x00=成功]
+ * 失败响应:   错误帧 数据域=[ERR_CODE]
+ *
+ * @note  g_device_manage_mode 与 g_es1642_searching 共同构成轮询门控:
+ *        仅当两者均为0时, DevicePoll_Task 才执行从机轮询。
+ *        TCP断开时 user_main.c 会自动将 g_device_manage_mode 清零。
+ */
+void tcp_resp_device_manage_mode(const uint8_t *data, uint16_t len)
+{
+    /* 数据域长度校验: 必须为1字节 */
+    if (len < 1)
+    {
+        tcp_send_error(ERR_PARAM_INVALID);
+        return;
+    }
+
+    uint8_t mode = data[0];
+
+    if (mode == 0x01)
+    {
+        /* 进入设备管理模式: 暂停从机轮询 */
+        g_device_manage_mode = 1;
+        printf("进入设备管理模式, 从机轮询已暂停\r\n");
+    }
+    else if (mode == 0x00)
+    {
+        /* 退出设备管理模式: 恢复从机轮询 */
+        g_device_manage_mode = 0;
+        printf("退出设备管理模式, 从机轮询已恢复\r\n");
+    }
+    else
+    {
+        /* 非法参数 */
+        tcp_send_error(ERR_PARAM_INVALID);
+        printf("设备管理模式参数错误: 0x%02X\r\n", mode);
+        return;
+    }
+
+    /* 成功响应 */
+    uint8_t resp[1] = { 0x00 };
+    tcp_send_frame(FRAME_TYPE_RESPONSE, CMD_DEVICE_MANAGE_MODE, resp, 1);
 }
 
 /**

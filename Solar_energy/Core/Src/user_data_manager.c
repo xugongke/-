@@ -251,7 +251,7 @@ int write_user_data(const uint8_t *dev_addr, user_data_file_t *data)
     }
 
     if(fs_mutex) osMutexAcquire(fs_mutex, osWaitForever);
-    /* 打开已存在的文件并覆盖写入 */
+    /* 打开已存在的文件并覆盖写入,如果文件不存在返回ERR，只有在入网的时候会创建用户数据文件 */
     res = f_open(&SDFile, filepath, FA_OPEN_EXISTING | FA_WRITE);
     if (res != FR_OK)
     {
@@ -355,16 +355,16 @@ void user_list_item_event_handler(lv_event_t *e)
         cache->update_time.year != 0 || cache->update_time.month != 0)
     {
         /* 缓存有效，显示日/月/年/总累积用电量 (2行x4列表格) */
-        snprintf(buf, sizeof(buf), "%.2f", cache->daily_energy);
+        snprintf(buf, sizeof(buf), "%.1f", cache->daily_energy);
         lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 1, 0, buf);
 
-        snprintf(buf, sizeof(buf), "%.2f", cache->monthly_energy);
+        snprintf(buf, sizeof(buf), "%.1f", cache->monthly_energy);
         lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 1, 1, buf);
 
-        snprintf(buf, sizeof(buf), "%.2f", cache->annual_energy);
+        snprintf(buf, sizeof(buf), "%.1f", cache->annual_energy);
         lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 1, 2, buf);
 
-        snprintf(buf, sizeof(buf), "%.2f", cache->total_energy);
+        snprintf(buf, sizeof(buf), "%.1f", cache->total_energy);
         lv_table_set_cell_value(guider_ui.screen_user_detail_table_1, 1, 3, buf);
 
         snprintf(buf, sizeof(buf), "20%02d年%02d月%02d日 %02d:%02d:%02d  ",
@@ -388,14 +388,14 @@ void user_list_item_event_handler(lv_event_t *e)
                 }
 
                 /* 设置Y轴范围: 最大值留20%余量，最小范围0~5(即50) */
-                int16_t y_max = (int16_t)(max_val * 10.0f * 1.2f);  /* kWh * 10, 留20%余量 */
+                int16_t y_max = (int16_t)(max_val * 10.0f * 1.2f + 0.5f);  /* kWh * 10, 留20%余量, +0.5f四舍五入 */
                 if (y_max < 50) y_max = 50;  /* 最小显示范围 0~5.0 kWh */
                 lv_chart_set_range(guider_ui.screen_user_detail_chart, LV_CHART_AXIS_PRIMARY_Y, 0, y_max);
 
-                /* 填充数据: weekly_energy[0]=7天前...[6]=最新(当天)，乘10转整数 */
+                /* 填充数据: weekly_energy[0]=7天前...[6]=最新(当天)，乘10转整数, +0.5f做四舍五入避免浮点截断误差 */
                 for (int i = 0; i < 7; i++)
                 {
-                    int16_t val = (int16_t)(cache->weekly_energy[i] * 10.0f);
+                    int16_t val = (int16_t)(cache->weekly_energy[i] * 10.0f + 0.5f);
                     ser->y_points[i] = val;
                 }
                 lv_chart_refresh(guider_ui.screen_user_detail_chart);

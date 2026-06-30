@@ -562,7 +562,11 @@ void DevicePoll_Task(void *argument)
   /* Infinite loop */
   for(;;)
   {
-      if(g_es1642_searching == 0)  /* 仅在非搜索状态下执行 */
+      /* 双重轮询门控:
+       * - g_device_manage_mode: 上位机设备管理模式(搜索/绑定时置1), TCP断开自动清零
+       * - g_es1642_searching:   ES1642正在搜索(载波总线占用), 搜索完成自动清零
+       * 仅当两者均为0时才执行从机轮询, 避免轮询干扰设备搜索和绑定 */
+      if(g_device_manage_mode == 0 && g_es1642_searching == 0)
       {
         /* ① MPPT采集+控制一体化(慢速采集→告警扫描→快速P&O控制闭环) */
         device_poll_and_control_all();

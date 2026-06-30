@@ -610,6 +610,7 @@ static void screen_solar_event_handler (lv_event_t *e)
             /* 更新15日发电量折线图 */
             if (guider_ui.screen_solar_chart)
             {
+                int16_t val = 0;
                 lv_chart_series_t *ser = lv_chart_get_series_next(guider_ui.screen_solar_chart, NULL);
                 if (ser)
                 {
@@ -622,14 +623,15 @@ static void screen_solar_event_handler (lv_event_t *e)
                     }
 
                     /* 设置Y轴范围：最大值留20%余量，最小范围0~30(即300) */
-                    int16_t y_max = (int16_t)(max_val * 10.0f * 1.2f);
+                    int16_t y_max = (int16_t)(max_val * 10.0f * 1.2f + 0.5f);
                     if (y_max < 300) y_max = 300;
                     lv_chart_set_range(guider_ui.screen_solar_chart, LV_CHART_AXIS_PRIMARY_Y, 0, y_max);
 
-                    /* 填充数据：kWh * 10 转整数 */
+                    /* 填充数据：kWh * 10 转整数，加0.5f做四舍五入避免浮点截断误差 */
                     for (int i = 0; i < SOLAR_HISTORY_DAYS; i++)
                     {
-                        ser->y_points[i] = (int16_t)(g_solar_energy.history_daily[i] * 10.0f);
+                        val = (int16_t)(g_solar_energy.history_daily[i] * 10.0f + 0.5f);
+                        ser->y_points[i] = val;
                     }
                     lv_chart_refresh(guider_ui.screen_solar_chart);
                 }

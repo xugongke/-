@@ -26,6 +26,7 @@
 #define FRAME_TYPE_ERROR    0x02   /* 错误帧: 单片机 → 上位机 */
 
 /* ==================== 命令码 ==================== */
+#define CMD_DEVICE_MANAGE_MODE 0x02  /* 设备管理模式 (进入/退出) */
 #define CMD_GET_DEVICE_LIST  0x03  /* 读取设备列表 */
 #define CMD_BIND_DEVICE      0x04  /* 绑定设备 */
 #define CMD_START_SEARCH     0x05  /* 开始搜索设备 */
@@ -73,6 +74,15 @@ void tcp_resp_device_list(void);
  * @param   len:  数据域长度 (应为10)
  */
 void tcp_resp_bind_device(const uint8_t *data, uint16_t len);
+
+/**
+ * @brief   处理设备管理模式命令 (CMD_DEVICE_MANAGE_MODE)
+ * @param   data: 数据域 (1字节: 0x01=进入管理模式, 0x00=退出管理模式)
+ * @param   len:  数据域长度 (应为1)
+ * @note    进入管理模式后, DevicePoll_Task 的从机轮询暂停;
+ *          退出后恢复。TCP断开时自动退出管理模式。
+ */
+void tcp_resp_device_manage_mode(const uint8_t *data, uint16_t len);
 
 /**
  * @brief   处理开始搜索设备命令 (CMD_START_SEARCH)

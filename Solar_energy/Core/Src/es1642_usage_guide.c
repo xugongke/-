@@ -263,7 +263,6 @@ void es1642_on_frame_received(es1642_handle_t *handle,
                 Clear_devices();//启动搜索成功之后，清空设备表和用电量缓存
                 g_es1642_searching = 1;  /* 标记搜索中，暂停设备轮询 */
                 /* ES1642确认启动搜索成功，通知上位机 */
-                tcp_send_search_ok();
                 rs485_send_search_ok();
             }
             break;
@@ -287,7 +286,6 @@ void es1642_on_frame_received(es1642_handle_t *handle,
                 }
                 restore_energy_after_search();//恢复日累积电量并重建用户详情缓存(>0和==0都更新)
                 /* ES1642确认停止搜索成功，通知上位机搜索完成 */
-                tcp_send_search_done();
                 rs485_send_search_done();
             }
             break;
@@ -311,9 +309,6 @@ void es1642_on_frame_received(es1642_handle_t *handle,
                     {
                         /* 添加更新设备表device_list到RAM中 */
                         add_device((uint8_t*)result.attribute, result.dev_addr, result.net_state);
-                        
-                        /* 实时推送搜索到的设备到TCP上位机 */
-                        tcp_send_search_device((uint8_t*)result.attribute, result.dev_addr, result.net_state);
                         
                         /* 实时推送搜索到的设备到RS485上位机（USART6） */
                         rs485_send_search_device((uint8_t*)result.attribute, result.dev_addr, result.net_state);

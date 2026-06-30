@@ -59,7 +59,7 @@ extern "C" {
  *        取决于太阳能板电容效应和线路电感
  *        建议 8~15 秒
  */
-#define MPPT_SETTLE_TIME_SEC        10
+#define MPPT_SETTLE_TIME_SEC        10000
 
 /**
  * @brief MPPT 初始扰动方向

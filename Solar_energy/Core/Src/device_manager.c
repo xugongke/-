@@ -23,6 +23,10 @@
 device_t device_list[MAX_DEVICES];
 uint16_t device_count = 0;
 
+/* 设备管理模式标志: 1=处于管理模式(从机轮询暂停), 0=正常轮询
+ * 由上位机CMD_DEVICE_MANAGE_MODE(0x02)命令设置, TCP断开时自动清零 */
+volatile uint8_t g_device_manage_mode = 0;
+
 // 运行时临时数据 (daily_energy_wh 已并入 device_t; last_energy_read 仍为独立数组)
 uint32_t last_energy_read[MAX_DEVICES];  // 各设备上次从从机读取的累计用电量(Wh), 差值计算用
 

@@ -231,7 +231,7 @@ void solar_energy_save(void)
     UINT bw;
 
     if(fs_mutex) osMutexAcquire(fs_mutex, osWaitForever);
-
+    /*文件不存在则新建，文件存在就清空全部旧内容，仅开放写入权限，打开后直接从头写入新的发电统计数据*/
     res = f_open(&SDFile, SOLAR_ENERGY_FILE, FA_CREATE_ALWAYS | FA_WRITE);
     if (res != FR_OK)
     {
@@ -279,14 +279,14 @@ void solar_energy_flush(void)
         g_solar_energy.annual_generation_kwh  += energy_kwh;
         g_solar_energy.total_generation_kwh   += energy_kwh;
 
+        /* 日发电量重置为今天的累积 */
+        g_solar_energy.daily_generation_kwh = energy_kwh;
+        g_solar_energy.last_reset_day = rtc_now.day;
+
         /* 更新15日发电量数组：整体左移，[14]放入当日发电量 */
         memmove(&g_solar_energy.history_daily[0], &g_solar_energy.history_daily[1],
                 (SOLAR_HISTORY_DAYS - 1) * sizeof(float));
         g_solar_energy.history_daily[SOLAR_HISTORY_DAYS - 1] = g_solar_energy.daily_generation_kwh;
-
-        /* 日发电量重置为今天的累积 */
-        g_solar_energy.daily_generation_kwh = energy_kwh;
-        g_solar_energy.last_reset_day = rtc_now.day;
     }
 
     /* 检查是否需要重置月发电量（月份变化时重置） */
@@ -478,11 +478,11 @@ void MPPT_ControlLoop(void)
     /* 载波断链或无设备, 不控制 */
     if (v < 28.0f || g_mppt.n_online == 0) return;
 
+    g_mppt.power_prev = MPPT_CalcPower(v, g_mppt.n_active);
     /* 首轮: 建立功率基准, 不扰动 */
     if (mppt_first_round)
     {
         mppt_first_round = 0;
-        g_mppt.power_prev = MPPT_CalcPower(v, g_mppt.n_active);
         g_mppt.direction = MPPT_DIR_DECREASE;  /* 从机默认全开, 首次应尝试减载 */
         printf("MPPT首轮: V=%.1fV, 当前开启加热的数量=%d, P=%.1fW, 建立基准\r\n",
                v, g_mppt.n_active, g_mppt.power_prev);
@@ -539,8 +539,8 @@ void MPPT_ControlLoop(void)
             g_mppt.n_active--;
         }
 
-        /* ② 等继电器动作 */
-        osDelay(3000);
+        /* ② 等继电器动作10s */
+        osDelay(MPPT_SETTLE_TIME_SEC);
 
         /* ③ 读电压算功率 */
         v = Solar_GetVoltage();

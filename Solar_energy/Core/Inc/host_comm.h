@@ -66,24 +66,6 @@ void tcp_set_search_socket(uint8_t sn);
  */
 void tcp_clear_search_socket(void);
 
-/**
- * @brief  通过TCP推送搜索到的单个设备信息
- * @param  mac: MAC地址(6字节)
- * @param  addr: 通信地址(6字节)
- * @param  valid: 入网状态(0=未入网,1=已入网)
- */
-void tcp_send_search_device(const uint8_t mac[6], const uint8_t addr[6], uint8_t valid);
-
-/**
- * @brief  通过TCP发送搜索启动OK响应
- */
-void tcp_send_search_ok(void);
-
-/**
- * @brief  通过TCP发送搜索完成通知
- */
-void tcp_send_search_done(void);
-
 /* ===================== RS485上位机通信函数 (USART6串口) ===================== */
 
 /**

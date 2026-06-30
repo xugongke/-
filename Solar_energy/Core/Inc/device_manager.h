@@ -50,6 +50,12 @@ typedef struct
 extern device_t device_list[MAX_DEVICES];
 extern uint16_t device_count;
 
+/* 设备管理模式标志: 1=处于管理模式(从机轮询暂停), 0=正常轮询
+ * 由上位机通过CMD_DEVICE_MANAGE_MODE(0x02)命令控制
+ * 与 g_es1642_searching 共同构成 DevicePoll_Task 的轮询门控
+ * (仅当两者均为0时才执行从机轮询) */
+extern volatile uint8_t g_device_manage_mode;
+
 // ================== 接口函数 ==================
 
 /**

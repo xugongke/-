@@ -12,6 +12,7 @@
 #include "semphr.h"
 #include "main.h"
 #include "tcp_cmd_handler.h"
+#include "device_manager.h"
 #include "fatfs.h"
 
 /* ==================== 网络配置 ==================== */
@@ -454,6 +455,7 @@ static void tcp_client_process(void)
     {
         disconnect(TCP_SOCKET_ID);
         g_tcp_connected = 0;
+        g_device_manage_mode = 0;  /* TCP断开, 自动退出管理模式, 恢复从机轮询 */
         /* 断开连接, 关闭Socket中断防止中断风暴 */
         setSn_IMR(TCP_SOCKET_ID, 0x00);
         printf("TCP 客户端：关闭等待，正在断开连接\r\n");
@@ -463,6 +465,7 @@ static void tcp_client_process(void)
         if (g_tcp_connected)
         {
             g_tcp_connected = 0;
+            g_device_manage_mode = 0;  /* TCP断开, 自动退出管理模式, 恢复从机轮询 */
             /* 断开连接, 关闭Socket中断防止中断风暴 */
             setSn_IMR(TCP_SOCKET_ID, 0x00);
             printf("TCP 客户端：已断开连接\r\n");
@@ -498,6 +501,7 @@ void tcp_set_server_addr(const uint8_t ip[4], uint16_t port)
         /* 触发断线重连 */
         disconnect(TCP_SOCKET_ID);
         g_tcp_connected = 0;
+        g_device_manage_mode = 0;  /* 主动断开重连, 自动退出管理模式 */
         printf("TCP 客户端：服务器地址已更新，正在重连...\r\n");
     }
 }
