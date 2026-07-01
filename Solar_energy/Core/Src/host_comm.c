@@ -51,21 +51,6 @@ int host_parse_mac_string(const char *str, uint8_t mac[6])
 /* ===================== TCP上位机通信函数 ========================= */
 /* ================================================================ */
 
-/* 搜索设备时保存当前TCP连接的socket编号，用于实时推送搜索结果 */
-static int8_t g_tcp_search_sn = -1;
-
-/* -------------------- 搜索socket管理 -------------------- */
-
-void tcp_set_search_socket(uint8_t sn)
-{
-    g_tcp_search_sn = (int8_t)sn;
-}
-
-void tcp_clear_search_socket(void)
-{
-    g_tcp_search_sn = -1;
-}
-
 /* -------------------- TCP发送设备列表 -------------------- */
 
 void tcp_send_device_list(uint8_t sn)
@@ -152,45 +137,6 @@ void tcp_handle_bind_cmd(uint8_t sn, const char *cmd)
 
     save_devices();
     send(sn, (uint8_t *)"OK\r\n", sizeof("OK\r\n"));
-}
-
-/* -------------------- TCP搜索结果推送 -------------------- */
-
-void tcp_send_search_device(const uint8_t mac[6], const uint8_t addr[6], uint8_t valid)
-{
-    char line[128];
-    char mac_str[32];
-    char addr_str[32];
-
-    if (g_tcp_search_sn < 0)
-    {
-        return;  /* 没有活跃的TCP连接 */
-    }
-
-    host_mac_to_string(mac, mac_str);
-    host_addr_to_string(addr, addr_str);
-    sprintf(line, "SEARCH_DEV,%s,%s,%u\n", mac_str, addr_str, valid);
-    send((uint8_t)g_tcp_search_sn, (uint8_t *)line, strlen(line));
-}
-
-void tcp_send_search_ok(void)
-{
-    if (g_tcp_search_sn < 0)
-    {
-        return;
-    }
-
-    send((uint8_t)g_tcp_search_sn, (uint8_t *)"OK\r\n", strlen("OK\r\n"));
-}
-
-void tcp_send_search_done(void)
-{
-    if (g_tcp_search_sn < 0)
-    {
-        return;
-    }
-    send((uint8_t)g_tcp_search_sn, (uint8_t *)"SEARCH_DONE\n", strlen("SEARCH_DONE\n"));
-    tcp_clear_search_socket();
 }
 
 /* ================================================================ */

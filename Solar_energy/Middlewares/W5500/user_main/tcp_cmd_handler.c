@@ -7,18 +7,25 @@
 #include "user_main.h"
 #include "device_manager.h"
 #include "user_data_manager.h"
+#include "es1642_usage_guide.h"
 #include "mppt.h"
 #include "host_comm.h"
 #include "socket.h"
 #include "cmsis_os.h"
+#include "fatfs.h"
 #include <stdio.h>
 #include <string.h>
 
 /* ==================== 外部变量 ==================== */
 extern volatile uint8_t g_tcp_connected;
+extern osMutexId_t fs_mutex;  /* 文件系统互斥锁(定义在freertos.c) */
 
 /* ==================== 全局帧数据缓冲区 ==================== */
 uint8_t g_frame_data_buf[FRAME_MAX_DATA_LEN];  /* 组帧数据缓冲区，供分包发送函数共用 */
+
+/* ==================== 备注信息RAM缓冲区 ==================== */
+static uint8_t g_remark_buf[256];  /* 备注信息最大256字节 */
+static uint16_t g_remark_len = 0;  /* 备注信息实际长度 */
 
 /* ================================================================
  *  通用工具函数
@@ -90,6 +97,16 @@ void tcp_dispatch_frame(uint8_t type, uint8_t cmd, const uint8_t *data, uint16_t
         case CMD_GET_SOLAR_ENERGY:
             /* 读取太阳能板 发电量 : 数据域为空 */
             tcp_resp_solar_energy();
+            break;
+
+        case CMD_SET_REMARK:
+            /* 设置备注信息: 数据域 = 备注文本(最多256字节) */
+            tcp_resp_set_remark(data, len);
+            break;
+
+        case CMD_GET_REMARK:
+            /* 读取备注信息: 数据域为空 */
+            tcp_resp_get_remark();
             break;
 
         default:
@@ -245,7 +262,7 @@ void tcp_resp_bind_device(const uint8_t *data, uint16_t len)
 
         uint8_t resp[1] = { err };
         tcp_send_frame(FRAME_TYPE_ERROR, CMD_BIND_DEVICE, resp, 1);
-        printf("Bind failed: ret=%d, err=0x%02X\r\n", ret, err);
+        printf("绑定失败: ret=%d, err=0x%02X\r\n", ret, err);
     }
 }
 
@@ -306,14 +323,24 @@ void tcp_resp_device_manage_mode(const uint8_t *data, uint16_t len)
  */
 void tcp_resp_start_search(void)
 {
-    tcp_set_search_socket(TCP_SOCKET_ID);
-
-    uint8_t resp[1] = { 0x00 };
-    tcp_send_frame(FRAME_TYPE_RESPONSE, CMD_START_SEARCH, resp, 1);
-
-    printf("Search started\r\n");
+    int ret = ES1642_StartSearch(0, ES1642_SEARCH_RULE_ALL);  /* depth=0(自动), rule=搜索所有设备 */
+    if(ret != 0)
+    {
+        uint8_t resp[1] = { 0x01 };  /* 失败 */
+        tcp_send_frame(FRAME_TYPE_RESPONSE, CMD_START_SEARCH, resp, 1);
+    }
 }
-
+/**
+ * @brief   处理开始搜索设备命令 (成功)
+ *
+ * 请求数据域: [CMD=0x03]
+ * 成功响应:   [CMD=0x03][0x00=成功]
+ */
+void tcp_resp_start_search_ok(void)
+{
+    uint8_t resp[1] = { 0x00 }; /* 成功 */
+    tcp_send_frame(FRAME_TYPE_RESPONSE, CMD_START_SEARCH, resp, 1);
+}
 /**
  * @brief   处理停止搜索设备命令
  *
@@ -322,12 +349,23 @@ void tcp_resp_start_search(void)
  */
 void tcp_resp_stop_search(void)
 {
-    tcp_clear_search_socket();
-
-    uint8_t resp[1] = { 0x00 };
+    int ret = ES1642_StopSearch();
+    if(ret != 0)
+    {
+        uint8_t resp[1] = { 0x01 };  /* 失败 */
+        tcp_send_frame(FRAME_TYPE_RESPONSE, CMD_STOP_SEARCH, resp, 1);
+    }
+}
+/**
+ * @brief   处理停止搜索设备命令 (成功)
+ *
+ * 请求数据域: [CMD=0x04]
+ * 成功响应:   [CMD=0x04][0x00=成功]
+ */
+void tcp_resp_stop_search_ok(void)
+{
+    uint8_t resp[1] = { 0x00 }; /* 成功 */
     tcp_send_frame(FRAME_TYPE_RESPONSE, CMD_STOP_SEARCH, resp, 1);
-
-    printf("Search stopped\r\n");
 }
 
 /**
@@ -475,4 +513,127 @@ void tcp_resp_solar_energy(void)
             resp.monthly_generation_kwh,
             resp.annual_generation_kwh,
             resp.total_generation_kwh);
+}
+
+/* ================================================================
+ *  备注信息管理 (CMD_SET_REMARK / CMD_GET_REMARK)
+ * ================================================================ */
+
+/**
+ * @brief   将备注信息保存到SD卡 (内部函数)
+ * @note    使用fs_mutex保护文件操作
+ */
+static void remark_info_save(void)
+{
+    FRESULT res;
+    UINT bw;
+
+    if(fs_mutex) osMutexAcquire(fs_mutex, osWaitForever);
+
+    res = f_open(&SDFile, "0:/remark.txt", FA_CREATE_ALWAYS | FA_WRITE);
+    if (res != FR_OK)
+    {
+        printf("备注信息: 打开文件失败 (%d)\r\n", res);
+        if(fs_mutex) osMutexRelease(fs_mutex);
+        return;
+    }
+
+    res = f_write(&SDFile, g_remark_buf, g_remark_len, &bw);
+    f_close(&SDFile);
+
+    if(fs_mutex) osMutexRelease(fs_mutex);
+
+    if (res == FR_OK)
+        printf("备注信息已保存到SD卡 (%d字节)\r\n", g_remark_len);
+    else
+        printf("备注信息: 写入失败 (%d)\r\n", res);
+}
+
+/**
+ * @brief   开机时从SD卡加载备注信息到RAM
+ * @note    在文件系统初始化完成后调用 (由lvgl_task调用)
+ */
+void remark_info_load(void)
+{
+    FRESULT res;
+    UINT br;
+
+    if(fs_mutex) osMutexAcquire(fs_mutex, osWaitForever);
+
+    res = f_open(&SDFile, "0:/remark.txt", FA_READ);
+    if (res != FR_OK)
+    {
+        /* 文件不存在, 备注为空 */
+        g_remark_len = 0;
+        printf("备注信息: 文件不存在, 使用空备注\r\n");
+        if(fs_mutex) osMutexRelease(fs_mutex);
+        return;
+    }
+
+    res = f_read(&SDFile, g_remark_buf, sizeof(g_remark_buf), &br);
+    f_close(&SDFile);
+
+    if(fs_mutex) osMutexRelease(fs_mutex);
+
+    if (res == FR_OK)
+    {
+        g_remark_len = (uint16_t)br;
+        printf("备注信息加载成功: %d字节\r\n", g_remark_len);
+    }
+    else
+    {
+        g_remark_len = 0;
+        printf("备注信息: 读取失败 (%d)\r\n", res);
+    }
+}
+
+/**
+ * @brief   处理设置备注信息命令 (CMD_SET_REMARK)
+ *
+ * 请求数据域: 备注文本 (0~256字节, 空数据域表示清空备注)
+ * 成功响应:   数据域=[0x00=成功]
+ * 失败响应:   错误帧 数据域=[ERR_CODE]
+ */
+void tcp_resp_set_remark(const uint8_t *data, uint16_t len)
+{
+    /* 长度校验: 最大256字节 */
+    if (len > 256)
+    {
+        tcp_send_error(ERR_PARAM_INVALID);
+        printf("备注信息过长: %d字节 (最大256)\r\n", len);
+        return;
+    }
+
+    /* 更新RAM缓冲区 */
+    if (len > 0)
+    {
+        memcpy(g_remark_buf, data, len);
+    }
+    g_remark_len = len;
+
+    /* 保存到SD卡 */
+    remark_info_save();
+
+    /* 成功响应 */
+    uint8_t resp[1] = { 0x00 };
+    tcp_send_frame(FRAME_TYPE_RESPONSE, CMD_SET_REMARK, resp, 1);
+
+    printf("备注信息已更新: %d字节\r\n", g_remark_len);
+}
+
+/**
+ * @brief   处理读取备注信息命令 (CMD_GET_REMARK)
+ *
+ * 请求数据域: 空
+ * 响应数据域: 备注文本 (0~256字节, 长度=g_remark_len)
+ */
+void tcp_resp_get_remark(void)
+{
+    if (!g_tcp_connected)
+        return;
+
+    /* 将RAM中的备注信息作为响应数据域发送 */
+    tcp_send_frame(FRAME_TYPE_RESPONSE, CMD_GET_REMARK, g_remark_buf, g_remark_len);
+
+    printf("备注信息已发送: %d字节\r\n", g_remark_len);
 }

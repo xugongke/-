@@ -33,12 +33,14 @@
 #define CMD_STOP_SEARCH      0x06  /* 停止搜索设备 */
 #define CMD_GET_USER_DATA    0x07  /* 读取用户用电量数据 */
 #define CMD_GET_SOLAR_ENERGY 0x08  /* 读取太阳能板发电量 */
+#define CMD_SET_REMARK       0x09  /* 设置备注信息 */
+#define CMD_GET_REMARK       0x0A  /* 读取备注信息 */
 
 /* ==================== 错误码 ==================== */
 #define ERR_INVALID_CMD      0x01  /* 无效命令 */
 #define ERR_PARAM_INVALID    0x02  /* 参数错误 */
 #define ERR_DEVICE_NOT_FOUND 0x03  /* 设备未找到 */
-#define ERR_ES1642_DAMAGED   0x04  /* 从机模块损坏 */
+#define ERR_ES1642_DAMAGED   0x04  /* 单片机串口损坏或者从机模块损坏 */
 #define ERR_ADDR_TIMEOUT     0x05  /* 修改地址超时 */
 #define ERR_NET_TIMEOUT      0x06  /* 入网超时 */
 #define ERR_NET_FAILED       0x07  /* 入网失败 */
@@ -88,11 +90,20 @@ void tcp_resp_device_manage_mode(const uint8_t *data, uint16_t len);
  * @brief   处理开始搜索设备命令 (CMD_START_SEARCH)
  */
 void tcp_resp_start_search(void);
+/**
+ * @brief   处理开始搜索设备命令 (成功)
+ */
+void tcp_resp_start_search_ok(void);
 
 /**
  * @brief   处理停止搜索设备命令 (CMD_STOP_SEARCH)
  */
 void tcp_resp_stop_search(void);
+
+/**
+ * @brief   处理停止搜索设备命令 (成功)
+ */
+void tcp_resp_stop_search_ok(void);
 
 /**
  * @brief   分包发送用户用电量数据 (响应CMD_GET_USER_DATA)
@@ -103,6 +114,26 @@ void tcp_resp_user_data(void);
  * @brief   发送太阳能板发电量数据 (响应CMD_GET_SOLAR_ENERGY)
  */
 void tcp_resp_solar_energy(void);
+
+/**
+ * @brief   处理设置备注信息命令 (CMD_SET_REMARK)
+ * @param   data: 数据域 (备注信息文本, 最多256字节)
+ * @param   len:  数据域长度
+ * @note    保存到SD卡并更新RAM缓冲区
+ */
+void tcp_resp_set_remark(const uint8_t *data, uint16_t len);
+
+/**
+ * @brief   处理读取备注信息命令 (CMD_GET_REMARK)
+ * @note    将RAM中的备注信息打包成响应帧发送给上位机
+ */
+void tcp_resp_get_remark(void);
+
+/**
+ * @brief   开机时从SD卡加载备注信息到RAM
+ * @note    在文件系统初始化完成后调用
+ */
+void remark_info_load(void);
 
 #endif /* __TCP_CMD_HANDLER_H */
 

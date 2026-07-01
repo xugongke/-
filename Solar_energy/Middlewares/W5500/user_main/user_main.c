@@ -392,8 +392,10 @@ static int tcp_client_connect(void)
     printf("TCP 已连接\r\n");
     g_tcp_connected = 1;
 
-    /* 连接成功, 开启Socket中断 (RECV | DISCON | CON) */
-    setSn_IMR(TCP_SOCKET_ID, Sn_IR_RECV | Sn_IR_DISCON | Sn_IR_CON);
+    /* 启用TCP Keepalive: 30秒间隔(值=6, 单位5秒), 自动检测服务器非正常断开 */
+    setSn_KPALVTR(TCP_SOCKET_ID, 6);
+    /* 连接成功, 开启Socket中断 (RECV | DISCON | CON | TIMEOUT) */
+    setSn_IMR(TCP_SOCKET_ID, Sn_IR_RECV | Sn_IR_DISCON | Sn_IR_CON | Sn_IR_TIMEOUT);
 
     return 0;
 }
@@ -432,8 +434,10 @@ static void tcp_client_process(void)
         if (!g_tcp_connected)
         {
             g_tcp_connected = 1;
-            /* 连接恢复, 开启Socket中断 */
-            setSn_IMR(TCP_SOCKET_ID, Sn_IR_RECV | Sn_IR_DISCON | Sn_IR_CON);
+            /* 启用TCP Keepalive: 30秒间隔(值=6, 单位5秒) */
+            setSn_KPALVTR(TCP_SOCKET_ID, 6);
+            /* 连接恢复, 开启Socket中断 (含TIMEOUT) */
+            setSn_IMR(TCP_SOCKET_ID, Sn_IR_RECV | Sn_IR_DISCON | Sn_IR_CON | Sn_IR_TIMEOUT);
             printf("TCP 已连接\r\n");
         }
 
@@ -678,6 +682,21 @@ void W5500_Task(void *argument)
     {
         /* 阻塞等待W5500中断信号量, 超时3秒 (也用于断线重连检测) */
         xSemaphoreTake(w5500_int_sem, pdMS_TO_TICKS(3000));
+
+        /* PHY链路状态检测: 网线拔掉时主动断开TCP连接
+         * (解决网线拔掉期间服务器关闭导致连接半开、永远无法重连的问题) */
+        if (wizphy_getphylink() == PHY_LINK_OFF)
+        {
+            if (g_tcp_connected)
+            {
+                disconnect(TCP_SOCKET_ID);
+                g_tcp_connected = 0;
+                g_device_manage_mode = 0;  /* 自动退出管理模式 */
+                setSn_IMR(TCP_SOCKET_ID, 0x00);  /* 关闭Socket中断 */
+                printf("网线已断开, 主动断开TCP连接\r\n");
+            }
+            continue;  /* 网线断开期间不处理其他事件, 等待网线恢复 */
+        }
 
         /* 处理TCP客户端事件 (连接/断开/数据接收) */
         tcp_client_process();

@@ -51,6 +51,7 @@
 #include "battery.h"
 #include "mppt.h"
 #include "user_main.h"
+#include "tcp_cmd_handler.h"
 lv_ui  guider_ui;                     // 定义 界面对象
 extern lv_group_t * g_keypad_group;		//声明全局group
 WeatherCurrent_t weather_data = {0};//存储天气代码的结构体
@@ -373,6 +374,9 @@ void lvgl_task(void *argument)
 	// 从TF卡读取TCP服务器IP/Port配置 (在W5500_Task连接之前完成)
 	tcp_config_load();
 
+	// 从SD卡加载备注信息到RAM
+	remark_info_load();
+
 	/* USER CODE END 2 */
 	//自己设计的图形窗口
 	setup_ui(&guider_ui);           // 初始化 UI
@@ -601,7 +605,7 @@ void DevicePoll_Task(void *argument)
         if((osKernelGetTickCount() - g_last_search_result_tick) > SEARCH_IDLE_TIMEOUT_MS)
         {
             printf("搜索空闲超时(60秒无新设备), 自动停止搜索\r\n");
-            ES1642_StopSearch();
+            tcp_resp_stop_search();
         }
       }
     osDelay(10000);  /* 10秒(控制+采集已在device_poll_and_control_all内完成) */

@@ -3,7 +3,7 @@
 
 #include "stdint.h"
 
-#define TCP_SOCKET_ID 0         /* TCP客户端 Socket */
+#define TCP_SOCKET_ID 0         /* TCP服务器 Socket */
 #define ETHERNET_BUF_MAX_SIZE (128 * 2)
 #define TCP_STREAM_BUF_SIZE   (256 * 2)  /* TCP流缓冲区大小 */
 

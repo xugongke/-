@@ -55,17 +55,6 @@ void tcp_send_device_list(uint8_t sn);
  */
 void tcp_handle_bind_cmd(uint8_t sn, const char *cmd);
 
-/**
- * @brief  设置当前TCP搜索用的socket编号
- * @param  sn: socket编号
- */
-void tcp_set_search_socket(uint8_t sn);
-
-/**
- * @brief  清除当前TCP搜索用的socket编号（断开时调用）
- */
-void tcp_clear_search_socket(void);
-
 /* ===================== RS485上位机通信函数 (USART6串口) ===================== */
 
 /**

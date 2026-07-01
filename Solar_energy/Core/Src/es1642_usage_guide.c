@@ -18,6 +18,7 @@
 #include "device_manager.h"
 #include "user_data_manager.h"
 #include "host_comm.h"
+#include "tcp_cmd_handler.h"
 
 /* ========================= 使用说明 ========================= */
 
@@ -262,6 +263,7 @@ void es1642_on_frame_received(es1642_handle_t *handle,
             if (status == ES1642_STATUS_OK)
             {
                 printf("启动搜索: OK\r\n");
+                tcp_resp_start_search_ok();//通知上位机启动搜索成功
                 save_energy_before_search();//清空设备表前，先把当日累积电量暂存到SD卡
                 Clear_devices();//启动搜索成功之后，清空设备表和用电量缓存
                 g_es1642_searching = 1;  /* 标记搜索中，暂停设备轮询 */
@@ -278,6 +280,7 @@ void es1642_on_frame_received(es1642_handle_t *handle,
             if (status == ES1642_STATUS_OK)
             {
                 printf("停止搜索: OK\r\n");
+                tcp_resp_stop_search_ok();//通知上位机停止搜索成功
                 g_es1642_searching = 0;  /* 清除搜索标志，允许其他命令 */
                 if(device_count > 0)
                 {
