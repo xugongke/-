@@ -35,6 +35,7 @@
 #define CMD_GET_SOLAR_ENERGY 0x08  /* 读取太阳能板发电量 */
 #define CMD_SET_REMARK       0x09  /* 设置备注信息 */
 #define CMD_GET_REMARK       0x0A  /* 读取备注信息 */
+#define CMD_SEARCH_RESULT    0x0B  /* 搜索结果推送 (单片机→上位机) */
 
 /* ==================== 错误码 ==================== */
 #define ERR_INVALID_CMD      0x01  /* 无效命令 */
@@ -134,6 +135,16 @@ void tcp_resp_get_remark(void);
  * @note    在文件系统初始化完成后调用
  */
 void remark_info_load(void);
+
+/**
+ * @brief   向上位机推送单个搜索到的设备信息 (CMD_SEARCH_RESULT)
+ * @param   mac:       MAC地址(6字节)
+ * @param   addr:      通信地址(6字节)
+ * @param   net_state: 网络状态 (0=未入网, 1=已入网)
+ * @note    由 ES1642_CMD_REPORT_SEARCH_RESULT 回调调用, 每搜到一个设备推送一帧
+ *          帧类型=RESPONSE, 数据域=[MAC(6)][ADDR(6)][net_state(1)]=13字节
+ */
+void tcp_send_search_result(const uint8_t mac[6], const uint8_t addr[6], uint8_t net_state);
 
 #endif /* __TCP_CMD_HANDLER_H */
 

@@ -320,6 +320,8 @@ void es1642_on_frame_received(es1642_handle_t *handle,
                         
                         /* 实时推送搜索到的设备到RS485上位机（USART6） */
                         rs485_send_search_device((uint8_t*)result.attribute, result.dev_addr, result.net_state);
+                        /* 实时推送搜索到的设备到TCP上位机 (W5500网口) */
+                        tcp_send_search_result((uint8_t*)result.attribute, result.dev_addr, result.net_state);
                     }
                     else
                     {

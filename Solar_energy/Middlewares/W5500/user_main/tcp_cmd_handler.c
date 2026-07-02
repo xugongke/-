@@ -637,3 +637,30 @@ void tcp_resp_get_remark(void)
 
     printf("备注信息已发送: %d字节\r\n", g_remark_len);
 }
+
+/* ================================================================
+ *  搜索结果推送 (CMD_SEARCH_RESULT)
+ * ================================================================ */
+
+/**
+ * @brief   向上位机推送单个搜索到的设备信息 (CMD_SEARCH_RESULT)
+ *
+ * 由 ES1642_CMD_REPORT_SEARCH_RESULT 回调调用, 每搜到一个设备推送一帧。
+ * 帧类型=RESPONSE, 数据域=[MAC(6)][ADDR(6)][net_state(1)]=13字节
+ */
+void tcp_send_search_result(const uint8_t mac[6], const uint8_t addr[6], uint8_t net_state)
+{
+    if (!g_tcp_connected)
+        return;
+
+    /* 数据域: MAC(6) + ADDR(6) + net_state(1) = 13字节 */
+    uint8_t data[13];
+    memcpy(&data[0], mac, 6);
+    memcpy(&data[6], addr, 6);
+    data[12] = net_state;
+
+    tcp_send_frame(FRAME_TYPE_RESPONSE, CMD_SEARCH_RESULT, data, sizeof(data));
+
+    printf("TCP推送搜索结果: MAC=%02X:%02X:%02X:%02X:%02X:%02X, net=%d\r\n",
+           mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], net_state);
+}
