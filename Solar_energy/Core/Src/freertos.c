@@ -575,13 +575,8 @@ void DevicePoll_Task(void *argument)
         /* ① MPPT采集+控制一体化(慢速采集→告警扫描→快速P&O控制闭环) */
         device_poll_and_control_all();
 
-        /* ② 更新太阳能发电量 = Σ各从机用电量 */
-        uint32_t total_energy = 0;
-        for (uint16_t i = 0; i < device_count; i++)
-        {
-            total_energy += device_list[i].daily_energy_wh;
-        }
-        g_mppt.energy_wh = total_energy;
+        /* ② 太阳能发电量已在daily_energy_flush_to_sd中由各从机kWh累加到g_mppt.energy_kwh,
+         *    不再需要在这里外部累加total_energy (保证发电量=Σ从机用电量) */
 
         /* ⑤ 零点结算检测 */
         if (RX8025T_GetDate(&cur_date) == HAL_OK)

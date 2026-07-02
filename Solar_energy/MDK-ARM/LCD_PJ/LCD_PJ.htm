@@ -3,7 +3,7 @@
 <title>Static Call Graph - [LCD_PJ\LCD_PJ.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image LCD_PJ\LCD_PJ.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060960: Last Updated: Wed Jul 01 11:34:56 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060960: Last Updated: Thu Jul 02 09:29:20 2026
 <BR><P>
 <H3>Maximum Stack Usage =       2196 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -1495,7 +1495,7 @@ Global Symbols
 <P><STRONG><a name="[17]"></a>DebugMon_Handler</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, stm32f4xx_it.o(i.DebugMon_Handler))
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f429xx.o(RESET)
 </UL>
-<P><STRONG><a name="[99]"></a>DevicePoll_Task</STRONG> (Thumb, 208 bytes, Stack size 24 bytes, freertos.o(i.DevicePoll_Task))
+<P><STRONG><a name="[99]"></a>DevicePoll_Task</STRONG> (Thumb, 166 bytes, Stack size 24 bytes, freertos.o(i.DevicePoll_Task))
 <BR><BR>[Stack]<UL><LI>Max Depth = 1676<LI>Call Chain = DevicePoll_Task &rArr; device_poll_and_control_all &rArr; MPPT_ControlLoop &rArr; device_ctrl_heater &rArr; ES1642_SendUserData &rArr; ES1642_SendData &rArr; ES1642_SendFrame &rArr; ES1642_BuildFrame &rArr; es1642_calc_checksum
 </UL>
 <BR>[Calls]<UL><LI><a href="#[1c8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osDelay
@@ -4893,7 +4893,7 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[92]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lvgl_task
 </UL>
 
-<P><STRONG><a name="[1cb]"></a>daily_energy_flush_to_sd</STRONG> (Thumb, 468 bytes, Stack size 152 bytes, device_manager.o(i.daily_energy_flush_to_sd))
+<P><STRONG><a name="[1cb]"></a>daily_energy_flush_to_sd</STRONG> (Thumb, 522 bytes, Stack size 152 bytes, device_manager.o(i.daily_energy_flush_to_sd))
 <BR><BR>[Stack]<UL><LI>Max Depth = 1088<LI>Call Chain = daily_energy_flush_to_sd &rArr; write_user_data &rArr; f_open &rArr; dir_register &rArr; dir_find &rArr; dir_next &rArr; create_chain &rArr; put_fat &rArr; move_window &rArr; sync_window &rArr; disk_write
 </UL>
 <BR>[Calls]<UL><LI><a href="#[3fa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;write_user_data
@@ -12618,7 +12618,7 @@ Global Symbols
 <LI><a href="#[1bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DHCP_run
 </UL>
 
-<P><STRONG><a name="[1cc]"></a>solar_energy_flush</STRONG> (Thumb, 354 bytes, Stack size 72 bytes, mppt.o(i.solar_energy_flush))
+<P><STRONG><a name="[1cc]"></a>solar_energy_flush</STRONG> (Thumb, 342 bytes, Stack size 72 bytes, mppt.o(i.solar_energy_flush))
 <BR><BR>[Stack]<UL><LI>Max Depth = 960<LI>Call Chain = solar_energy_flush &rArr; solar_energy_save &rArr; f_open &rArr; dir_register &rArr; dir_find &rArr; dir_next &rArr; create_chain &rArr; put_fat &rArr; move_window &rArr; sync_window &rArr; disk_write
 </UL>
 <BR>[Calls]<UL><LI><a href="#[164]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2d

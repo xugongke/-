@@ -129,7 +129,7 @@ void solar_energy_init(void);
 void solar_energy_save(void);
 
 /**
- * @brief  处理太阳能发电量的日/月/年重置逻辑，将g_mppt.energy_wh累加到g_solar_energy
+ * @brief  处理太阳能发电量的日/月/年重置逻辑，将g_mppt.energy_kwh累加到g_solar_energy
  * @note   在daily_energy_flush_to_sd中调用（零点结算时）
  */
 void solar_energy_flush(void);
@@ -168,7 +168,7 @@ typedef struct {
     uint8_t n_at_max_power;     /* 最大功率对应的加热器数 */
 
     /* 累计发电量 */
-    uint32_t energy_wh;            /* 日发电量累计 (Wh) */
+    float energy_kwh;              /* 日发电量累计 (kWh), 由daily_energy_flush_to_sd累加各从机kWh */
 
     /* 统计 */
     uint32_t cycle_count;       /* P&O 循环计数 */

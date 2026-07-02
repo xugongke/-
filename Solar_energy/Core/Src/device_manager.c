@@ -476,10 +476,16 @@ void daily_energy_flush_to_sd(void)
     printf("零点结算：将RAM中日累积电量写入SD卡... (当前: %02d/%02d %02d:%02d:%02d)\r\n",
            rtc_now.month, rtc_now.day, rtc_now.hours, rtc_now.minutes, rtc_now.seconds);
 
+    /* 清零太阳能发电量RAM累积, 随后在循环中逐台累加各从机kWh */
+    g_mppt.energy_kwh = 0.0f;
+
     for (uint16_t i = 0; i < device_count; i++)
     {
         /* 跳过未入网的设备 */
         if (device_list[i].state.bits.valid == 0) continue;
+
+        /* 累加太阳能发电量: 使用与用户数据相同的kWh计算方式, 保证发电量=Σ用电量 */
+        g_mppt.energy_kwh += device_list[i].daily_energy_wh / 1000.0f;
 
         /* 从SD卡读取用户数据文件 */
         user_data_file_t user_data;
