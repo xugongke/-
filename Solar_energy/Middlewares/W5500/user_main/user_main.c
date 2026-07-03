@@ -637,6 +637,7 @@ int tcp_config_load(void)
 
 void W5500_Task(void *argument)
 {
+    osDelay(8000);//等待es1642收到帧头错误
     /* 初始化SPI DMA所需的信号量和互斥锁 (必须在wizchip初始化前) */
     wiz_spi_dma_init();
 

@@ -402,8 +402,7 @@ static int mppt_select_one_to_enable(void)
             if (score < best_score) { best_score = score; best = i; }
         }
     }
-//		return best;
-    return 0;
+	return best;
 }
 
 /**
@@ -458,8 +457,7 @@ static int mppt_select_one_to_disable(void)
             if (score > best_score) { best_score = score; best = i; }
         }
     }
-//		return best;
-    return 0;
+	return best;
 }
 
 /**

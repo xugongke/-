@@ -377,6 +377,9 @@ void lvgl_task(void *argument)
 	// 从SD卡加载备注信息到RAM
 	remark_info_load();
 
+	// 从SD卡加载楼栋号到RAM
+	building_no_load();
+
 	/* USER CODE END 2 */
 	//自己设计的图形窗口
 	setup_ui(&guider_ui);           // 初始化 UI
@@ -556,7 +559,10 @@ void DevicePoll_Task(void *argument)
   RX8025T_Date last_date = {0};  /* 记录上一次的日期，用于检测零点 */
   RX8025T_Date cur_date;
 
-  osDelay(10000);//等待es1642收到帧头错误
+  osDelay(5000);//等待es1642收到帧头错误
+	/* 读取ES1642模块MAC地址作为主机唯一标识(异步, 响应在帧回调中保存到g_host_mac) */
+	ES1642_ReadMac();
+  osDelay(5000);//等待es1642收到帧头错误
   /* 初始化：读取当前日期作为基准 */
   if (RX8025T_GetDate(&last_date) == HAL_OK)
   {

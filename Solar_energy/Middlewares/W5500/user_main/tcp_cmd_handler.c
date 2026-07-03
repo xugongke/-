@@ -27,6 +27,9 @@ uint8_t g_frame_data_buf[FRAME_MAX_DATA_LEN];  /* 组帧数据缓冲区，供分
 static uint8_t g_remark_buf[256];  /* 备注信息最大256字节 */
 static uint16_t g_remark_len = 0;  /* 备注信息实际长度 */
 
+/* ==================== 楼栋号RAM缓冲区 ==================== */
+static uint8_t g_building_no = 0;  /* 楼栋号(由上位机设置, 开机从SD卡加载) */
+
 /* ================================================================
  *  通用工具函数
  * ================================================================ */
@@ -107,6 +110,16 @@ void tcp_dispatch_frame(uint8_t type, uint8_t cmd, const uint8_t *data, uint16_t
         case CMD_GET_REMARK:
             /* 读取备注信息: 数据域为空 */
             tcp_resp_get_remark();
+            break;
+
+        case CMD_SET_BUILDING:
+            /* 设置楼栋号: 数据域 = [楼栋号] (1字节) */
+            tcp_resp_set_building(data, len);
+            break;
+
+        case CMD_GET_HOST_INFO:
+            /* 读取主机信息: 数据域为空, 返回MAC+楼栋号 */
+            tcp_resp_get_host_info();
             break;
 
         default:
@@ -663,4 +676,108 @@ void tcp_send_search_result(const uint8_t mac[6], const uint8_t addr[6], uint8_t
 
     printf("TCP推送搜索结果: MAC=%02X:%02X:%02X:%02X:%02X:%02X, net=%d\r\n",
            mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], net_state);
+}
+
+/* ================================================================
+ *  楼栋号管理 (CMD_SET_BUILDING / CMD_GET_HOST_INFO)
+ * ================================================================ */
+
+/**
+ * @brief   将楼栋号保存到SD卡 (内部函数)
+ */
+static void building_no_save(void)
+{
+    FRESULT res;
+    UINT bw;
+
+    if(fs_mutex) osMutexAcquire(fs_mutex, osWaitForever);
+
+    res = f_open(&SDFile, "0:/building.bin", FA_CREATE_ALWAYS | FA_WRITE);
+    if (res != FR_OK)
+    {
+        printf("楼栋号: 打开文件失败 (%d)\r\n", res);
+        if(fs_mutex) osMutexRelease(fs_mutex);
+        return;
+    }
+
+    res = f_write(&SDFile, &g_building_no, 1, &bw);
+    f_close(&SDFile);
+
+    if(fs_mutex) osMutexRelease(fs_mutex);
+
+    printf("楼栋号已保存: %d\r\n", g_building_no);
+}
+
+/**
+ * @brief   开机时从SD卡加载楼栋号到RAM
+ * @note    在文件系统初始化完成后调用
+ */
+void building_no_load(void)
+{
+    FRESULT res;
+    UINT br;
+
+    if(fs_mutex) osMutexAcquire(fs_mutex, osWaitForever);
+
+    res = f_open(&SDFile, "0:/building.bin", FA_READ);
+    if (res != FR_OK)
+    {
+        g_building_no = 0;
+        printf("楼栋号: 文件不存在, 默认为0\r\n");
+        if(fs_mutex) osMutexRelease(fs_mutex);
+        return;
+    }
+
+    res = f_read(&SDFile, &g_building_no, 1, &br);
+    f_close(&SDFile);
+
+    if(fs_mutex) osMutexRelease(fs_mutex);
+
+    printf("楼栋号加载成功: %d\r\n", g_building_no);
+}
+
+/**
+ * @brief   处理设置楼栋号命令 (CMD_SET_BUILDING)
+ *
+ * 请求数据域: [楼栋号] (1字节)
+ * 成功响应:   数据域=[0x00=成功]
+ */
+void tcp_resp_set_building(const uint8_t *data, uint16_t len)
+{
+    if (len < 1)
+    {
+        tcp_send_error(ERR_PARAM_INVALID);
+        return;
+    }
+
+    g_building_no = data[0];
+    building_no_save();
+
+    uint8_t resp[1] = { 0x00 };
+    tcp_send_frame(FRAME_TYPE_RESPONSE, CMD_SET_BUILDING, resp, 1);
+
+    printf("楼栋号已设置: %d\r\n", g_building_no);
+}
+
+/**
+ * @brief   处理读取主机信息命令 (CMD_GET_HOST_INFO)
+ *
+ * 请求数据域: 空
+ * 响应数据域: [MAC(6)][楼栋号(1)] = 7字节
+ */
+void tcp_resp_get_host_info(void)
+{
+    if (!g_tcp_connected)
+        return;
+
+    /* 数据域: MAC(6) + 楼栋号(1) = 7字节 */
+    uint8_t data[7];
+    memcpy(&data[0], g_host_mac, 6);
+    data[6] = g_building_no;
+
+    tcp_send_frame(FRAME_TYPE_RESPONSE, CMD_GET_HOST_INFO, data, sizeof(data));
+
+    printf("主机信息已发送: MAC=%02X:%02X:%02X:%02X:%02X:%02X, 楼栋=%d\r\n",
+           g_host_mac[0], g_host_mac[1], g_host_mac[2],
+           g_host_mac[3], g_host_mac[4], g_host_mac[5], g_building_no);
 }

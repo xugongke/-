@@ -72,6 +72,10 @@ extern volatile uint8_t g_es1642_searching;
 /* 上次收到新搜索结果的时间戳(osKernelGetTickCount), DevicePoll_Task用于检测空闲超时 */
 extern volatile uint32_t g_last_search_result_tick;
 
+/* 主机MAC地址(读取自ES1642载波模块, 开机时自动读取, 作为主机唯一标识) */
+extern uint8_t g_host_mac[6];
+extern uint8_t g_host_mac_valid;  /* 0=尚未读取, 1=已读取成功 */
+
 /* ======== 步骤2：实现串口发送回调函数 ======== */
 
 /**

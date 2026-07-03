@@ -93,6 +93,10 @@ volatile uint8_t g_es1642_searching = 0;
 /* 上次收到新搜索结果的时间戳, DevicePoll_Task用于检测搜索空闲超时 */
 volatile uint32_t g_last_search_result_tick = 0;
 
+/* 主机MAC地址(读取自ES1642载波模块, 作为主机唯一标识) */
+uint8_t g_host_mac[6] = {0};
+uint8_t g_host_mac_valid = 0;  /* 0=尚未读取, 1=已读取成功 */
+
 /* PSK设置结果缓冲区 */
 es1642_psk_result_response_t g_es1642_psk_result;
 
@@ -196,6 +200,9 @@ void es1642_on_frame_received(es1642_handle_t *handle,
             {
                 printf("MAC地址: %02X-%02X-%02X-%02X-%02X-%02X\r\n",
                        mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+                /* 保存为主机MAC地址, 供上位机识别 */
+                memcpy(g_host_mac, mac, 6);
+                g_host_mac_valid = 1;
             }
             break;
         }

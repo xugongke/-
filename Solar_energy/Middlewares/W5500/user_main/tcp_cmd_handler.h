@@ -36,6 +36,8 @@
 #define CMD_SET_REMARK       0x09  /* 设置备注信息 */
 #define CMD_GET_REMARK       0x0A  /* 读取备注信息 */
 #define CMD_SEARCH_RESULT    0x0B  /* 搜索结果推送 (单片机→上位机) */
+#define CMD_SET_BUILDING     0x0C  /* 设置楼栋号 */
+#define CMD_GET_HOST_INFO    0x0D  /* 读取主机信息(MAC+楼栋号) */
 
 /* ==================== 错误码 ==================== */
 #define ERR_INVALID_CMD      0x01  /* 无效命令 */
@@ -145,6 +147,26 @@ void remark_info_load(void);
  *          帧类型=RESPONSE, 数据域=[MAC(6)][ADDR(6)][net_state(1)]=13字节
  */
 void tcp_send_search_result(const uint8_t mac[6], const uint8_t addr[6], uint8_t net_state);
+
+/**
+ * @brief   处理设置楼栋号命令 (CMD_SET_BUILDING)
+ * @param   data: 数据域 (1字节楼栋号)
+ * @param   len:  数据域长度
+ * @note    保存到SD卡, 开机时自动加载
+ */
+void tcp_resp_set_building(const uint8_t *data, uint16_t len);
+
+/**
+ * @brief   处理读取主机信息命令 (CMD_GET_HOST_INFO)
+ * @note    返回主机MAC地址(6B)+楼栋号(1B)=7字节
+ */
+void tcp_resp_get_host_info(void);
+
+/**
+ * @brief   开机时从SD卡加载楼栋号到RAM
+ * @note    在文件系统初始化完成后调用
+ */
+void building_no_load(void);
 
 #endif /* __TCP_CMD_HANDLER_H */
 
