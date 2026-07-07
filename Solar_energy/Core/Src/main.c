@@ -127,13 +127,14 @@ int main(void)
   MX_IWDG_Init();
   MX_RTC_Init();
 
-  /* OTA: check trial boot / rollback (must be after MX_RTC_Init) */
-  OTA_BootCheck();
-  OTA_Init();
-
   /* USER CODE BEGIN 2 */
 	Battery_Init();
 	RS485_USART_Init_All();
+  /* OTA: check trial boot / rollback (must be after MX_RTC_Init) */
+  BANK_EnableDualBank();// 启用双Bank模式 (如果尚未启用)
+  OTA_BootCheck();// 回滚检查（如果 magic=PENDING）
+  OTA_Init();// 初始化 OTA 状态变量
+
 	Battery_UpdateCache();//更新一次电量缓存
 	Solar_UpdateCache();//更新一次太阳能电压缓存
 	//注册搬运图像数据完成回调函数

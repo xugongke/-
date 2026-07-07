@@ -3,7 +3,7 @@
 <title>Static Call Graph - [LCD_PJ\LCD_PJ.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image LCD_PJ\LCD_PJ.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060960: Last Updated: Tue Jul 07 13:09:25 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060960: Last Updated: Tue Jul 07 14:09:35 2026
 <BR><P>
 <H3>Maximum Stack Usage =       2196 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -1150,12 +1150,12 @@ Global Symbols
 <LI><a href="#[17c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__NVIC_SystemReset
 </UL>
 <BR>[Called By]<UL><LI><a href="#[17f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BANK_ProcessCommand
+<LI><a href="#[74]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
 <P><STRONG><a name="[17e]"></a>BANK_GetActiveBank</STRONG> (Thumb, 16 bytes, Stack size 0 bytes, bank_switch.o(i.BANK_GetActiveBank))
 <BR><BR>[Called By]<UL><LI><a href="#[17f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BANK_ProcessCommand
 <LI><a href="#[2b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTA_GetStatus
-<LI><a href="#[2ad]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTA_Begin
 <LI><a href="#[2af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;erase_standby_bank
 <LI><a href="#[2b0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTA_BootCheck
 <LI><a href="#[17d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BANK_PrintInfo
@@ -1275,7 +1275,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[23c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_SD_TxCpltCallback
 </UL>
 
-<P><STRONG><a name="[6ab]"></a>Battery_Init</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, battery.o(i.Battery_Init))
+<P><STRONG><a name="[6aa]"></a>Battery_Init</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, battery.o(i.Battery_Init))
 <BR><BR>[Called By]<UL><LI><a href="#[74]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
@@ -3252,13 +3252,12 @@ Global Symbols
 <LI><a href="#[1c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;send_DHCP_DISCOVER
 </UL>
 
-<P><STRONG><a name="[2ad]"></a>OTA_Begin</STRONG> (Thumb, 106 bytes, Stack size 16 bytes, ota_upgrade.o(i.OTA_Begin))
-<BR><BR>[Stack]<UL><LI>Max Depth = 96<LI>Call Chain = OTA_Begin &rArr; erase_standby_bank &rArr; HAL_FLASHEx_Erase &rArr; FLASH_WaitForLastOperation
+<P><STRONG><a name="[2ad]"></a>OTA_Begin</STRONG> (Thumb, 100 bytes, Stack size 16 bytes, ota_upgrade.o(i.OTA_Begin))
+<BR><BR>[Stack]<UL><LI>Max Depth = 104<LI>Call Chain = OTA_Begin &rArr; erase_standby_bank &rArr; HAL_FLASHEx_Erase &rArr; FLASH_WaitForLastOperation
 </UL>
 <BR>[Calls]<UL><LI><a href="#[2ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_IWDG_Refresh
 <LI><a href="#[2af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;erase_standby_bank
 <LI><a href="#[17b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BANK_IsDualBankMode
-<LI><a href="#[17e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BANK_GetActiveBank
 <LI><a href="#[168]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[72a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_resp_ota_begin
@@ -3308,7 +3307,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[91]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;StartDefaultTask
 </UL>
 
-<P><STRONG><a name="[2b8]"></a>OTA_GetStatus</STRONG> (Thumb, 44 bytes, Stack size 16 bytes, ota_upgrade.o(i.OTA_GetStatus))
+<P><STRONG><a name="[2b8]"></a>OTA_GetStatus</STRONG> (Thumb, 40 bytes, Stack size 16 bytes, ota_upgrade.o(i.OTA_GetStatus))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = OTA_GetStatus
 </UL>
 <BR>[Calls]<UL><LI><a href="#[2b2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;read_bkp
@@ -3317,7 +3316,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[72d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_resp_ota_status
 </UL>
 
-<P><STRONG><a name="[6aa]"></a>OTA_Init</STRONG> (Thumb, 20 bytes, Stack size 0 bytes, ota_upgrade.o(i.OTA_Init))
+<P><STRONG><a name="[6ab]"></a>OTA_Init</STRONG> (Thumb, 18 bytes, Stack size 0 bytes, ota_upgrade.o(i.OTA_Init))
 <BR><BR>[Called By]<UL><LI><a href="#[74]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
@@ -11850,16 +11849,16 @@ Global Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> freertos.o(i.MX_FREERTOS_Init)
 </UL>
-<P><STRONG><a name="[74]"></a>main</STRONG> (Thumb, 140 bytes, Stack size 0 bytes, main.o(i.main))
+<P><STRONG><a name="[74]"></a>main</STRONG> (Thumb, 144 bytes, Stack size 0 bytes, main.o(i.main))
 <BR><BR>[Stack]<UL><LI>Max Depth = 200<LI>Call Chain = main &rArr; MX_FREERTOS_Init &rArr; osTimerNew &rArr; xTimerCreate &rArr; prvInitialiseNewTimer &rArr; prvCheckForValidListAndQueue &rArr; xQueueGenericCreateStatic &rArr; prvInitialiseNewQueue &rArr; xQueueGenericReset &rArr; xTaskRemoveFromEventList
 </UL>
 <BR>[Calls]<UL><LI><a href="#[2d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Solar_UpdateCache
 <LI><a href="#[198]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_UpdateCache
-<LI><a href="#[6ab]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Init
+<LI><a href="#[6aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_Init
 <LI><a href="#[2cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RS485_USART_Init_All
 <LI><a href="#[6ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osKernelStart
 <LI><a href="#[6ad]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osKernelInitialize
-<LI><a href="#[6aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTA_Init
+<LI><a href="#[6ab]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTA_Init
 <LI><a href="#[2b0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTA_BootCheck
 <LI><a href="#[2ac]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MX_USART6_UART_Init
 <LI><a href="#[2ab]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MX_USART3_UART_Init
@@ -11886,6 +11885,7 @@ Global Symbols
 <LI><a href="#[21a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_Init
 <LI><a href="#[6ac]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_DMA_RegisterCallback
 <LI><a href="#[2fd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemClock_Config
+<LI><a href="#[17a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BANK_EnableDualBank
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> entry9a.o(.ARM.Collect$$$$0000000B)
 </UL>
@@ -14572,8 +14572,8 @@ Local Symbols
 <LI><a href="#[2b0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OTA_BootCheck
 </UL>
 
-<P><STRONG><a name="[2af]"></a>erase_standby_bank</STRONG> (Thumb, 104 bytes, Stack size 32 bytes, ota_upgrade.o(i.erase_standby_bank))
-<BR><BR>[Stack]<UL><LI>Max Depth = 80<LI>Call Chain = erase_standby_bank &rArr; HAL_FLASHEx_Erase &rArr; FLASH_WaitForLastOperation
+<P><STRONG><a name="[2af]"></a>erase_standby_bank</STRONG> (Thumb, 118 bytes, Stack size 40 bytes, ota_upgrade.o(i.erase_standby_bank))
+<BR><BR>[Stack]<UL><LI>Max Depth = 88<LI>Call Chain = erase_standby_bank &rArr; HAL_FLASHEx_Erase &rArr; FLASH_WaitForLastOperation
 </UL>
 <BR>[Calls]<UL><LI><a href="#[2ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_IWDG_Refresh
 <LI><a href="#[2ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_FLASH_Unlock
@@ -19497,11 +19497,11 @@ Local Symbols
 <LI><a href="#[38a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_style_set_bg_color
 <LI><a href="#[38c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_style_set_radius
 <LI><a href="#[388]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_style_set_border_opa
+<LI><a href="#[38e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;alert_type_color
 <LI><a href="#[385]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ui_init_style
 <LI><a href="#[384]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_obj_set_style_pad_all
 <LI><a href="#[383]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_color_hex
 <LI><a href="#[38f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;alert_type_name
-<LI><a href="#[38e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;alert_type_color
 </UL>
 <BR>[Called By]<UL><LI><a href="#[3a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;alert_populate_current_page
 </UL>
@@ -19700,7 +19700,8 @@ Local Symbols
 <P><STRONG><a name="[383]"></a>lv_color_hex</STRONG> (Thumb, 34 bytes, Stack size 8 bytes, events_init.o(i.lv_color_hex))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = lv_color_hex
 </UL>
-<BR>[Called By]<UL><LI><a href="#[107]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;alert_tip_event_handler
+<BR>[Called By]<UL><LI><a href="#[38e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;alert_type_color
+<LI><a href="#[107]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;alert_tip_event_handler
 <LI><a href="#[a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;alert_item_event_handler
 <LI><a href="#[381]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;alert_create_item
 <LI><a href="#[bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;screen_user_list_event_handler
@@ -19710,7 +19711,6 @@ Local Symbols
 <LI><a href="#[bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;screen_user_home_card_device_event_handler
 <LI><a href="#[bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;screen_user_home_card_alert_event_handler
 <LI><a href="#[28c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;list_populate_current_page
-<LI><a href="#[38e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;alert_type_color
 </UL>
 
 <P><STRONG><a name="[396]"></a>lv_obj_center</STRONG> (Thumb, 10 bytes, Stack size 0 bytes, events_init.o(i.lv_obj_center))

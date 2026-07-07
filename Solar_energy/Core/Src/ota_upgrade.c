@@ -1,7 +1,28 @@
 /**
   ******************************************************************************
   * @file    ota_upgrade.c
-  * @brief   Dual-bank firmware upgrade manager
+  * @brief   双Bank固件升级管理器 (APP直擦直写 + CRC32校验 + 自动回滚)
+  *
+  * 设计思路:
+  *   1. APP通过TCP接收固件数据, 直接写入备用Bank
+  *   2. 硬件CRC32校验整个备用Bank
+  *   3. 校验通过: 写RTC备份寄存器(trial标志) → BANK_SwitchAndReset()
+  *   4. 新Bank启动: main()开头检查trial标志
+  *      - 若trial计数超限 → 自动切回旧Bank (回滚)
+  *      - 若正常启动 → FreeRTOS运行数秒后清除trial标志 (确认)
+  *   5. 若新固件崩溃 → IWDG超时复位 → trial计数+1 → 最终回滚
+  *
+  * Flash扇区布局 (STM32F429IGT6 双Bank模式 DB1M=1):
+  *   Bank 1: FLASH_SECTOR_0~7   (0x08000000-0x0807FFFF, 512KB)
+  *     SECTOR_0~3: 16KB, SECTOR_4: 64KB, SECTOR_5~7: 128KB
+  *   Bank 2: FLASH_SECTOR_12~19 (0x08080000-0x080FFFFF, 512KB)
+  *     SECTOR_12~15: 16KB, SECTOR_16: 64KB, SECTOR_17~19: 128KB
+  *
+  *   关键: 双Bank模式下, 不管BFB2=0还是BFB2=1, 备用区的映射地址始终为
+  *         0x08080000. HAL_FLASHEx_Erase可以正常擦除双Bank模式下的Flash,
+  *         只需设置正确的Sector起始值和数量:
+  *           运行Bank1(BFB2=0): 擦FLASH_SECTOR_12, NbSectors=8 (擦Bank2)
+  *           运行Bank2(BFB2=1): 擦FLASH_SECTOR_0,  NbSectors=8 (擦Bank1)
   ******************************************************************************
   */
 #include "ota_upgrade.h"
@@ -26,12 +47,10 @@ static uint16_t    s_next_seq     = 0;
 static uint32_t    s_write_off    = 0;
 static uint32_t    s_total_size   = 0;
 static uint32_t    s_expected_crc = 0;
-static uint32_t    s_standby_addr = 0;
-
-static uint32_t get_standby_bank_addr(void)
-{
-    return (BANK_GetActiveBank() == 1) ? BANK2_BASE_ADDR : BANK2_BASE_ADDR;
-}
+/* 备用区地址固定为0x08080000:
+ * 双Bank模式下, Bank交换只影响运行区映射(0x08000000指向当前Bank),
+ * 备用区的映射地址始终是0x08080000, 所以固件写入和CRC读取都从0x08080000开始. */
+static uint32_t    s_standby_addr = BANK2_BASE_ADDR;  /* 0x08080000 */
 
 static void enable_backup_access(void)
 {
@@ -55,21 +74,14 @@ static int erase_standby_bank(void)
     uint32_t sector_error;
     uint8_t  active = BANK_GetActiveBank();
 
-    /* STM32F429IGT6 (1MB) Flash 扇区布局:
-     *   sector 0-3:  16KB  (0x08000000-0x0800FFFF)
-     *   sector 4:    64KB  (0x08010000-0x0801FFFF)
-     *   sector 5-7: 128KB  (0x08020000-0x0807FFFF)
-     *   sector 8-11: 128KB (0x08080000-0x080FFFFF)  <-- 备用区(共512KB)
-     *
-     * 备用区 = sector 8,9,10,11 (4个128KB扇区), 覆盖 0x08080000-0x080FFFFF.
-     * 用 HAL_FLASHEx_Erase(Sector=8, NbSectors=4) 擦除这4个扇区.
-     * (之前用 SNB=8..15 只擦了前几个小扇区=64KB, 后面大扇区未擦干净,
-     *  导致写入时旧数据干扰 -> CRC 校验失败)
+    /* 根据当前运行Bank擦除备用Bank的全部8个扇区:
+     *   运行Bank1(BFB2=0): 备用区=Bank2, 擦FLASH_SECTOR_12~19
+     *   运行Bank2(BFB2=1): 备用区=Bank1, 擦FLASH_SECTOR_0~7
      */
     erase.TypeErase    = FLASH_TYPEERASE_SECTORS;
     erase.Banks        = (active == 1) ? FLASH_BANK_2 : FLASH_BANK_1;
-    erase.Sector       = (active == 1) ? FLASH_SECTOR_12 : FLASH_SECTOR_0;     /* 从 sector 8 开始 (0x08080000) */
-    erase.NbSectors    = 8;                   /* 4个128KB扇区 = 512KB */
+    erase.Sector       = (active == 1) ? FLASH_SECTOR_12 : FLASH_SECTOR_0;
+    erase.NbSectors    = 8;
     erase.VoltageRange = FLASH_VOLTAGE_RANGE_3;
 
     HAL_FLASH_Unlock();
@@ -90,7 +102,8 @@ static int erase_standby_bank(void)
                status, sector_error);
         return -1;
     }
-    printf("[OTA] Standby bank erased OK (sectors 8-11, 0x08080000-0x080FFFFF = 512KB)\r\n");
+    printf("[OTA] Standby bank erased OK (active=Bank%d, sector %s)\r\n",
+           active, (active == 1) ? "12~19" : "0~7");
     return 0;
 }
 
@@ -147,7 +160,6 @@ void OTA_Init(void)
     s_write_off       = 0;
     s_total_size      = 0;
     s_expected_crc    = 0;
-    s_standby_addr    = 0;
     g_ota_in_progress = 0;
 }
 
@@ -205,7 +217,7 @@ int OTA_Begin(uint32_t total_size, uint32_t crc32)
 
     s_total_size   = total_size;
     s_expected_crc = crc32;
-    s_standby_addr = get_standby_bank_addr();
+    /* s_standby_addr 固定为 0x08080000, 不需要根据Bank动态计算 */
     s_next_seq     = 0;
     s_write_off    = 0;
 
@@ -301,6 +313,5 @@ void OTA_GetStatus(OtaStatusResp_t *out)
     out->trial_count    = (uint16_t)read_bkp(RTC_BKP_DR_OTA_TRIALS);
     out->received_bytes = s_write_off;
     out->total_bytes    = s_total_size;
-    out->standby_bank   = get_standby_bank_addr();
+    out->standby_bank   = BANK2_BASE_ADDR;  /* 备用区地址固定 0x08080000 */
 }
-
