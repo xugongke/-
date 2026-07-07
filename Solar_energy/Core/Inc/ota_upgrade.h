@@ -98,13 +98,6 @@ extern volatile uint8_t g_ota_in_progress;
 void OTA_Init(void);
 
 /**
- * @brief  上电时检测Bank模式, 确保处于可OTA的状态
- * @note   如果双Bank+BFB2=0(从Bank1启动), 自动切回单Bank模式.
- *         应在 main() 的 USER CODE BEGIN 2 中, RTC初始化之后调用.
- */
-void OTA_PowerOnCheck(void);
-
-/**
  * @brief  开机回滚检查 (在main()最开头, 外设初始化后立即调用)
  * @note   读取RTC备份寄存器, 若trial计数超限则自动切回旧Bank
  *         必须在MX_RTC_Init()之后调用

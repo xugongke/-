@@ -128,9 +128,8 @@ int main(void)
   MX_RTC_Init();
 
   /* OTA: check trial boot / rollback (must be after MX_RTC_Init) */
-  OTA_Init();          // 初始化 OTA 状态变量
-  OTA_BootCheck();     // 回滚检查（如果 magic=PENDING）
-  OTA_PowerOnCheck();  // Bank 模式检查（如果双Bank+BFB2=0，切单Bank）
+  OTA_BootCheck();
+  OTA_Init();
 
   /* USER CODE BEGIN 2 */
 	Battery_Init();

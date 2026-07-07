@@ -1,17 +1,7 @@
 /**
   ******************************************************************************
   * @file    ota_upgrade.c
-  * @brief   Dual-bank firmware upgrade manager (STM32F429IGT6)
-  *
-  * OTA擦除策略 (解决双Bank模式下SNB 8-15不能擦除的硬件限制):
-  *   - 单Bank模式(DB1M=0): 擦 sector 8-11 (SNB 8-11), 标准 HAL 即可
-  *   - 双Bank+BFB2=1: 备用区=物理Bank1(SNB 0-7), SNB 0-7 始终能擦!
-  *   - 双Bank+BFB2=0: 上电时切回单Bank模式(为下次OTA做准备)
-  *
-  * 交替更新流程:
-  *   第1次: 单Bank擦sector8-11 → 写 → SetBankMode(1,1) → Bank2启动
-  *   第2次: BFB2=1擦SNB0-7 → 写 → SwitchAndReset → Bank1启动 → 上电切单Bank
-  *   第3次: 同第1次...
+  * @brief   Dual-bank firmware upgrade manager
   ******************************************************************************
   */
 #include "ota_upgrade.h"
@@ -38,13 +28,9 @@ static uint32_t    s_total_size   = 0;
 static uint32_t    s_expected_crc = 0;
 static uint32_t    s_standby_addr = 0;
 
-/* 备用区CPU地址始终是 0x08080000:
- *   单Bank: 0x08080000 = sector 8-11
- *   BFB2=0: 0x08080000 = 物理Bank2
- *   BFB2=1: 0x08080000 = 物理Bank1 (地址翻转) */
 static uint32_t get_standby_bank_addr(void)
 {
-    return BANK2_BASE_ADDR;  /* 0x08080000 */
+    return (BANK_GetActiveBank() == 1) ? BANK2_BASE_ADDR : BANK2_BASE_ADDR;
 }
 
 static void enable_backup_access(void)
@@ -63,114 +49,50 @@ static void write_bkp(uint32_t reg, uint32_t val)
     HAL_RTCEx_BKUPWrite(&hrtc, reg, val);
 }
 
-/* ==================== 擦除 ==================== */
-
-/**
- * @brief 单Bank模式下擦除 sector 8-11 (标准 HAL, 可靠)
- */
-static int erase_single_bank(void)
+static int erase_standby_bank(void)
 {
     FLASH_EraseInitTypeDef erase;
     uint32_t sector_error;
+    uint8_t  active = BANK_GetActiveBank();
 
+    /* STM32F429IGT6 (1MB) Flash 扇区布局:
+     *   sector 0-3:  16KB  (0x08000000-0x0800FFFF)
+     *   sector 4:    64KB  (0x08010000-0x0801FFFF)
+     *   sector 5-7: 128KB  (0x08020000-0x0807FFFF)
+     *   sector 8-11: 128KB (0x08080000-0x080FFFFF)  <-- 备用区(共512KB)
+     *
+     * 备用区 = sector 8,9,10,11 (4个128KB扇区), 覆盖 0x08080000-0x080FFFFF.
+     * 用 HAL_FLASHEx_Erase(Sector=8, NbSectors=4) 擦除这4个扇区.
+     * (之前用 SNB=8..15 只擦了前几个小扇区=64KB, 后面大扇区未擦干净,
+     *  导致写入时旧数据干扰 -> CRC 校验失败)
+     */
     erase.TypeErase    = FLASH_TYPEERASE_SECTORS;
-    erase.Banks        = FLASH_BANK_1;
-    erase.Sector       = FLASH_SECTOR_8;
-    erase.NbSectors    = 4;  /* sector 8,9,10,11 = 4×128KB = 512KB */
+    erase.Banks        = (active == 1) ? FLASH_BANK_2 : FLASH_BANK_1;
+    erase.Sector       = (active == 1) ? FLASH_SECTOR_12 : FLASH_SECTOR_0;     /* 从 sector 8 开始 (0x08080000) */
+    erase.NbSectors    = 8;                   /* 4个128KB扇区 = 512KB */
     erase.VoltageRange = FLASH_VOLTAGE_RANGE_3;
 
     HAL_FLASH_Unlock();
+
+    /* 清除可能残留的错误标志 */
     __HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR |
                            FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
+
+    OTA_FeedWatchdog();
     HAL_StatusTypeDef status = HAL_FLASHEx_Erase(&erase, &sector_error);
+    OTA_FeedWatchdog();
+
     HAL_FLASH_Lock();
 
     if (status != HAL_OK)
     {
-        printf("[OTA] Single-bank erase FAILED status=%d err=0x%lX\r\n", status, sector_error);
+        printf("[OTA] Bank erase FAILED, status=%d, sector_error=0x%lX\r\n",
+               status, sector_error);
         return -1;
     }
-    printf("[OTA] Single-bank erase OK (sector 8-11)\r\n");
+    printf("[OTA] Standby bank erased OK (sectors 8-11, 0x08080000-0x080FFFFF = 512KB)\r\n");
     return 0;
 }
-
-/**
- * @brief 双Bank+BFB2=1 模式下擦除物理Bank1 (SNB 0-7, 共8个扇区=512KB)
- * @note  SNB 0-7 始终能擦除(不管BFB2). 关中断+一次性写CR确保STRT生效.
- */
-static int erase_dual_bank_bfb2(void)
-{
-    printf("[OTA] Dual-bank erase: SNB 0-7 (physical Bank1 = standby)\r\n");
-
-    /* 解锁 Flash */
-    if (FLASH->CR & FLASH_CR_LOCK)
-    {
-        FLASH->KEYR = 0x45670123U;
-        FLASH->KEYR = 0xCDEF89ABU;
-    }
-    if (FLASH->CR & FLASH_CR_LOCK)
-    {
-        printf("[OTA] Flash unlock FAILED\r\n");
-        return -1;
-    }
-
-    FLASH->SR = 0x0000C3FFU;  /* 清除所有标志 */
-
-    uint32_t primask = __get_PRIMASK();
-    __disable_irq();
-
-    /* 逐 sector 擦除 (sector 0-7, 每个16K/64K/128K, 共512KB) */
-    for (uint32_t sector = 0; sector <= 7; sector++)
-    {
-        FLASH->CR &= ~(FLASH_CR_PSIZE | FLASH_CR_SNB | FLASH_CR_SER |
-                       FLASH_CR_MER | FLASH_CR_STRT);
-        FLASH->CR = FLASH_PSIZE_WORD | FLASH_CR_SER |
-                    (sector << FLASH_CR_SNB_Pos) | FLASH_CR_STRT;
-
-        uint32_t to = 4000000U;
-        while ((FLASH->SR & FLASH_SR_BSY) && (to-- > 0)) { }
-
-        uint32_t sr = FLASH->SR;
-        FLASH->CR &= ~(FLASH_CR_SER | FLASH_CR_SNB | FLASH_CR_STRT);
-        FLASH->SR = sr;
-
-        if (!primask) { __enable_irq(); OTA_FeedWatchdog(); __disable_irq(); }
-
-        if (sr & (FLASH_SR_WRPERR | FLASH_SR_PGSERR))
-        {
-            printf("[OTA] sector %lu erase ERROR SR=0x%08lX\r\n",
-                   (unsigned long)sector, (unsigned long)sr);
-            if (!primask) __enable_irq();
-            FLASH->CR |= FLASH_CR_LOCK;
-            return -1;
-        }
-    }
-
-    if (!primask) __enable_irq();
-    FLASH->CR |= FLASH_CR_LOCK;
-
-    printf("[OTA] Dual-bank erase OK (SNB 0-7)\r\n");
-    return 0;
-}
-
-/**
- * @brief 擦除备用区 (根据当前Bank模式选择策略)
- */
-static int erase_standby_bank(void)
-{
-    if (!BANK_IsDualBankMode())
-    {
-        /* 单Bank: 擦 sector 8-11 */
-        return erase_single_bank();
-    }
-    else
-    {
-        /* 双Bank+BFB2=1: 擦 SNB 0-7 (物理Bank1=备用区) */
-        return erase_dual_bank_bfb2();
-    }
-}
-
-/* ==================== 编程 ==================== */
 
 static int write_flash(uint32_t offset, const uint8_t *data, uint16_t len)
 {
@@ -189,8 +111,6 @@ static int write_flash(uint32_t offset, const uint8_t *data, uint16_t len)
     HAL_FLASH_Lock();
     return 0;
 }
-
-/* ==================== CRC32 ==================== */
 
 static uint32_t compute_hw_crc32(uint32_t len)
 {
@@ -219,8 +139,6 @@ static uint32_t compute_hw_crc32(uint32_t len)
     }
     return hcrc.Instance->DR;
 }
-
-/* ==================== OTA 状态机 ==================== */
 
 void OTA_Init(void)
 {
@@ -258,46 +176,14 @@ void OTA_BootCheck(void)
     }
 }
 
-/**
- * @brief 上电时检测Bank模式, 确保处于可OTA的状态
- * @note  在 main() 初始化后调用. 如果双Bank+BFB2=0(刚从Bank1启动),
- *        切换到单Bank模式, 为下次OTA做准备.
- *        应在 main() 的 USER CODE BEGIN 2 中, RTC初始化之后调用.
- */
-void OTA_PowerOnCheck(void)
-{
-    enable_backup_access();
-
-    /* 如果待确认(magic=PENDING), 保持双Bank以便回滚, 不切单Bank */
-    uint32_t magic = read_bkp(RTC_BKP_DR_OTA_MAGIC);
-    if (magic == OTA_MAGIC_PENDING)
-        return;
-
-    /* 已确认/初始状态: 如果双Bank+BFB2=0, 切单Bank以便下次OTA */
-    if (BANK_IsDualBankMode() && BANK_GetActiveBank() == 1)
-    {
-        printf("[OTA] PowerOn: dual-bank BFB2=0 -> switch to single-bank\r\n");
-        HAL_Delay(50);
-        BANK_SetBankMode(0, 0);  /* 不返回 */
-    }
-}
-
 void OTA_ConfirmIfPending(void)
 {
     uint32_t magic = read_bkp(RTC_BKP_DR_OTA_MAGIC);
     if (magic == OTA_MAGIC_PENDING)
     {
-        printf("[OTA] Firmware confirmed\r\n");
+        printf("[OTA] 固件已确认\r\n");
         write_bkp(RTC_BKP_DR_OTA_MAGIC, OTA_MAGIC_CONFIRMED);
         write_bkp(RTC_BKP_DR_OTA_TRIALS, 0);
-
-        /* 确认后, 如果双Bank+BFB2=0, 切单Bank为下次OTA做准备 */
-        if (BANK_IsDualBankMode() && BANK_GetActiveBank() == 1)
-        {
-            printf("[OTA] Confirmed -> switch to single-bank\r\n");
-            HAL_Delay(50);
-            BANK_SetBankMode(0, 0);  /* 不返回 */
-        }
     }
 }
 
@@ -311,6 +197,9 @@ int OTA_Begin(uint32_t total_size, uint32_t crc32)
     if (s_state != OTA_STATE_IDLE)
         return OTA_ERR_BUSY;
 
+    if (!BANK_IsDualBankMode())
+        return OTA_ERR_NOT_DUAL_BANK;
+
     if (total_size == 0 || total_size > BANK_SIZE)
         return OTA_ERR_OVERFLOW;
 
@@ -320,9 +209,8 @@ int OTA_Begin(uint32_t total_size, uint32_t crc32)
     s_next_seq     = 0;
     s_write_off    = 0;
 
-    printf("[OTA] BEGIN size=%lu crc=0x%08lX standby=0x%08lX %s\r\n",
-           total_size, crc32, s_standby_addr,
-           BANK_IsDualBankMode() ? "(dual-bank BFB2=1)" : "(single-bank)");
+    printf("[OTA] BEGIN size=%lu crc=0x%08lX standby=0x%08lX\r\n",
+           total_size, crc32, s_standby_addr);
 
     OTA_FeedWatchdog();
     if (erase_standby_bank() != 0)
@@ -400,20 +288,7 @@ int OTA_End(uint32_t crc32)
     s_state = OTA_STATE_DONE;
     g_ota_in_progress = 0;
     HAL_Delay(100);
-
-    /* 根据 Bank 模式选择切换方式 */
-    if (!BANK_IsDualBankMode())
-    {
-        /* 单Bank -> 双Bank + BFB2=1 (从Bank2启动新固件) */
-        printf("[OTA] Switching: single-bank -> dual-bank BFB2=1\r\n");
-        BANK_SetBankMode(1, 1);  /* 不返回 */
-    }
-    else
-    {
-        /* 双Bank BFB2=1 -> BFB2=0 (从Bank1启动新固件) */
-        printf("[OTA] Switching: BFB2=1 -> BFB2=0\r\n");
-        BANK_SwitchAndReset();  /* 不返回 */
-    }
+    BANK_SwitchAndReset();
 
     return OTA_OK;
 }
@@ -428,3 +303,4 @@ void OTA_GetStatus(OtaStatusResp_t *out)
     out->total_bytes    = s_total_size;
     out->standby_bank   = get_standby_bank_addr();
 }
+
