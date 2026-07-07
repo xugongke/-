@@ -25,6 +25,29 @@ wiz_NetInfo default_net_info = {
     .dhcp = NETINFO_DHCP
 };
 
+/**
+ * @brief 根据STM32唯一ID(UID)生成本地管理MAC地址
+ * @note  每片芯片的96位UID不同, 保证多台主机MAC互不相同, 从而:
+ *          1) DHCP 服务器会按不同MAC分配不同IP, 不会再IP冲突;
+ *          2) 局域网内二层地址不冲突.
+ *        MAC[0]=0x02 表示"本地管理单播地址"(LAM), 无需向IEEE购买.
+ *        注意: 之前 default_net_info.mac 写死成同一个值, 两台主机烧同一固件
+ *        就会MAC相同 -> DHCP分到同一个IP -> TCP连接被互相RST(10054).
+ */
+static void generate_mac_from_uid(uint8_t *mac)
+{
+    /* STM32F4 UID: 96-bit @ 0x1FFF7A10 / 0x1FFF7A14 / 0x1FFF7A18 */
+    uint32_t uid0 = *(uint32_t *)0x1FFF7A10U;
+    uint32_t uid1 = *(uint32_t *)0x1FFF7A14U;
+    uint32_t uid2 = *(uint32_t *)0x1FFF7A18U;
+    mac[0] = 0x02U;  /* 本地管理地址 + 单播 */
+    mac[1] = (uint8_t)(uid0 & 0xFF);
+    mac[2] = (uint8_t)((uid0 >> 8) & 0xFF);
+    mac[3] = (uint8_t)(uid1 & 0xFF);
+    mac[4] = (uint8_t)((uid1 >> 8) & 0xFF);
+    mac[5] = (uint8_t)(uid2 & 0xFF);
+}
+
 /* 上位机服务器IP和端口 */
 uint8_t  server_ip[4] = {192, 168, 6, 196};
 uint16_t server_port  = 22222;
@@ -282,13 +305,10 @@ static void frame_parser_process_byte(FrameParser_t *parser, uint8_t byte)
 
 void frame_parser_feed(FrameParser_t *parser, const uint8_t *data, uint16_t len)
 {
-    printf("Feeding byte: ");
     for (uint16_t i = 0; i < len; i++)
     {
-        printf("0x%02X ", data[i]);
         frame_parser_process_byte(parser, data[i]);
     }
-    printf("\r\n");
 }
 
 /* ================================================================
@@ -352,7 +372,6 @@ void tcp_send_frame(uint8_t type, uint8_t cmd, const uint8_t *data, uint16_t len
 
     uint16_t frame_len = build_frame(send_buf, type, cmd, data, len);
     int lenl = send(TCP_SOCKET_ID, send_buf, frame_len);
-    printf("给上位机发送了: %d 字节的数据\r\n", lenl);
 }
 
 /* ================================================================
@@ -645,6 +664,11 @@ void W5500_Task(void *argument)
     printf("W5500 TCP client\r\n");
     wizchip_initialize();
 
+    /* 用芯片UID生成全网唯一MAC, 覆盖写死的默认MAC, 避免多台主机DHCP分配到相同IP */
+    generate_mac_from_uid(default_net_info.mac);
+    printf("MAC = %02X:%02X:%02X:%02X:%02X:%02X\r\n",
+           default_net_info.mac[0], default_net_info.mac[1], default_net_info.mac[2],
+           default_net_info.mac[3], default_net_info.mac[4], default_net_info.mac[5]);
     /* 设置网络信息 */
     network_init(ethernet_buf, &default_net_info);
 

@@ -195,6 +195,55 @@ uint8_t BANK_SwitchAndReset(void)
 }
 
 /**
+ * @brief  设置Bank模式 (DB1M + BFB2) 并执行系统复位
+ * @param  dual_bank: 1=双Bank模式(DB1M=1), 0=单Bank模式(DB1M=0)
+ * @param  bfb2:      1=从Bank2启动(BFB2=1), 0=从Bank1启动(BFB2=0)
+ * @note   修改 Option Bytes 的 DB1M 和 BFB2 位, 然后 NVIC_SystemReset().
+ *         不会返回 (复位后从头执行).
+ *         用于 OTA 双Bank擦除: 先切单Bank(0,0)擦sector8-11, 再切回双Bank(1,0)或(1,1).
+ */
+uint8_t BANK_SetBankMode(uint8_t dual_bank, uint8_t bfb2)
+{
+    uint32_t optcr_val;
+
+    __disable_irq();
+
+    FLASH->SR = FLASH->SR;
+    while (FLASH->SR & FLASH_SR_BSY) {}
+
+    FLASH->KEYR = FLASH_KEY1;
+    FLASH->KEYR = FLASH_KEY2;
+    FLASH->OPTKEYR = FLASH_OPT_KEY1;
+    FLASH->OPTKEYR = FLASH_OPT_KEY2;
+    while (FLASH->SR & FLASH_SR_BSY) {}
+
+    optcr_val = FLASH->OPTCR;
+    if (dual_bank) optcr_val |= FLASH_OPTCR_DB1M;
+    else           optcr_val &= ~FLASH_OPTCR_DB1M;
+    if (bfb2)      optcr_val |= FLASH_OPTCR_BFB2;
+    else           optcr_val &= ~FLASH_OPTCR_BFB2;
+    optcr_val &= ~(FLASH_OPTCR_OPTSTRT | FLASH_OPTCR_OPTLOCK);
+
+    FLASH->OPTCR = optcr_val;
+    FLASH->OPTCR = optcr_val | FLASH_OPTCR_OPTSTRT;
+    while (FLASH->SR & FLASH_SR_BSY) {}
+
+    if (FLASH->SR & (FLASH_SR_PGSERR | FLASH_SR_PGPERR | FLASH_SR_PGAERR | FLASH_SR_WRPERR))
+    {
+        FLASH->OPTCR |= FLASH_OPTCR_OPTLOCK;
+        FLASH->CR |= FLASH_CR_LOCK;
+        return 1;
+    }
+
+    FLASH->OPTCR |= FLASH_OPTCR_OPTLOCK;
+    FLASH->CR |= FLASH_CR_LOCK;
+
+    for (volatile uint32_t d = 0; d < 5000000; d++) { __NOP(); }
+    NVIC_SystemReset();
+    return 0;
+}
+
+/**
  * @brief  打印当前Bank信息
  */
 void BANK_PrintInfo(void)

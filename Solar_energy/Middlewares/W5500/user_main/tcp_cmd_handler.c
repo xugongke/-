@@ -10,6 +10,7 @@
 #include "es1642_usage_guide.h"
 #include "mppt.h"
 #include "host_comm.h"
+#include "ota_upgrade.h"
 #include "socket.h"
 #include "cmsis_os.h"
 #include "fatfs.h"
@@ -29,6 +30,12 @@ static uint16_t g_remark_len = 0;  /* 备注信息实际长度 */
 
 /* ==================== 楼栋号RAM缓冲区 ==================== */
 static uint8_t g_building_no = 0;  /* 楼栋号(由上位机设置, 开机从SD卡加载) */
+
+/* ==================== OTA处理函数前向声明 ==================== */
+void tcp_resp_ota_begin(const uint8_t *data, uint16_t len);
+void tcp_resp_ota_data(const uint8_t *data, uint16_t len);
+void tcp_resp_ota_end(const uint8_t *data, uint16_t len);
+void tcp_resp_ota_status(void);
 
 /* ================================================================
  *  通用工具函数
@@ -120,6 +127,22 @@ void tcp_dispatch_frame(uint8_t type, uint8_t cmd, const uint8_t *data, uint16_t
         case CMD_GET_HOST_INFO:
             /* 读取主机信息: 数据域为空, 返回MAC+楼栋号 */
             tcp_resp_get_host_info();
+            break;
+
+        case CMD_OTA_BEGIN:
+            tcp_resp_ota_begin(data, len);
+            break;
+
+        case CMD_OTA_DATA:
+            tcp_resp_ota_data(data, len);
+            break;
+
+        case CMD_OTA_END:
+            tcp_resp_ota_end(data, len);
+            break;
+
+        case CMD_OTA_STATUS:
+            tcp_resp_ota_status();
             break;
 
         default:

@@ -25,6 +25,7 @@
 #include "fatfs.h"
 #include "i2c.h"
 #include "iwdg.h"
+#include "rtc.h"
 #include "sdio.h"
 #include "spi.h"
 #include "tim.h"
@@ -41,6 +42,7 @@
 #include "rs485_usart.h"
 #include "battery.h"
 #include "bank_switch.h"
+#include "ota_upgrade.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -123,6 +125,13 @@ int main(void)
   MX_ADC1_Init();
   MX_CRC_Init();
   MX_IWDG_Init();
+  MX_RTC_Init();
+
+  /* OTA: check trial boot / rollback (must be after MX_RTC_Init) */
+  OTA_Init();          // 初始化 OTA 状态变量
+  OTA_BootCheck();     // 回滚检查（如果 magic=PENDING）
+  OTA_PowerOnCheck();  // Bank 模式检查（如果双Bank+BFB2=0，切单Bank）
+
   /* USER CODE BEGIN 2 */
 	Battery_Init();
 	RS485_USART_Init_All();

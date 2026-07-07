@@ -68,6 +68,14 @@ uint8_t BANK_EnableDualBank(void);
 uint8_t BANK_SwitchAndReset(void);
 
 /**
+ * @brief  设置Bank模式 (DB1M + BFB2) 并执行系统复位
+ * @param  dual_bank: 1=双Bank(DB1M=1), 0=单Bank(DB1M=0)
+ * @param  bfb2: 1=从Bank2启动, 0=从Bank1启动
+ * @note   不会返回 (复位后从头执行). 用于OTA临时切单Bank擦除.
+ */
+uint8_t BANK_SetBankMode(uint8_t dual_bank, uint8_t bfb2);
+
+/**
  * @brief  打印当前Bank信息（通过串口）
  * @param  huart: UART句柄指针
  */

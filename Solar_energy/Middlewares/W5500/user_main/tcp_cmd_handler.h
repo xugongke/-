@@ -36,6 +36,12 @@
 #define CMD_SET_REMARK       0x09  /* 设置备注信息 */
 #define CMD_GET_REMARK       0x0A  /* 读取备注信息 */
 #define CMD_SEARCH_RESULT    0x0B  /* 搜索结果推送 (单片机→上位机) */
+
+/* OTA固件升级命令 */
+#define CMD_OTA_BEGIN        0x20  /* 开始升级: 上位机→MCU, 携带{总大小, CRC32} */
+#define CMD_OTA_DATA         0x21  /* 发送数据: 上位机→MCU, 携带{序号, data[]} */
+#define CMD_OTA_END          0x22  /* 执行升级: 上位机→MCU, 触发CRC校验+Bank切换 */
+#define CMD_OTA_STATUS       0x23  /* 查询状态: 上位机→MCU, 返回当前升级状态 */
 #define CMD_SET_BUILDING     0x0C  /* 设置楼栋号 */
 #define CMD_GET_HOST_INFO    0x0D  /* 读取主机信息(MAC+楼栋号) */
 
