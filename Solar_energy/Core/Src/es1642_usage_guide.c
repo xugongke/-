@@ -458,18 +458,33 @@ void es1642_on_frame_received(es1642_handle_t *handle,
             status = ES1642_DecodeRecvData(frame, &recv_data);
             if (status == ES1642_STATUS_OK)
             {
-                /* 将响应数据拷贝到全局响应缓冲区（供 ES1642_SendUserData 读取） */
-                memcpy(g_es1642_response.src_addr, recv_data.src_addr, ES1642_ADDR_LEN);
-                if (recv_data.user_data_len > 0 && recv_data.user_data != NULL && recv_data.user_data_len <= ES1642_RESP_MAX_LEN)
+                /* 通信地址匹配检查: 只有当前正在通信的从机(Current_addr)的响应才接受。
+                 * 防止上一个设备的延迟响应(超时后才到达)被误当作当前设备的数据，
+                 * 导致 energy_accum 错配、daily_energy_wh 暴增。 */
+                if (Current_addr != NULL &&
+                    memcmp(recv_data.src_addr, Current_addr, ES1642_ADDR_LEN) == 0)
                 {
-                    memcpy(g_es1642_response.data, recv_data.user_data, recv_data.user_data_len);
-                    g_es1642_response.data_len = recv_data.user_data_len;
+                    /* 地址匹配，将响应数据拷贝到全局响应缓冲区（供 ES1642_SendUserData 读取） */
+                    memcpy(g_es1642_response.src_addr, recv_data.src_addr, ES1642_ADDR_LEN);
+                    if (recv_data.user_data_len > 0 && recv_data.user_data != NULL && recv_data.user_data_len <= ES1642_RESP_MAX_LEN)
+                    {
+                        memcpy(g_es1642_response.data, recv_data.user_data, recv_data.user_data_len);
+                        g_es1642_response.data_len = recv_data.user_data_len;
+                    }
+                    else
+                    {
+                        g_es1642_response.data_len = 0;
+                    }
+                    osSemaphoreRelease(ES1642_sendHandle); /* 释放信号量，解除 ES1642_SendUserData 的阻塞 */
                 }
                 else
                 {
-                    g_es1642_response.data_len = 0;
+                    /* 地址不匹配: 这是其他设备的延迟响应(干扰数据)，丢弃，不释放信号量。
+                     * ES1642_SendUserData 会继续等待正确设备的响应或超时。 */
+                    printf("干扰数据: 收到来自 %02X:%02X:%02X:%02X:%02X:%02X 的响应, 与当前通信地址不匹配, 已丢弃\r\n",
+                           recv_data.src_addr[0], recv_data.src_addr[1], recv_data.src_addr[2],
+                           recv_data.src_addr[3], recv_data.src_addr[4], recv_data.src_addr[5]);
                 }
-                osSemaphoreRelease(ES1642_sendHandle); /* 释放信号量，解除 ES1642_SendUserData 的阻塞 */
             }
             break;
         }
@@ -673,7 +688,7 @@ int ES1642_SendUserData(int dev_index,
     /* ==============================================
     【第五步：等待从机响应】
     ==============================================*/
-    if (osSemaphoreAcquire(ES1642_sendHandle, pdMS_TO_TICKS(15000)) == osOK)
+    if (osSemaphoreAcquire(ES1642_sendHandle, pdMS_TO_TICKS(30000)) == osOK)
     {
         device_list[dev_index].comm_fail_cnt = 0;  /* 成功收到响应，通信失败次数清零 */
         device_list[dev_index].state.bits.comm_err = 0; /* 清除通信错误标志 */

@@ -816,6 +816,7 @@ void device_poll_and_control_all(void)
 
             /* 用电量差值计算 */
             uint32_t delta;
+            uint32_t last_old = last_energy_read[i];  /* 保存旧值用于诊断打印 */
             if (last_energy_read[i] == 0) {
                 delta = 0;  /* 首次/搜索后, 建立基准不累加 */
             } else if (energy_accum < last_energy_read[i]) {
@@ -825,7 +826,9 @@ void device_poll_and_control_all(void)
             }
             device_list[i].daily_energy_wh += delta;
             last_energy_read[i] = energy_accum;
-            printf("用户%d的今日累计用电量:%d Wh\r\n",device_list[i].addr[3],device_list[i].daily_energy_wh);
+            printf("用户%d: 日累计=%dWh (accum=%d, last=%d, delta=%d)\r\n",
+                   device_list[i].addr[3], device_list[i].daily_energy_wh,
+                   energy_accum, last_old, delta);
 						
 //														char topic[48];
 //														char payload[128];

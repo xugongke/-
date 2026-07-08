@@ -584,39 +584,39 @@ void DevicePoll_Task(void *argument)
        * - g_device_manage_mode: 上位机设备管理模式(搜索/绑定时置1), TCP断开自动清零
        * - g_es1642_searching:   ES1642正在搜索(载波总线占用), 搜索完成自动清零
        * 仅当两者均为0时才执行从机轮询, 避免轮询干扰设备搜索和绑定 */
-//      if(g_device_manage_mode == 0 && g_es1642_searching == 0)
-//      {
-//        /* ① MPPT采集+控制一体化(慢速采集→告警扫描→快速P&O控制闭环) */
-//        device_poll_and_control_all();
+      if(g_device_manage_mode == 0 && g_es1642_searching == 0)
+      {
+        /* ① MPPT采集+控制一体化(慢速采集→告警扫描→快速P&O控制闭环) */
+        device_poll_and_control_all();
 
-//        /* ② 太阳能发电量已在daily_energy_flush_to_sd中由各从机kWh累加到g_mppt.energy_kwh,
-//         *    不再需要在这里外部累加total_energy (保证发电量=Σ从机用电量) */
+        /* ② 太阳能发电量已在daily_energy_flush_to_sd中由各从机kWh累加到g_mppt.energy_kwh,
+         *    不再需要在这里外部累加total_energy (保证发电量=Σ从机用电量) */
 
-//        /* ⑤ 零点结算检测 */
-//        if (RX8025T_GetDate(&cur_date) == HAL_OK)
-//        {
-//            if (last_date.day != 0 && cur_date.day != last_date.day)
-//            {
-//                printf("检测到日期变化(20%02d-%02d-%02d → 20%02d-%02d-%02d)，执行零点结算\r\n",
-//                      last_date.year, last_date.month, last_date.day,
-//                      cur_date.year, cur_date.month, cur_date.day);
-//                daily_energy_flush_to_sd();  /* 将RAM中日累积电量写入SD卡 */
-//                solar_energy_flush();        /* 太阳能发电量结算并保存到SD卡 */
-//            }
-//            last_date = cur_date;
-//        }
-//      }
-//      else if(g_es1642_searching == 1)//就算是搜索期间tcp断开连接了，也会搜索完成之后再启动轮询
-//      {
-//        /* 搜索空闲超时检测: 60秒内无新设备被搜索到, 自动停止搜索
-//         * (解决TCP断连后无人发送停止搜索命令导致搜索永不结束的问题)
-//         * REPORT_SEARCH_RESULT每次收到新设备会刷新g_last_search_result_tick */
-//        if((osKernelGetTickCount() - g_last_search_result_tick) > SEARCH_IDLE_TIMEOUT_MS)
-//        {
-//            printf("搜索空闲超时(60秒无新设备), 自动停止搜索\r\n");
-//            tcp_resp_stop_search();
-//        }
-//      }
+        /* ⑤ 零点结算检测 */
+        if (RX8025T_GetDate(&cur_date) == HAL_OK)
+        {
+            if (last_date.day != 0 && cur_date.day != last_date.day)
+            {
+                printf("检测到日期变化(20%02d-%02d-%02d → 20%02d-%02d-%02d)，执行零点结算\r\n",
+                      last_date.year, last_date.month, last_date.day,
+                      cur_date.year, cur_date.month, cur_date.day);
+                daily_energy_flush_to_sd();  /* 将RAM中日累积电量写入SD卡 */
+                solar_energy_flush();        /* 太阳能发电量结算并保存到SD卡 */
+            }
+            last_date = cur_date;
+        }
+      }
+      else if(g_es1642_searching == 1)//就算是搜索期间tcp断开连接了，也会搜索完成之后再启动轮询
+      {
+        /* 搜索空闲超时检测: 60秒内无新设备被搜索到, 自动停止搜索
+         * (解决TCP断连后无人发送停止搜索命令导致搜索永不结束的问题)
+         * REPORT_SEARCH_RESULT每次收到新设备会刷新g_last_search_result_tick */
+        if((osKernelGetTickCount() - g_last_search_result_tick) > SEARCH_IDLE_TIMEOUT_MS)
+        {
+            printf("搜索空闲超时(60秒无新设备), 自动停止搜索\r\n");
+            tcp_resp_stop_search();
+        }
+      }
     osDelay(10000);  /* 10秒(控制+采集已在device_poll_and_control_all内完成) */
   }
   /* USER CODE END DevicePoll_Task */
