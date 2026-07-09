@@ -544,6 +544,8 @@ void daily_energy_flush_to_sd(void)
             user_data.update_time.seconds = rtc_now.seconds;
 
             /* 同步更新RAM缓存，这样就不用再读取一遍sd卡了 */
+            user_detail_cache[i].unit = user_data.unit;
+            user_detail_cache[i].room = user_data.room;
             user_detail_cache[i].daily_energy   = user_data.daily_energy;
             user_detail_cache[i].monthly_energy = user_data.monthly_energy;
             user_detail_cache[i].annual_energy  = user_data.annual_energy;

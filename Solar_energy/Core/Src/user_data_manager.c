@@ -295,6 +295,8 @@ void user_detail_cache_init(void)
         if (read_user_data(device_list[i].addr, &file_data) == 0)
         {
             /* 读取成功，填充缓存 */
+            user_detail_cache[i].unit = file_data.unit;
+            user_detail_cache[i].room = file_data.room;
             user_detail_cache[i].daily_energy   = file_data.daily_energy;
             user_detail_cache[i].monthly_energy = file_data.monthly_energy;
             user_detail_cache[i].annual_energy  = file_data.annual_energy;

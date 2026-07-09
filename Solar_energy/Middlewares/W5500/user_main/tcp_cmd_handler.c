@@ -419,8 +419,8 @@ void tcp_resp_stop_search_ok(void)
  *     + user_detail_cache_t[0..N-1] 原始字节
  *
  * 多字节字段均为小端序
- * 每个用户数据占 sizeof(user_detail_cache_t)=50 字节, 每包最多10个用户
- * 数据域最大 = 1(seq) + 2(total) + 2(count) + 10*50 = 505 ≤ 512
+ * 每个用户数据占 sizeof(user_detail_cache_t)=53 字节, 每包最多9个用户
+ * 数据域最大 = 1(seq) + 2(total) + 2(count) + 9*53 = 486 ≤ 512
  */
 void tcp_resp_user_data(void)
 {
@@ -456,7 +456,7 @@ void tcp_resp_user_data(void)
         remain = total_users - user_offset;
         count  = (remain > users_per_pack) ? users_per_pack : remain;
 
-        /* 计算数据域长度: 1(seq) + 2(total_user) + 2(pack_count) + count*50 */
+        /* 计算数据域长度: 1(seq) + 2(total_user) + 2(pack_count) + count*53 */
         data_len = 5 + (uint16_t)(count * sizeof(user_detail_cache_t));
         idx = 0;
 

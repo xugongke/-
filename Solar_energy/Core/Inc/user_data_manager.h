@@ -63,6 +63,8 @@ typedef struct {
  */
 #pragma pack(push, 1)
 typedef struct {
+    uint8_t  unit;           /* 单元号 */
+    uint16_t room;           /* 房间号 */
     float    daily_energy;      /* 日累积用电量(kWh) */
     float    monthly_energy;    /* 月累积用电量(kWh) */
     float    annual_energy;     /* 年累积用电量(kWh) */

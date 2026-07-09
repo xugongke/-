@@ -57,7 +57,7 @@
 
 /* ==================== 分包配置 ==================== */
 #define DEVICE_PER_PACKET    24    /* 读取设备列表每包最大设备数 (512-5)/sizeof(device_t=21)≈24 */
-#define USER_DATA_PER_PACKET 10    /* 读取从机用电量每包最大用户数据数 (512-5)/50≈10) */
+#define USER_DATA_PER_PACKET 9    /* 读取从机用电量每包最大用户数据数 (512-5)/53≈9) */
 
 /**
  * @brief   处理接收到的完整帧
