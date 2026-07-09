@@ -348,17 +348,58 @@ void setup_scr_screen_user_home(lv_ui *ui)
     lv_obj_set_style_bg_opa(ui->screen_user_home_label_2, 0, 0);
 
     /* ============================================================
-     *  底部信息栏 (左下角)
+     *  底部信息栏 (左下角) + 设置按钮
      * ============================================================ */
     {
         lv_obj_t *sys_label = lv_label_create(ui->screen_user_home);
-        lv_label_set_text(sys_label, LV_SYMBOL_HOME" 太阳能智能监控系统v1.0 ");
-        lv_obj_set_pos(sys_label, 12, 290);
+        lv_label_set_text(sys_label, LV_SYMBOL_HOME" 太阳能监控v1.0 ");
+        lv_obj_set_pos(sys_label, 12, 295);
         lv_obj_set_style_text_color(sys_label, lv_color_hex(0xE6EDF3), 0);
         lv_obj_set_style_text_font(sys_label, &lv_font_SourceHanSerifSC_Regular_16, 0);
         lv_obj_set_style_text_opa(sys_label, 200, 0);
         lv_obj_set_style_bg_opa(sys_label, 0, 0);
     }
+
+    /* 设置按钮 (底部居中偏右) */
+    ui->screen_user_home_btn_setting = lv_obj_create(ui->screen_user_home);
+    lv_obj_remove_style_all(ui->screen_user_home_btn_setting);
+    lv_obj_set_size(ui->screen_user_home_btn_setting, 110, 34);
+    lv_obj_set_pos(ui->screen_user_home_btn_setting, 205, 268);
+    lv_obj_set_style_radius(ui->screen_user_home_btn_setting, 10, 0);
+    lv_obj_set_style_bg_color(ui->screen_user_home_btn_setting, lv_color_hex(0x161B22), 0);
+    lv_obj_set_style_bg_opa(ui->screen_user_home_btn_setting, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_width(ui->screen_user_home_btn_setting, 1, 0);
+    lv_obj_set_style_border_color(ui->screen_user_home_btn_setting, lv_color_hex(0x30363D), 0);
+    lv_obj_set_style_border_opa(ui->screen_user_home_btn_setting, 80, 0);
+    lv_obj_set_style_shadow_width(ui->screen_user_home_btn_setting, 6, 0);
+    lv_obj_set_style_shadow_color(ui->screen_user_home_btn_setting, lv_color_hex(0xF0C040), 0);
+    lv_obj_set_style_shadow_opa(ui->screen_user_home_btn_setting, 25, 0);
+    lv_obj_set_style_shadow_ofs_y(ui->screen_user_home_btn_setting, 2, 0);
+    lv_obj_set_style_pad_all(ui->screen_user_home_btn_setting, 0, 0);
+    lv_obj_clear_flag(ui->screen_user_home_btn_setting, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_add_flag(ui->screen_user_home_btn_setting, LV_OBJ_FLAG_CLICKABLE);
+    {
+        lv_obj_t *set_icon = lv_label_create(ui->screen_user_home_btn_setting);
+        lv_label_set_text(set_icon, LV_SYMBOL_SETTINGS);
+        lv_obj_set_style_text_color(set_icon, lv_color_hex(0xF0C040), 0);
+        lv_obj_set_style_text_font(set_icon, &lv_font_SourceHanSerifSC_Regular_16, 0);
+        lv_obj_set_style_bg_opa(set_icon, 0, 0);
+        lv_obj_align(set_icon, LV_ALIGN_LEFT_MID, 12, 0);
+
+        lv_obj_t *set_lbl = lv_label_create(ui->screen_user_home_btn_setting);
+        lv_label_set_text(set_lbl, "设置 ");
+        lv_obj_set_style_text_color(set_lbl, lv_color_hex(0xE6EDF3), 0);
+        lv_obj_set_style_text_font(set_lbl, &lv_font_SourceHanSerifSC_Regular_16, 0);
+        lv_obj_set_style_bg_opa(set_lbl, 0, 0);
+        lv_obj_align(set_lbl, LV_ALIGN_LEFT_MID, 36, 0);
+    }
+    /* 聚焦样式 (蓝色边框高亮) */
+    lv_obj_set_style_border_width(ui->screen_user_home_btn_setting, 2, LV_PART_MAIN | LV_STATE_FOCUSED);
+    lv_obj_set_style_border_color(ui->screen_user_home_btn_setting, lv_color_hex(0xF0C040), LV_PART_MAIN | LV_STATE_FOCUSED);
+    lv_obj_set_style_border_opa(ui->screen_user_home_btn_setting, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_FOCUSED);
+    lv_obj_set_style_bg_color(ui->screen_user_home_btn_setting, lv_color_hex(0x1C2333), LV_PART_MAIN | LV_STATE_FOCUSED);
+    lv_obj_set_style_shadow_width(ui->screen_user_home_btn_setting, 12, LV_PART_MAIN | LV_STATE_FOCUSED);
+    lv_obj_set_style_shadow_opa(ui->screen_user_home_btn_setting, 60, LV_PART_MAIN | LV_STATE_FOCUSED);
 
     /* ============================================================
      *  顶部状态栏 (IP + 端口) - 药丸胶囊风格 (暗色主题)

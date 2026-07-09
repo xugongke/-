@@ -14,6 +14,7 @@
 #include "tcp_cmd_handler.h"
 #include "device_manager.h"
 #include "fatfs.h"
+#include "gui_guider.h"
 
 /* ==================== 网络配置 ==================== */
 wiz_NetInfo default_net_info = {
@@ -646,6 +647,14 @@ int tcp_config_load(void)
     if (found_ip && found_port) {
         printf("tcp_config_load: 读取成功 %d.%d.%d.%d:%d\r\n",
                server_ip[0], server_ip[1], server_ip[2], server_ip[3], server_port);
+        lv_snprintf(ip_buf, sizeof(ip_buf), "%d.%d.%d.%d ",server_ip[0], server_ip[1], server_ip[2], server_ip[3]);
+        lv_snprintf(port_buf, sizeof(port_buf), "%d ",server_port);
+
+        if(lv_obj_is_valid(guider_ui.screen_user_home_label_ip))
+        {
+            lv_label_set_text(guider_ui.screen_user_home_label_ip, ip_buf);
+            lv_label_set_text(guider_ui.screen_user_home_label_port, port_buf);
+        }
         return 0;
     } else {
         printf("tcp_config_load: 解析不完整 (ip=%d,port=%d), 使用默认配置\r\n",

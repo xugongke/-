@@ -174,5 +174,11 @@ void tcp_resp_get_host_info(void);
  */
 void building_no_load(void);
 
+/**
+ * @brief   获取当前楼栋号 (供UI显示使用)
+ * @return  楼栋号 (0~255)
+ */
+uint8_t tcp_get_building_no(void);
+
 #endif /* __TCP_CMD_HANDLER_H */
 

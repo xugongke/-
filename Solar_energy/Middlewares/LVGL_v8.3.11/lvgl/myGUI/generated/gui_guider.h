@@ -3,7 +3,7 @@
 * NXP Proprietary. This software is owned or controlled by NXP and may only be used strictly in
 * accordance with the applicable license terms. By expressly accepting such terms or by downloading, installing,
 * activating and/or otherwise using the software, you are agreeing that you have read, and that you agree to
-* comply with and are bound by, such license terms.  If you do not agree to be bound by the applicable license
+* comply with and be bound by, such license terms.  If you do not agree to be bound by the applicable license
 * terms, then you may not retain, install, activate or otherwise use the software.
 */
 
@@ -79,6 +79,15 @@ typedef struct
 	lv_obj_t *screen_tcp_setting_ta_ip;         /* IP地址输入框 */
 	lv_obj_t *screen_tcp_setting_ta_port;       /* 端口输入框 */
 	lv_obj_t *screen_tcp_setting_kb;            /* 虚拟键盘 */
+	lv_obj_t *screen_user_home_btn_setting;     /* 首页底部设置按钮 */
+	lv_obj_t *screen_sys_setting;               /* 系统设置页 */
+	bool screen_sys_setting_del;
+	lv_obj_t *screen_sys_setting_card_mac;      /* MAC地址卡片(可选中) */
+	lv_obj_t *screen_sys_setting_card_building; /* 楼栋号卡片(可选中) */
+	lv_obj_t *screen_sys_setting_card_tcp;      /* TCP服务器卡片(可选中,点击进入设置) */
+	lv_obj_t *screen_sys_setting_label_mac;     /* MAC地址值 */
+	lv_obj_t *screen_sys_setting_label_building;/* 楼栋号值 */
+	lv_obj_t *screen_sys_setting_label_tcp;     /* TCP服务器IP:端口值 */
 }lv_ui;
 
 typedef void (*ui_setup_scr_t)(lv_ui * ui);
@@ -109,6 +118,7 @@ void setup_scr_screen_user_detail(lv_ui *ui);
 void setup_scr_screen_solar(lv_ui *ui);
 void setup_scr_screen_alert(lv_ui *ui);
 void setup_scr_screen_tcp_setting(lv_ui *ui);
+void setup_scr_screen_sys_setting(lv_ui *ui);
 LV_FONT_DECLARE(lv_font_SourceHanSerifSC_Regular_16)
 LV_FONT_DECLARE(lv_font_montserratMedium_48)
 LV_FONT_DECLARE(lv_font_SourceHanSerifSC_Regular_12)

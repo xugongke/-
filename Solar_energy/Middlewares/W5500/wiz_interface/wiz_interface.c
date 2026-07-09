@@ -9,6 +9,8 @@
 #include "cmsis_os.h"
 
 #define W5500_VERSION 0x04
+char ip_buf[20];
+char port_buf[20];
 
 struct wiz_timer
 {
@@ -214,8 +216,6 @@ void wizchip_initialize(void)
  * @param   none
  * @return  none
  */
-char ip_buf[20];
-char port_buf[20];
 void print_network_information(void)
 {
     wiz_NetInfo net_info;
@@ -237,15 +237,6 @@ void print_network_information(void)
 //    printf(" Gateway     : %d.%d.%d.%d\r\n", net_info.gw[0], net_info.gw[1], net_info.gw[2], net_info.gw[3]);
 //    printf(" DNS         : %d.%d.%d.%d\r\n", net_info.dns[0], net_info.dns[1], net_info.dns[2], net_info.dns[3]);
 //    printf("====================================================================================================\r\n\r\n");
-		
-    lv_snprintf(ip_buf, sizeof(ip_buf), "%d.%d.%d.%d ",net_info.ip[0], net_info.ip[1], net_info.ip[2], net_info.ip[3]);
-		lv_snprintf(port_buf, sizeof(port_buf), "%d ",8080);
-		
-		if(lv_obj_is_valid(guider_ui.screen_user_home_label_ip))
-		{
-			lv_label_set_text(guider_ui.screen_user_home_label_ip, ip_buf);
-			lv_label_set_text(guider_ui.screen_user_home_label_port, port_buf);
-		}
 }
 
 /**

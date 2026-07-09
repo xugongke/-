@@ -23,6 +23,8 @@
 #include "battery.h"
 #include "user_main.h"
 #include "mppt.h"
+#include "es1642_usage_guide.h"
+#include "tcp_cmd_handler.h"
 extern lv_indev_t * indev_keypad;
 lv_group_t * g_keypad_group;//创建全局group(可被焦点选中的对象集合)指针，在lv_init后分配空间
 
@@ -73,26 +75,65 @@ static void screen_user_home_card_key_handler(lv_event_t *e)
         lv_event_stop_bubbling(e);
     }
     else if (key == LV_KEY_UP) {
-        /* UP (原↑键/PREV): 跳到 cont_3 (顶部状态栏) */
-        /* 将 cont_3 加入 group 并聚焦, 同时移除卡片以正确触发 DEFOCUSED */
-        lv_obj_add_flag(guider_ui.screen_user_home_cont_3, LV_OBJ_FLAG_CLICKABLE);
-        lv_obj_clear_flag(guider_ui.screen_user_home_cont_3, LV_OBJ_FLAG_SCROLLABLE);
-        lv_group_add_obj(g_keypad_group, guider_ui.screen_user_home_cont_3);
-        lv_group_focus_obj(guider_ui.screen_user_home_cont_3);
-        lv_group_remove_obj(guider_ui.screen_user_home_card_solar);
-        lv_group_remove_obj(guider_ui.screen_user_home_card_device);
-        lv_group_remove_obj(guider_ui.screen_user_home_card_alert);
-        /* cont_3 高亮样式 */
-        lv_obj_set_style_border_width(guider_ui.screen_user_home_cont_3, 2, 0);
-        lv_obj_set_style_border_color(guider_ui.screen_user_home_cont_3, lv_color_hex(0x58A6FF), 0);
-        lv_obj_set_style_border_opa(guider_ui.screen_user_home_cont_3, LV_OPA_COVER, 0);
+        /* UP: 阻止 (cont_3不再加入焦点组) */
         lv_event_stop_processing(e);
         lv_event_stop_bubbling(e);
     }
     else if (key == LV_KEY_DOWN) {
-        /* DOWN (原↓键/NEXT): 阻止, 不做任何操作 */
+        /* DOWN (原↓键/NEXT): 跳到底部设置按钮 */
+        lv_group_focus_obj(guider_ui.screen_user_home_btn_setting);
         lv_event_stop_processing(e);
         lv_event_stop_bubbling(e);
+    }
+}
+
+/**
+ * @brief  Home页面: 设置按钮按键处理
+ *         LV_KEY_UP → 回到上次聚焦的卡片
+ *         LV_KEY_LEFT/RIGHT/DOWN → 阻止
+ *         LV_KEY_ENTER → 触发CLICKED进入系统设置页
+ */
+static void screen_user_home_btn_setting_key_handler(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if (code != LV_EVENT_KEY) return;
+    uint32_t key = lv_event_get_key(e);
+
+    if (key == LV_KEY_UP) {
+        /* UP: 回到上次聚焦的卡片 */
+        lv_obj_t *cards[] = {
+            guider_ui.screen_user_home_card_solar,
+            guider_ui.screen_user_home_card_device,
+            guider_ui.screen_user_home_card_alert
+        };
+        if (s_home_focus_card < 3) {
+            lv_group_focus_obj(cards[s_home_focus_card]);
+        } else {
+            lv_group_focus_obj(guider_ui.screen_user_home_card_device);
+        }
+        lv_event_stop_processing(e);
+        lv_event_stop_bubbling(e);
+    }
+    else if (key == LV_KEY_DOWN || key == LV_KEY_LEFT || key == LV_KEY_RIGHT) {
+        /* 阻止, 不做任何操作 */
+        lv_event_stop_processing(e);
+        lv_event_stop_bubbling(e);
+    }
+    /* ENTER: 不拦截, 让LVGL触发CLICKED事件 */
+}
+
+/**
+ * @brief  Home页面: 设置按钮点击事件 (进入系统设置页)
+ */
+static void screen_user_home_btn_setting_event_handler(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if (code == LV_EVENT_CLICKED) {
+        ui_load_scr_animation(&guider_ui, &guider_ui.screen_sys_setting,
+                              guider_ui.screen_sys_setting_del,
+                              &guider_ui.screen_user_home_del,
+                              setup_scr_screen_sys_setting,
+                              LV_SCR_LOAD_ANIM_NONE, 10, 10, false, false);
     }
 }
 
@@ -119,6 +160,7 @@ static void screen_user_home_cont3_key_handler(lv_event_t *e)
         lv_group_add_obj(g_keypad_group, guider_ui.screen_user_home_card_solar);
         lv_group_add_obj(g_keypad_group, guider_ui.screen_user_home_card_device);
         lv_group_add_obj(g_keypad_group, guider_ui.screen_user_home_card_alert);
+        lv_group_add_obj(g_keypad_group, guider_ui.screen_user_home_btn_setting);
 
         lv_obj_t *cards[] = {
             guider_ui.screen_user_home_card_solar,
@@ -132,11 +174,11 @@ static void screen_user_home_cont3_key_handler(lv_event_t *e)
         }
     }
     else if (key == LV_KEY_ENTER) {
-        /* ENTER: 进入TCP服务器设置页 */
+        /* ENTER: 进入系统设置页 */
         lv_obj_set_style_border_width(guider_ui.screen_user_home_cont_3, 1, 0);
         lv_obj_set_style_border_color(guider_ui.screen_user_home_cont_3, lv_color_hex(0x30363D), 0);
         lv_obj_set_style_border_opa(guider_ui.screen_user_home_cont_3, 80, 0);
-        ui_load_scr_animation(&guider_ui, &guider_ui.screen_tcp_setting, guider_ui.screen_tcp_setting_del, &guider_ui.screen_user_home_del, setup_scr_screen_tcp_setting, LV_SCR_LOAD_ANIM_NONE, 10, 10, false, false);
+        ui_load_scr_animation(&guider_ui, &guider_ui.screen_sys_setting, guider_ui.screen_sys_setting_del, &guider_ui.screen_user_home_del, setup_scr_screen_sys_setting, LV_SCR_LOAD_ANIM_NONE, 10, 10, false, false);
     }
     /* 吞掉所有按键, 防止影响其他对象 */
     lv_event_stop_processing(e);
@@ -155,6 +197,7 @@ static void screen_user_home_event_handler (lv_event_t *e)
         lv_group_add_obj(g_keypad_group, guider_ui.screen_user_home_card_solar);
         lv_group_add_obj(g_keypad_group, guider_ui.screen_user_home_card_device);
         lv_group_add_obj(g_keypad_group, guider_ui.screen_user_home_card_alert);
+        lv_group_add_obj(g_keypad_group, guider_ui.screen_user_home_btn_setting);
         //为卡片和cont_3注册按键回调 (仅注册一次, 避免重复)
         {
             static bool s_home_key_cb_added = false;
@@ -170,6 +213,9 @@ static void screen_user_home_event_handler (lv_event_t *e)
                 lv_obj_clear_flag(guider_ui.screen_user_home_cont_3, LV_OBJ_FLAG_SCROLLABLE);
                 lv_obj_add_event_cb(guider_ui.screen_user_home_cont_3,
                                     screen_user_home_cont3_key_handler, LV_EVENT_KEY, NULL);
+                /* 设置按钮按键回调 */
+                lv_obj_add_event_cb(guider_ui.screen_user_home_btn_setting,
+                                    screen_user_home_btn_setting_key_handler, LV_EVENT_KEY, NULL);
                 s_home_key_cb_added = true;
             }
         }
@@ -312,6 +358,7 @@ void events_init_screen_user_home (lv_ui *ui)
     lv_obj_add_event_cb(ui->screen_user_home_card_solar, screen_user_home_card_solar_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->screen_user_home_card_device, screen_user_home_card_device_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->screen_user_home_card_alert, screen_user_home_card_alert_event_handler, LV_EVENT_ALL, ui);
+    lv_obj_add_event_cb(ui->screen_user_home_btn_setting, screen_user_home_btn_setting_event_handler, LV_EVENT_ALL, ui);
 }
 
 /* ======== User List 页事件处理 (分页版) ======== */
@@ -1410,6 +1457,104 @@ static void screen_tcp_setting_event_handler(lv_event_t *e)
 void events_init_screen_tcp_setting(lv_ui *ui)
 {
     lv_obj_add_event_cb(ui->screen_tcp_setting, screen_tcp_setting_event_handler, LV_EVENT_ALL, ui);
+}
+
+/* ======== Sys Setting 系统设置页事件处理 ======== */
+
+static void screen_sys_setting_event_handler(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    switch (code) {
+    case LV_EVENT_KEY:
+    {
+        uint32_t key = lv_event_get_key(e);
+        if (key == LV_KEY_ESC)
+        {
+            /* 返回首页 */
+            ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_home,
+                                  guider_ui.screen_user_home_del,
+                                  &guider_ui.screen_sys_setting_del,
+                                  setup_scr_screen_user_home,
+                                  LV_SCR_LOAD_ANIM_NONE, 10, 10, true, true);
+        }
+        break;
+    }
+    case LV_EVENT_SCREEN_LOADED:
+    {
+        char buf[40];
+
+        g_need_key_remap = 0;  /* 系统设置页面不需要重映射 */
+        lv_group_remove_all_objs(g_keypad_group);
+        /* 将3张卡片加入group, 支持上下键导航 */
+        lv_group_add_obj(g_keypad_group, guider_ui.screen_sys_setting_card_mac);
+        lv_group_add_obj(g_keypad_group, guider_ui.screen_sys_setting_card_building);
+        lv_group_add_obj(g_keypad_group, guider_ui.screen_sys_setting_card_tcp);
+        lv_indev_set_group(indev_keypad, g_keypad_group);
+        lv_group_focus_obj(guider_ui.screen_sys_setting_card_mac);
+
+        /* ======== 更新系统信息到UI ======== */
+
+        /* 主机MAC地址 */
+        if (g_host_mac_valid) {
+            lv_snprintf(buf, sizeof(buf), "%02X:%02X:%02X:%02X:%02X:%02X",
+                        g_host_mac[0], g_host_mac[1], g_host_mac[2],
+                        g_host_mac[3], g_host_mac[4], g_host_mac[5]);
+        } else {
+            lv_snprintf(buf, sizeof(buf), "%s", "未读取 ");
+        }
+        lv_label_set_text(guider_ui.screen_sys_setting_label_mac, buf);
+
+        /* 楼栋号 */
+        lv_snprintf(buf, sizeof(buf), "%d", tcp_get_building_no());
+        lv_label_set_text(guider_ui.screen_sys_setting_label_building, buf);
+
+        /* 服务器IP地址 */
+        /* TCP服务器 IP:端口 */
+        lv_snprintf(buf, sizeof(buf), "%s:%s", ip_buf, port_buf);
+        lv_label_set_text(guider_ui.screen_sys_setting_label_tcp, buf);
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+/* 系统设置页: TCP卡片事件处理 (点击进入TCP设置, ESC返回首页) */
+static void screen_sys_setting_card_tcp_event_handler(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if (code == LV_EVENT_CLICKED) {
+        ui_load_scr_animation(&guider_ui, &guider_ui.screen_tcp_setting,
+                              guider_ui.screen_tcp_setting_del,
+                              &guider_ui.screen_sys_setting_del,
+                              setup_scr_screen_tcp_setting,
+                              LV_SCR_LOAD_ANIM_NONE, 10, 10, false, false);
+    }
+}
+
+/* 系统设置页: MAC/楼栋卡片按键处理 (ESC返回首页) */
+static void screen_sys_setting_card_key_handler(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if (code == LV_EVENT_KEY) {
+        uint32_t key = lv_event_get_key(e);
+        if (key == LV_KEY_ESC) {
+            ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_home,
+                                  guider_ui.screen_user_home_del,
+                                  &guider_ui.screen_sys_setting_del,
+                                  setup_scr_screen_user_home,
+                                  LV_SCR_LOAD_ANIM_NONE, 10, 10, true, true);
+        }
+    }
+}
+
+void events_init_screen_sys_setting(lv_ui *ui)
+{
+    lv_obj_add_event_cb(ui->screen_sys_setting, screen_sys_setting_event_handler, LV_EVENT_ALL, ui);
+    lv_obj_add_event_cb(ui->screen_sys_setting_card_tcp, screen_sys_setting_card_tcp_event_handler, LV_EVENT_ALL, ui);
+    lv_obj_add_event_cb(ui->screen_sys_setting_card_mac, screen_sys_setting_card_key_handler, LV_EVENT_KEY, NULL);
+    lv_obj_add_event_cb(ui->screen_sys_setting_card_building, screen_sys_setting_card_key_handler, LV_EVENT_KEY, NULL);
+    lv_obj_add_event_cb(ui->screen_sys_setting_card_tcp, screen_sys_setting_card_key_handler, LV_EVENT_KEY, NULL);
 }
 
 void events_init(lv_ui *ui)

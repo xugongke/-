@@ -760,6 +760,15 @@ void building_no_load(void)
 }
 
 /**
+ * @brief   获取当前楼栋号 (供UI显示使用)
+ * @return  楼栋号 (0~255)
+ */
+uint8_t tcp_get_building_no(void)
+{
+    return g_building_no;
+}
+
+/**
  * @brief   处理设置楼栋号命令 (CMD_SET_BUILDING)
  *
  * 请求数据域: [楼栋号] (1字节)
