@@ -26,6 +26,7 @@
 #include "widgets_init.h"
 #include "custom.h"
 #include "battery.h"
+#include "ota_upgrade.h"
 
 
 void setup_scr_screen_user_home(lv_ui *ui)
@@ -352,7 +353,7 @@ void setup_scr_screen_user_home(lv_ui *ui)
      * ============================================================ */
     {
         lv_obj_t *sys_label = lv_label_create(ui->screen_user_home);
-        lv_label_set_text(sys_label, LV_SYMBOL_HOME" 太阳能监控v1.0 ");
+        lv_label_set_text(sys_label, LV_SYMBOL_HOME"太阳能监控 " FIRMWARE_VERSION " ");
         lv_obj_set_pos(sys_label, 12, 295);
         lv_obj_set_style_text_color(sys_label, lv_color_hex(0xE6EDF3), 0);
         lv_obj_set_style_text_font(sys_label, &lv_font_SourceHanSerifSC_Regular_16, 0);

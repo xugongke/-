@@ -235,8 +235,8 @@ static void screen_user_home_event_handler (lv_event_t *e)
             }
         }
         //显示IP地址和端口号
-        lv_label_set_text(guider_ui.screen_user_home_label_ip, ip_buf);
-        lv_label_set_text(guider_ui.screen_user_home_label_port, port_buf);
+        lv_label_set_text(guider_ui.screen_user_home_label_ip, server_ip_buf);
+        lv_label_set_text(guider_ui.screen_user_home_label_port, server_port_buf);
         break;
     }
     default:
@@ -1346,8 +1346,8 @@ static void tcp_save(void)
     tcp_config_save();
 
     /* 更新首页显示 */
-    lv_snprintf(ip_buf, sizeof(ip_buf), "%d.%d.%d.%d ", ip[0], ip[1], ip[2], ip[3]);
-    lv_snprintf(port_buf, sizeof(port_buf), "%d ", port);
+    lv_snprintf(server_ip_buf, sizeof(server_ip_buf), "%d.%d.%d.%d ", ip[0], ip[1], ip[2], ip[3]);
+    lv_snprintf(server_port_buf, sizeof(server_port_buf), "%d ", port);
 
     ui_load_scr_animation(&guider_ui, &guider_ui.screen_user_home,
                             guider_ui.screen_user_home_del,
@@ -1487,6 +1487,7 @@ static void screen_sys_setting_event_handler(lv_event_t *e)
         lv_group_remove_all_objs(g_keypad_group);
         /* 将3张卡片加入group, 支持上下键导航 */
         lv_group_add_obj(g_keypad_group, guider_ui.screen_sys_setting_card_mac);
+        lv_group_add_obj(g_keypad_group, guider_ui.screen_sys_setting_card_ip);
         lv_group_add_obj(g_keypad_group, guider_ui.screen_sys_setting_card_building);
         lv_group_add_obj(g_keypad_group, guider_ui.screen_sys_setting_card_tcp);
         lv_indev_set_group(indev_keypad, g_keypad_group);
@@ -1505,12 +1506,14 @@ static void screen_sys_setting_event_handler(lv_event_t *e)
         lv_label_set_text(guider_ui.screen_sys_setting_label_mac, buf);
 
         /* 楼栋号 */
-        lv_snprintf(buf, sizeof(buf), "%d", tcp_get_building_no());
+        lv_snprintf(buf, sizeof(buf), "%d号楼", tcp_get_building_no());
         lv_label_set_text(guider_ui.screen_sys_setting_label_building, buf);
 
-        /* 服务器IP地址 */
+        /* 本机IP地址 */
+        lv_label_set_text(guider_ui.screen_sys_setting_label_ip, client_ip_buf);
+
         /* TCP服务器 IP:端口 */
-        lv_snprintf(buf, sizeof(buf), "%s:%s", ip_buf, port_buf);
+        lv_snprintf(buf, sizeof(buf), "%s:%s", server_ip_buf, server_port_buf);
         lv_label_set_text(guider_ui.screen_sys_setting_label_tcp, buf);
         break;
     }
@@ -1554,6 +1557,7 @@ void events_init_screen_sys_setting(lv_ui *ui)
     lv_obj_add_event_cb(ui->screen_sys_setting_card_tcp, screen_sys_setting_card_tcp_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->screen_sys_setting_card_mac, screen_sys_setting_card_key_handler, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(ui->screen_sys_setting_card_building, screen_sys_setting_card_key_handler, LV_EVENT_KEY, NULL);
+    lv_obj_add_event_cb(ui->screen_sys_setting_card_ip, screen_sys_setting_card_key_handler, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(ui->screen_sys_setting_card_tcp, screen_sys_setting_card_key_handler, LV_EVENT_KEY, NULL);
 }
 

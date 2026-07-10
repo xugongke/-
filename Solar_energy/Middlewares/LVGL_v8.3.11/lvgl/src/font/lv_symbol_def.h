@@ -292,6 +292,14 @@ extern "C" {
 #define LV_SYMBOL_NEW_LINE        "\xEF\xA2\xA2" /*63650, 0xF8A2*/
 #endif
 
+#if !defined LV_SYMBOL_DESKTOP
+#define LV_SYMBOL_DESKTOP         "\xEF\x84\x88" /*61704, 0xF108*/
+#endif
+
+#if !defined LV_SYMBOL_SERVER
+#define LV_SYMBOL_SERVER          "\xEF\x88\xB3" /*61995, 0xF233*/
+#endif
+
 #if !defined LV_SYMBOL_DUMMY
 /** Invalid symbol at (U+F8FF). If written before a string then `lv_img` will show it as a label*/
 #define LV_SYMBOL_DUMMY           "\xEF\xA3\xBF"
@@ -382,6 +390,8 @@ enum {
     _LV_STR_SYMBOL_BACKSPACE,
     _LV_STR_SYMBOL_SD_CARD,
     _LV_STR_SYMBOL_NEW_LINE,
+    _LV_STR_SYMBOL_DESKTOP,
+    _LV_STR_SYMBOL_SERVER,
     _LV_STR_SYMBOL_DUMMY,
 };
 

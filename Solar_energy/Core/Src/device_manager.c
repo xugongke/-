@@ -211,8 +211,12 @@ int update_device(uint8_t *mac, uint8_t *addr)
                 * 注意：这里用 ES1642_ADDR_LEN(6) 而不是 sizeof(addr)，因为 addr 是指针，sizeof 指针为 4
                 */
             uint8_t cmd_buf[2 + ES1642_ADDR_LEN]; // cmd(1) + len(1) + data(6) = 8字节
+            RX8025T_Time current_time;
             cmd_buf[0] = SLAVE_CMD_SET_ADDR;       // 命令: 修改通信地址
             cmd_buf[1] = ES1642_ADDR_LEN;           // 数据长度: 6
+            RX8025T_GetTime(&current_time); // 获取当前时分秒，放到通信地址最后面
+            addr[4] = current_time.minutes;
+            addr[5] = current_time.seconds;
             memcpy(&cmd_buf[2], addr, ES1642_ADDR_LEN); // 数据: 新通信地址
             ret = ES1642_SendUserData(index, cmd_buf, sizeof(cmd_buf), 0, &response);
 

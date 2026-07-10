@@ -42,6 +42,9 @@ typedef enum {
     OTA_STATE_DONE      = 3,   /**< 已完成(等待复位) */
 } ota_state_t;
 
+/* ==================== 固件版本号 ==================== */
+#define FIRMWARE_VERSION  "v1.0"
+
 /* ==================== TCP协议数据结构 ==================== */
 #pragma pack(push, 1)
 
@@ -71,6 +74,7 @@ typedef struct {
     uint32_t received_bytes;  /**< 已接收字节数 */
     uint32_t total_bytes;     /**< 固件总大小 */
     uint32_t standby_bank;    /**< 备用Bank基地址 */
+    char     version[16];     /**< 固件版本号 (如 "v1.0") */
 } OtaStatusResp_t;
 
 #pragma pack(pop)

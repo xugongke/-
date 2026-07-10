@@ -3,8 +3,9 @@
 
 #include "wizchip_conf.h"
 
-extern char ip_buf[20];
-extern char port_buf[20];
+extern char server_ip_buf[20];
+extern char server_port_buf[20];
+extern char client_ip_buf[20];
 
 /**
  * @brief Add a new timer node to the timer chain table

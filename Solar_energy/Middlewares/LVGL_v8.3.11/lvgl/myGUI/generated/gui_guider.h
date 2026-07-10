@@ -85,9 +85,11 @@ typedef struct
 	lv_obj_t *screen_sys_setting_card_mac;      /* MAC地址卡片(可选中) */
 	lv_obj_t *screen_sys_setting_card_building; /* 楼栋号卡片(可选中) */
 	lv_obj_t *screen_sys_setting_card_tcp;      /* TCP服务器卡片(可选中,点击进入设置) */
+	lv_obj_t *screen_sys_setting_card_ip;       /* 本机IP卡片(可选中) */
 	lv_obj_t *screen_sys_setting_label_mac;     /* MAC地址值 */
 	lv_obj_t *screen_sys_setting_label_building;/* 楼栋号值 */
 	lv_obj_t *screen_sys_setting_label_tcp;     /* TCP服务器IP:端口值 */
+	lv_obj_t *screen_sys_setting_label_ip;      /* 本机IP值 */
 }lv_ui;
 
 typedef void (*ui_setup_scr_t)(lv_ui * ui);

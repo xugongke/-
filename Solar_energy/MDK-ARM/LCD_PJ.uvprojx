@@ -1059,6 +1059,11 @@
               <FileType>1</FileType>
               <FilePath>..\Core\Src\ota_upgrade.c</FilePath>
             </File>
+            <File>
+              <FileName>ota_upgrade.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Core\Inc\ota_upgrade.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

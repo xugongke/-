@@ -9,8 +9,9 @@
 #include "cmsis_os.h"
 
 #define W5500_VERSION 0x04
-char ip_buf[20];
-char port_buf[20];
+char server_ip_buf[20];
+char server_port_buf[20];
+char client_ip_buf[20];
 
 struct wiz_timer
 {
@@ -220,6 +221,8 @@ void print_network_information(void)
 {
     wiz_NetInfo net_info;
     wizchip_getnetinfo(&net_info); // Get chip configuration information
+
+    lv_snprintf(client_ip_buf, sizeof(client_ip_buf), "%d.%d.%d.%d ",net_info.ip[0], net_info.ip[1], net_info.ip[2], net_info.ip[3]);
 
 //    if (net_info.dhcp == NETINFO_DHCP)
 //    {

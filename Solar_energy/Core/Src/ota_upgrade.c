@@ -314,4 +314,6 @@ void OTA_GetStatus(OtaStatusResp_t *out)
     out->received_bytes = s_write_off;
     out->total_bytes    = s_total_size;
     out->standby_bank   = BANK2_BASE_ADDR;  /* 备用区地址固定 0x08080000 */
+    strncpy(out->version, FIRMWARE_VERSION, sizeof(out->version) - 1);
+    out->version[sizeof(out->version) - 1] = '\0';
 }
