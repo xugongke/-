@@ -236,6 +236,22 @@ int update_device(uint8_t *mac, uint8_t *addr)
                     device_changed = 1;
                     /* 为新的通信地址创建数据文件,这里后面要加一个重复绑定判断 */
                     ensure_user_data_file(device_list[index].addr, device_list[index].mac);
+                    /*把新的通信地址对应的文件更新到RAM*/
+                    user_data_file_t file_data;
+                    if (read_user_data(device_list[index].addr, &file_data) == 0)
+                    {
+                        /* 读取成功，填充缓存 */
+                        user_detail_cache[index].unit = file_data.unit;
+                        user_detail_cache[index].room = file_data.room;
+                        user_detail_cache[index].daily_energy   = file_data.daily_energy;
+                        user_detail_cache[index].monthly_energy = file_data.monthly_energy;
+                        user_detail_cache[index].annual_energy  = file_data.annual_energy;
+                        user_detail_cache[index].total_energy   = file_data.total_energy;
+                        memcpy(user_detail_cache[index].weekly_energy, file_data.weekly_energy,
+                            sizeof(file_data.weekly_energy));
+                        memcpy(&user_detail_cache[index].update_time, &file_data.update_time,
+                            sizeof(file_data.update_time));
+                    }
                 }
                 else
                 {
