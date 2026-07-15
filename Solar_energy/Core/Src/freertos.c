@@ -566,6 +566,7 @@ void DevicePoll_Task(void *argument)
   /* USER CODE BEGIN DevicePoll_Task */
   RX8025T_Date last_date = {0};  /* 记录上一次的日期，用于检测零点 */
   RX8025T_Date cur_date;
+  uint8_t energy_flushed_today = 0;  /* 今日已结算标志(重启自动归零): 防止低电量结算与零点结算重复执行 */
 
   osDelay(5000);//等待es1642收到帧头错误
 	/* 读取ES1642模块MAC地址作为主机唯一标识(异步, 响应在帧回调中保存到g_host_mac) */
@@ -580,6 +581,19 @@ void DevicePoll_Task(void *argument)
   /* Infinite loop */
   for(;;)
   {
+      /* ===== 低电量提前结算(防止夜间锂电池耗尽关机导致RAM数据丢失) =====
+       * 晚上太阳能板不发电, 主机靠锂电池维持。如果电池撑不到零点就关机,
+       * RAM中的daily_energy_wh会全部丢失。电量<50%时提前结算到SD卡。
+       * energy_flushed_today标志防止与零点结算重复执行(重复执行会导致
+       * daily_energy_wh被清零但未写入SD卡, 数据丢失)。 */
+      if (!energy_flushed_today && Battery_GetPercentage() < 50)
+      {
+          printf("低电量(%d%%), 提前执行电量结算\r\n", Battery_GetPercentage());
+          daily_energy_flush_to_sd();  /* 将RAM中日累积电量写入SD卡 */
+          solar_energy_flush();        /* 太阳能发电量结算并保存到SD卡 */
+          energy_flushed_today = 1;    /* 标记今日已结算, 零点不再重复 */
+      }
+
       /* 双重轮询门控:
        * - g_device_manage_mode: 上位机设备管理模式(搜索/绑定时置1), TCP断开自动清零
        * - g_es1642_searching:   ES1642正在搜索(载波总线占用), 搜索完成自动清零
@@ -600,8 +614,13 @@ void DevicePoll_Task(void *argument)
                 printf("检测到日期变化(20%02d-%02d-%02d → 20%02d-%02d-%02d)，执行零点结算\r\n",
                       last_date.year, last_date.month, last_date.day,
                       cur_date.year, cur_date.month, cur_date.day);
-                daily_energy_flush_to_sd();  /* 将RAM中日累积电量写入SD卡 */
-                solar_energy_flush();        /* 太阳能发电量结算并保存到SD卡 */
+                /* 如果低电量结算已执行过, 跳过(避免重复清零导致数据丢失) */
+                if (!energy_flushed_today)
+                {
+                    daily_energy_flush_to_sd();  /* 将RAM中日累积电量写入SD卡 */
+                    solar_energy_flush();        /* 太阳能发电量结算并保存到SD卡 */
+                }
+                energy_flushed_today = 0;  /* 新的一天, 重置标志 */
             }
             last_date = cur_date;
         }
