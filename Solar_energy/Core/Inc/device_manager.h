@@ -56,6 +56,11 @@ extern uint16_t device_count;
  * (仅当两者均为0时才执行从机轮询) */
 extern volatile uint8_t g_device_manage_mode;
 
+/* 夜间模式标志: 1=夜间(光照不足,停止轮询,只做金丝雀探测), 0=白天(正常轮询)
+ * 由 device_poll_and_control_all 在检测到"通信超时+光照不足"时置1
+ * 由 DevicePoll_Task 在金丝雀全员恢复后清零 */
+extern volatile uint8_t g_night_mode;
+
 // ================== 接口函数 ==================
 
 /**
@@ -213,6 +218,13 @@ int find_device_by_addr(const uint8_t *addr);
  *        MPPT决策(target[])由 MPPT_Decide() 在调用本函数之前完成
  */
 void device_poll_and_control_all(void);
+
+/**
+ * @brief 通信错误金丝雀探测: 每轮挑1台comm_err设备发0x04探测
+ * @note   夜间模式下由DevicePoll_Task直接调用(只做金丝雀,不轮询从机)
+ *         探测成功→全员清comm_err→清g_night_mode(退出夜间模式)
+ */
+void comm_err_canary_probe(void);
 
 /** 各设备上次从从机读取的累计用电量(Wh)，用于差值计算 */
 extern uint32_t last_energy_read[MAX_DEVICES];

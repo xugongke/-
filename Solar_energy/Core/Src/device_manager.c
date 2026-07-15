@@ -8,6 +8,7 @@
 #include "cmsis_os.h"
 #include "fatfs.h"
 #include "mppt.h"
+#include "battery.h"          /* Solar_GetVoltage() 用于夜间模式光照判断 */
 
 // ================== 从机命令定义 ==================
 #define SLAVE_CMD_SET_ADDR    0x01  // 修改通信地址命令
@@ -22,7 +23,7 @@
 // ================== 全局变量 ==================
 device_t device_list[MAX_DEVICES];
 uint16_t device_count = 0;
-
+volatile uint8_t g_night_mode;
 /* 设备管理模式标志: 1=处于管理模式(从机轮询暂停), 0=正常轮询
  * 由上位机CMD_DEVICE_MANAGE_MODE(0x02)命令设置, TCP断开时自动清零 */
 volatile uint8_t g_device_manage_mode = 0;
@@ -740,7 +741,7 @@ int find_device_by_addr(const uint8_t *addr)
  *         会立即重新轮询它们。仍不可达的远端从机会在下一次超时后被重新标记。
  *         金丝雀按游标轮询选取, 不解析响应数据(由本轮正常轮询刷新)。
  */
-static void comm_err_canary_probe(void)
+void comm_err_canary_probe(void)
 {
     static uint16_t cursor = 0;                  /* 轮询游标 */
     uint8_t read_cmd[2] = {SLAVE_CMD_READ_STATUS, 0x00};
@@ -780,6 +781,12 @@ static void comm_err_canary_probe(void)
             {
                 device_list[k].state.bits.comm_err = 0;
             }
+        }
+        /* 载波恢复 → 退出夜间模式 */
+        if (g_night_mode)
+        {
+            g_night_mode = 0;
+            printf("载波恢复, 退出夜间模式, 恢复正常轮询\r\n");
         }
     }
     /* 探测失败(超时): 什么都不做, 游标已前进, 下轮换一台再试 */
@@ -884,6 +891,21 @@ void device_poll_and_control_all(void)
 //														{
 //																printf("MQTT发布失败: %s\r\n", topic);
 //														}
+        }
+        else if (ret == -2 && Solar_GetVoltage() < 28.0f)
+        {
+            /* 通信超时 + 光照不足(太阳能电压<28V) → 进入夜间模式。
+             * 不进行结算(结算由电池电量<50%独立触发,更可靠)。
+             * 全员标记 comm_err, 让金丝雀有探测目标;
+             * 早晨载波恢复后金丝雀探测成功会全员清 comm_err → 退出夜间模式。 */
+            printf("通信超时 + 光照不足(%.1fV), 进入夜间模式\r\n", Solar_GetVoltage());
+            g_night_mode = 1;
+            for (uint16_t k = 0; k < device_count; k++)
+            {
+                if (device_list[k].state.bits.valid)
+                    device_list[k].state.bits.comm_err = 1;
+            }
+            break;  /* 中断本次轮询, DevicePoll_Task下次循环进入夜间模式 */
         }
         osDelay(250);  /* 设备间间隔250ms，避免载波通信冲突 */
     }

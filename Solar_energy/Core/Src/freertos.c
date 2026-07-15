@@ -566,7 +566,7 @@ void DevicePoll_Task(void *argument)
   /* USER CODE BEGIN DevicePoll_Task */
   RX8025T_Date last_date = {0};  /* 记录上一次的日期，用于检测零点 */
   RX8025T_Date cur_date;
-  uint8_t energy_flushed_today = 0;  /* 今日已结算标志(重启自动归零): 防止低电量结算与零点结算重复执行 */
+  uint8_t energy_flushed_today = 1;  /* 初始化为1: 防止重启后电量<50%立即触发空结算, 等系统恢复(V>28V+电池≥80%)才重置为0 */
 
   osDelay(5000);//等待es1642收到帧头错误
 	/* 读取ES1642模块MAC地址作为主机唯一标识(异步, 响应在帧回调中保存到g_host_mac) */
@@ -581,17 +581,35 @@ void DevicePoll_Task(void *argument)
   /* Infinite loop */
   for(;;)
   {
+      printf("电池电量:%d\r\n", Battery_GetPercentage());
+      /* ===== 白天系统恢复 → 重置结算标志, 允许新一天结算 =====
+       * 结算(低电量/零点)后energy_flushed_today=1, 只有第二天光照充足
+       * (V>28V)且电池充到80%时才重置为0, 确保一天只结算一次。 */
+      if (Solar_GetVoltage() > 28.0f && Battery_GetPercentage() >= 80)
+      {
+          energy_flushed_today = 0;
+          printf("系统恢复(光照充足+电池%d%%), 重置结算标志\r\n", Battery_GetPercentage());
+      }
+
       /* ===== 低电量提前结算(防止夜间锂电池耗尽关机导致RAM数据丢失) =====
        * 晚上太阳能板不发电, 主机靠锂电池维持。如果电池撑不到零点就关机,
        * RAM中的daily_energy_wh会全部丢失。电量<50%时提前结算到SD卡。
-       * energy_flushed_today标志防止与零点结算重复执行(重复执行会导致
-       * daily_energy_wh被清零但未写入SD卡, 数据丢失)。 */
+       * energy_flushed_today标志防止与零点结算重复执行。 */
       if (!energy_flushed_today && Battery_GetPercentage() < 50)
       {
           printf("低电量(%d%%), 提前执行电量结算\r\n", Battery_GetPercentage());
           daily_energy_flush_to_sd();  /* 将RAM中日累积电量写入SD卡 */
           solar_energy_flush();        /* 太阳能发电量结算并保存到SD卡 */
           energy_flushed_today = 1;    /* 标记今日已结算, 零点不再重复 */
+      }
+
+      /* ===== 夜间模式: 只做金丝雀探测, 不轮询从机, 省电 =====
+       * 金丝雀探测成功→全员清comm_err+清g_night_mode(在canary内部完成) */
+      if (g_night_mode)
+      {
+          comm_err_canary_probe();  /* 金丝雀探测, 成功时自动退出夜间模式 */
+          osDelay(60000);           /* 夜间60秒/轮, 省电 */
+          continue;                 /* 跳过正常轮询和osDelay(10000) */
       }
 
       /* 双重轮询门控:
@@ -619,8 +637,8 @@ void DevicePoll_Task(void *argument)
                 {
                     daily_energy_flush_to_sd();  /* 将RAM中日累积电量写入SD卡 */
                     solar_energy_flush();        /* 太阳能发电量结算并保存到SD卡 */
+                    energy_flushed_today = 1;  /* 标记今日已结算, 等待次日系统恢复(V>28V+电池≥80%)才重置 */
                 }
-                energy_flushed_today = 0;  /* 新的一天, 重置标志 */
             }
             last_date = cur_date;
         }
