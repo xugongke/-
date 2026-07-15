@@ -3,7 +3,7 @@
 <title>Static Call Graph - [LCD_PJ\LCD_PJ.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image LCD_PJ\LCD_PJ.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060960: Last Updated: Wed Jul 15 11:13:53 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060960: Last Updated: Wed Jul 15 11:51:55 2026
 <BR><P>
 <H3>Maximum Stack Usage =       2284 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -681,7 +681,7 @@ Global Symbols
 <LI><a href="#[1d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_BuildFrame
 <LI><a href="#[6c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;user_detail_cache_init
 <LI><a href="#[722]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_device
-<LI><a href="#[1d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;daily_energy_flush_to_sd
+<LI><a href="#[1d3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;daily_energy_flush_to_sd
 <LI><a href="#[2ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;compute_hw_crc32
 <LI><a href="#[17c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;at_process_data
 <LI><a href="#[168]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_SendAT
@@ -709,8 +709,8 @@ Global Symbols
 <P><STRONG><a name="[42e]"></a>__aeabi_memmove4</STRONG> (Thumb, 0 bytes, Stack size 8 bytes, memmovea.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = __aeabi_memmove4
 </UL>
-<BR>[Called By]<UL><LI><a href="#[1d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;daily_energy_flush_to_sd
-<LI><a href="#[1d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_flush
+<BR>[Called By]<UL><LI><a href="#[1d3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;daily_energy_flush_to_sd
+<LI><a href="#[1d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_flush
 </UL>
 
 <P><STRONG><a name="[789]"></a>__aeabi_memmove8</STRONG> (Thumb, 0 bytes, Stack size 8 bytes, memmovea.o(.text), UNUSED)
@@ -888,10 +888,10 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[1b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Solar_Widget_Update
 <LI><a href="#[ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;user_list_item_event_handler
 <LI><a href="#[29b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MPPT_ControlLoop
-<LI><a href="#[1d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;daily_energy_flush_to_sd
+<LI><a href="#[1d3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;daily_energy_flush_to_sd
 <LI><a href="#[169]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;A7680C_HTTP_GetWeatherData
 <LI><a href="#[6c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_init
-<LI><a href="#[1d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_flush
+<LI><a href="#[1d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_flush
 <LI><a href="#[b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;screen_solar_event_handler
 <LI><a href="#[742]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_resp_solar_energy
 </UL>
@@ -1539,7 +1539,7 @@ Global Symbols
 <P><STRONG><a name="[17]"></a>DebugMon_Handler</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, stm32f4xx_it.o(i.DebugMon_Handler))
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f429xx.o(RESET)
 </UL>
-<P><STRONG><a name="[99]"></a>DevicePoll_Task</STRONG> (Thumb, 192 bytes, Stack size 24 bytes, freertos.o(i.DevicePoll_Task))
+<P><STRONG><a name="[99]"></a>DevicePoll_Task</STRONG> (Thumb, 236 bytes, Stack size 24 bytes, freertos.o(i.DevicePoll_Task))
 <BR><BR>[Stack]<UL><LI>Max Depth = 1692<LI>Call Chain = DevicePoll_Task &rArr; device_poll_and_control_all &rArr; MPPT_ControlLoop &rArr; device_ctrl_heater &rArr; ES1642_SendUserData &rArr; ES1642_SendData &rArr; ES1642_SendFrame &rArr; ES1642_BuildFrame &rArr; es1642_calc_checksum
 </UL>
 <BR>[Calls]<UL><LI><a href="#[1d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osKernelGetTickCount
@@ -1547,10 +1547,10 @@ Global Symbols
 <LI><a href="#[1d2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_GetDate
 <LI><a href="#[197]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Battery_GetPercentage
 <LI><a href="#[1d0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osDelay
-<LI><a href="#[1d3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_poll_and_control_all
-<LI><a href="#[1d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;daily_energy_flush_to_sd
+<LI><a href="#[1d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_poll_and_control_all
+<LI><a href="#[1d3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;daily_energy_flush_to_sd
 <LI><a href="#[1d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_resp_stop_search
-<LI><a href="#[1d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_flush
+<LI><a href="#[1d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_flush
 <LI><a href="#[16e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> freertos.o(i.MX_FREERTOS_Init)
@@ -1841,7 +1841,7 @@ Global Symbols
 </UL>
 <BR>[Called By]<UL><LI><a href="#[2a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_ctrl_heater
 <LI><a href="#[722]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_device
-<LI><a href="#[1d3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_poll_and_control_all
+<LI><a href="#[1d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_poll_and_control_all
 <LI><a href="#[412]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;comm_err_canary_probe
 </UL>
 
@@ -1887,6 +1887,7 @@ Global Symbols
 </UL>
 <BR>[Called By]<UL><LI><a href="#[2d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Process_USART6_Data
 <LI><a href="#[1d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_resp_stop_search
+<LI><a href="#[31e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_client_connect
 </UL>
 
 <P><STRONG><a name="[95]"></a>ES1642_Task</STRONG> (Thumb, 86 bytes, Stack size 0 bytes, freertos.o(i.ES1642_Task))
@@ -3104,7 +3105,7 @@ Global Symbols
 <LI><a href="#[29e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;count_schedulable_devices
 <LI><a href="#[16e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[1d3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_poll_and_control_all
+<BR>[Called By]<UL><LI><a href="#[1d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_poll_and_control_all
 </UL>
 
 <P><STRONG><a name="[2a2]"></a>MX_ADC1_Init</STRONG> (Thumb, 90 bytes, Stack size 24 bytes, adc.o(i.MX_ADC1_Init))
@@ -3590,9 +3591,9 @@ Global Symbols
 </UL>
 <BR>[Called By]<UL><LI><a href="#[2f0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_UpdateTimeDisplay
 <LI><a href="#[4b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ensure_user_data_file
-<LI><a href="#[1d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;daily_energy_flush_to_sd
+<LI><a href="#[1d3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;daily_energy_flush_to_sd
 <LI><a href="#[6c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_init
-<LI><a href="#[1d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_flush
+<LI><a href="#[1d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_flush
 </UL>
 
 <P><STRONG><a name="[2ec]"></a>RX8025T_GetTime</STRONG> (Thumb, 80 bytes, Stack size 24 bytes, rx8025t.o(i.RX8025T_GetTime))
@@ -4368,8 +4369,8 @@ Global Symbols
 <LI><a href="#[29b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MPPT_ControlLoop
 <LI><a href="#[722]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_device
 <LI><a href="#[43b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;load_devices
-<LI><a href="#[1d3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_poll_and_control_all
-<LI><a href="#[1d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;daily_energy_flush_to_sd
+<LI><a href="#[1d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_poll_and_control_all
+<LI><a href="#[1d3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;daily_energy_flush_to_sd
 <LI><a href="#[412]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;comm_err_canary_probe
 <LI><a href="#[4c3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tcp_send_search_result
 <LI><a href="#[4ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;save_energy_before_search
@@ -4401,7 +4402,7 @@ Global Symbols
 <LI><a href="#[183]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BANK_PrintInfo
 <LI><a href="#[735]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_save
 <LI><a href="#[6c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_init
-<LI><a href="#[1d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_flush
+<LI><a href="#[1d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_flush
 <LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;alert_dialog_btn_cb
 <LI><a href="#[f1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fs_open
 <LI><a href="#[506]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fs_init
@@ -5112,7 +5113,7 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[1c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memclr4
 <LI><a href="#[3ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memcpy4
 </UL>
-<BR>[Called By]<UL><LI><a href="#[1d3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_poll_and_control_all
+<BR>[Called By]<UL><LI><a href="#[1d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_poll_and_control_all
 <LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;alert_dialog_btn_cb
 <LI><a href="#[ab]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;alert_clear_all_dialog_btn_cb
 </UL>
@@ -5238,7 +5239,7 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[92]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lvgl_task
 </UL>
 
-<P><STRONG><a name="[1d4]"></a>daily_energy_flush_to_sd</STRONG> (Thumb, 530 bytes, Stack size 152 bytes, device_manager.o(i.daily_energy_flush_to_sd))
+<P><STRONG><a name="[1d3]"></a>daily_energy_flush_to_sd</STRONG> (Thumb, 530 bytes, Stack size 152 bytes, device_manager.o(i.daily_energy_flush_to_sd))
 <BR><BR>[Stack]<UL><LI>Max Depth = 1088<LI>Call Chain = daily_energy_flush_to_sd &rArr; write_user_data &rArr; f_open &rArr; dir_register &rArr; dir_find &rArr; dir_next &rArr; create_chain &rArr; put_fat &rArr; move_window &rArr; sync_window &rArr; disk_write
 </UL>
 <BR>[Calls]<UL><LI><a href="#[2eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_GetDateTime
@@ -5300,7 +5301,7 @@ Global Symbols
 <LI><a href="#[92]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lvgl_task
 </UL>
 
-<P><STRONG><a name="[1d3]"></a>device_poll_and_control_all</STRONG> (Thumb, 298 bytes, Stack size 176 bytes, device_manager.o(i.device_poll_and_control_all))
+<P><STRONG><a name="[1d5]"></a>device_poll_and_control_all</STRONG> (Thumb, 298 bytes, Stack size 176 bytes, device_manager.o(i.device_poll_and_control_all))
 <BR><BR>[Stack]<UL><LI>Max Depth = 1668<LI>Call Chain = device_poll_and_control_all &rArr; MPPT_ControlLoop &rArr; device_ctrl_heater &rArr; ES1642_SendUserData &rArr; ES1642_SendData &rArr; ES1642_SendFrame &rArr; ES1642_BuildFrame &rArr; es1642_calc_checksum
 </UL>
 <BR>[Calls]<UL><LI><a href="#[1fa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_SendUserData
@@ -12108,7 +12109,7 @@ Global Symbols
 </UL>
 <BR>[Called By]<UL><LI><a href="#[2da]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rs485_usart6_send
 <LI><a href="#[29b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MPPT_ControlLoop
-<LI><a href="#[1d3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_poll_and_control_all
+<LI><a href="#[1d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_poll_and_control_all
 <LI><a href="#[94]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;W5500_Task
 <LI><a href="#[92]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lvgl_task
 <LI><a href="#[91]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;StartDefaultTask
@@ -12351,7 +12352,7 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;user_list_item_event_handler
 <LI><a href="#[3da]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;build_filepath
 <LI><a href="#[4b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ensure_user_data_file
-<LI><a href="#[1d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;daily_energy_flush_to_sd
+<LI><a href="#[1d3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;daily_energy_flush_to_sd
 <LI><a href="#[3b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;alert_populate_current_page
 <LI><a href="#[a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;alert_item_event_handler
 <LI><a href="#[299]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;list_populate_current_page
@@ -12421,7 +12422,7 @@ Global Symbols
 </UL>
 <BR>[Called By]<UL><LI><a href="#[6c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;user_detail_cache_init
 <LI><a href="#[722]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_device
-<LI><a href="#[1d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;daily_energy_flush_to_sd
+<LI><a href="#[1d3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;daily_energy_flush_to_sd
 <LI><a href="#[4ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;save_energy_before_search
 <LI><a href="#[4bf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;restore_energy_after_search
 </UL>
@@ -13071,7 +13072,7 @@ Global Symbols
 <LI><a href="#[1c5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DHCP_run
 </UL>
 
-<P><STRONG><a name="[1d5]"></a>solar_energy_flush</STRONG> (Thumb, 342 bytes, Stack size 72 bytes, mppt.o(i.solar_energy_flush))
+<P><STRONG><a name="[1d4]"></a>solar_energy_flush</STRONG> (Thumb, 342 bytes, Stack size 72 bytes, mppt.o(i.solar_energy_flush))
 <BR><BR>[Stack]<UL><LI>Max Depth = 960<LI>Call Chain = solar_energy_flush &rArr; solar_energy_save &rArr; f_open &rArr; dir_register &rArr; dir_find &rArr; dir_next &rArr; create_chain &rArr; put_fat &rArr; move_window &rArr; sync_window &rArr; disk_write
 </UL>
 <BR>[Calls]<UL><LI><a href="#[2eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RX8025T_GetDateTime
@@ -13111,7 +13112,7 @@ Global Symbols
 <LI><a href="#[16e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[6c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_init
-<LI><a href="#[1d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_flush
+<LI><a href="#[1d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;solar_energy_flush
 </UL>
 
 <P><STRONG><a name="[6c2]"></a>tcp_config_load</STRONG> (Thumb, 394 bytes, Stack size 112 bytes, user_main.o(i.tcp_config_load))
@@ -14126,7 +14127,7 @@ Global Symbols
 <LI><a href="#[3de]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_open
 <LI><a href="#[3e0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_close
 </UL>
-<BR>[Called By]<UL><LI><a href="#[1d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;daily_energy_flush_to_sd
+<BR>[Called By]<UL><LI><a href="#[1d3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;daily_energy_flush_to_sd
 <LI><a href="#[4ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;save_energy_before_search
 <LI><a href="#[4bf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;restore_energy_after_search
 </UL>
@@ -14720,7 +14721,7 @@ Local Symbols
 <BR>[Calls]<UL><LI><a href="#[1fa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_SendUserData
 <LI><a href="#[16e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[1d3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_poll_and_control_all
+<BR>[Called By]<UL><LI><a href="#[1d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_poll_and_control_all
 </UL>
 
 <P><STRONG><a name="[3da]"></a>build_filepath</STRONG> (Thumb, 66 bytes, Stack size 24 bytes, user_data_manager.o(i.build_filepath))
@@ -21038,10 +21039,11 @@ Local Symbols
 <BR>[Called By]<UL><LI><a href="#[94]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;W5500_Task
 </UL>
 
-<P><STRONG><a name="[31e]"></a>tcp_client_connect</STRONG> (Thumb, 134 bytes, Stack size 24 bytes, user_main.o(i.tcp_client_connect))
-<BR><BR>[Stack]<UL><LI>Max Depth = 112<LI>Call Chain = tcp_client_connect &rArr; socket &rArr; close &rArr; WIZCHIP_WRITE
+<P><STRONG><a name="[31e]"></a>tcp_client_connect</STRONG> (Thumb, 144 bytes, Stack size 24 bytes, user_main.o(i.tcp_client_connect))
+<BR><BR>[Stack]<UL><LI>Max Depth = 660<LI>Call Chain = tcp_client_connect &rArr; ES1642_StopSearch &rArr; ES1642_SendStopSearch &rArr; ES1642_SendFrame &rArr; ES1642_BuildFrame &rArr; es1642_calc_checksum
 </UL>
-<BR>[Calls]<UL><LI><a href="#[31c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WIZCHIP_WRITE
+<BR>[Calls]<UL><LI><a href="#[1fd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ES1642_StopSearch
+<LI><a href="#[31c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;WIZCHIP_WRITE
 <LI><a href="#[1c7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;socket
 <LI><a href="#[413]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;connect
 <LI><a href="#[1ce]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;close

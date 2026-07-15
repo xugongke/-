@@ -15,6 +15,7 @@
 #include "device_manager.h"
 #include "fatfs.h"
 #include "gui_guider.h"
+#include "es1642_usage_guide.h"
 
 /* ==================== 网络配置 ==================== */
 wiz_NetInfo default_net_info = {
@@ -435,6 +436,9 @@ static int tcp_client_connect(void)
         close(TCP_SOCKET_ID);
         return -1;
     }
+    
+    ES1642_StopSearch();//连接成功后停止搜索ES1642
+    g_device_manage_mode = 0;//建立连接时退出管理模式, 以便从机轮询继续工作
 
     printf("TCP 已连接\r\n");
     g_tcp_connected = 1;
