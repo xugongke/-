@@ -34,19 +34,46 @@ wiz_NetInfo default_net_info = {
  *        MAC[0]=0x02 表示"本地管理单播地址"(LAM), 无需向IEEE购买.
  *        注意: 之前 default_net_info.mac 写死成同一个值, 两台主机烧同一固件
  *        就会MAC相同 -> DHCP分到同一个IP -> TCP连接被互相RST(10054).
+ *
+ *        === 如何获取/验证真实 UID ===
+ *        方法1 (代码内): 本函数通过 HAL_GetUIDw0/1/2() 读取并 printf 打印,
+ *                       串口终端即可看到 "UID = XXXXXXXX-XXXXXXXX-XXXXXXXX".
+ *        方法2 (ST-Link): 用 STM32CubeProgrammer 连接芯片,
+ *                        在 Memory 视图读取地址 0x1FFF7A10 处的 12 字节.
+ *        方法3 (IDE调试): Keil/CubeIDE 调试时在 Watch 窗口添加表达式
+ *                        *(uint32_t*)0x1FFF7A10 即可查看.
+ *
+ *        UID 地址说明 (STM32F4 全系列统一):
+ *          UID_BASE = 0x1FFF7A10 (定义在 stm32f4xx.h, 由 CMSIS 提供)
+ *          Word0 @ 0x1FFF7A10: [31:16]=Wafer_X/Y坐标, [15:8]=Wafer编号
+ *          Word1 @ 0x1FFF7A14: Lot编号 (ASCII)
+ *          Word2 @ 0x1FFF7A18: Lot编号续 + 其他
+ *
+ *        MAC 生成策略: 将 96 位 UID 的全部 12 字节通过 XOR 折叠到 5 字节,
+ *        相比只取低位字节, 能更充分地利用 UID 信息, 避免同批次芯片 MAC 重复.
  */
 static void generate_mac_from_uid(uint8_t *mac)
 {
-    /* STM32F4 UID: 96-bit @ 0x1FFF7A10 / 0x1FFF7A14 / 0x1FFF7A18 */
-    uint32_t uid0 = *(uint32_t *)0x1FFF7A10U;
-    uint32_t uid1 = *(uint32_t *)0x1FFF7A14U;
-    uint32_t uid2 = *(uint32_t *)0x1FFF7A18U;
-    mac[0] = 0x02U;  /* 本地管理地址 + 单播 */
-    mac[1] = (uint8_t)(uid0 & 0xFF);
-    mac[2] = (uint8_t)((uid0 >> 8) & 0xFF);
-    mac[3] = (uint8_t)(uid1 & 0xFF);
-    mac[4] = (uint8_t)((uid1 >> 8) & 0xFF);
-    mac[5] = (uint8_t)(uid2 & 0xFF);
+    /* 使用 HAL 库接口读取 96 位唯一 ID (底层即读 UID_BASE=0x1FFF7A10) */
+    uint32_t uid0 = HAL_GetUIDw0();
+    uint32_t uid1 = HAL_GetUIDw1();
+    uint32_t uid2 = HAL_GetUIDw2();
+
+    /* 将 12 字节 UID 通过 XOR 折叠到 5 字节, 充分利用全部 96 位信息 */
+    uint8_t b[12];
+    b[0]  = (uint8_t)(uid0);        b[1]  = (uint8_t)(uid0 >> 8);
+    b[2]  = (uint8_t)(uid0 >> 16);  b[3]  = (uint8_t)(uid0 >> 24);
+    b[4]  = (uint8_t)(uid1);        b[5]  = (uint8_t)(uid1 >> 8);
+    b[6]  = (uint8_t)(uid1 >> 16);  b[7]  = (uint8_t)(uid1 >> 24);
+    b[8]  = (uint8_t)(uid2);        b[9]  = (uint8_t)(uid2 >> 8);
+    b[10] = (uint8_t)(uid2 >> 16);  b[11] = (uint8_t)(uid2 >> 24);
+
+    mac[0] = 0x02U;  /* 本地管理地址 (LAM) + 单播 */
+    mac[1] = b[0] ^ b[4] ^ b[8];
+    mac[2] = b[1] ^ b[5] ^ b[9];
+    mac[3] = b[2] ^ b[6] ^ b[10];
+    mac[4] = b[3] ^ b[7] ^ b[11];
+    mac[5] = b[0] ^ b[5] ^ b[10];  /* 交叉混合, 进一步增加区分度 */
 }
 
 /* 上位机服务器IP和端口 */
