@@ -126,7 +126,7 @@ const osThreadAttr_t A7680CTask_attributes = {
 osThreadId_t W5500TaskHandle;
 const osThreadAttr_t W5500Task_attributes = {
   .name = "W5500Task",
-  .stack_size = 512 * 4,
+  .stack_size = 1024 * 4,
   .priority = (osPriority_t) osPriorityBelowNormal1,
 };
 /* Definitions for ES1642Task */
@@ -373,6 +373,9 @@ void lvgl_task(void *argument)
 	// 文件系统初始化完成之后读取设备表文件加载到RAM中
 	device_manager_init();
 
+	// 从SD卡加载主机MAC地址(优先于ES1642_ReadMac, 开机即可用)
+	host_mac_load();
+
 	// 从SD卡加载所有已入网设备的用电量数据到RAM缓存（在UI显示之前完成）
 	user_detail_cache_init();
 
@@ -581,11 +584,10 @@ void DevicePoll_Task(void *argument)
   /* Infinite loop */
   for(;;)
   {
-      printf("电池电量:%d\r\n", Battery_GetPercentage());
       /* ===== 白天系统恢复 → 重置结算标志, 允许新一天结算 =====
        * 结算(低电量/零点)后energy_flushed_today=1, 只有第二天光照充足
        * (V>28V)且电池充到80%时才重置为0, 确保一天只结算一次。 */
-      if (Solar_GetVoltage() > 28.0f && Battery_GetPercentage() >= 80)
+      if (energy_flushed_today == 1 && Solar_GetVoltage() > 28.0f && Battery_GetPercentage() >= 80)
       {
           energy_flushed_today = 0;
           printf("系统恢复(光照充足+电池%d%%), 重置结算标志\r\n", Battery_GetPercentage());
@@ -654,6 +656,12 @@ void DevicePoll_Task(void *argument)
             tcp_resp_stop_search();
         }
       }
+
+      /* ===== 告警扫描: 每次循环都执行, 不受模式门控限制 =====
+       * 确保设备管理模式/搜索模式下也能更新告警页面。
+       * 只是遍历RAM中的device_list状态位, 开销极小(无通信)。 */
+      alert_scan_devices();
+
     osDelay(10000);  /* 10秒(控制+采集已在device_poll_and_control_all内完成) */
   }
   /* USER CODE END DevicePoll_Task */

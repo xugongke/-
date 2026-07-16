@@ -15,6 +15,7 @@
 #include "es1642_usage_guide.h"
 #include <stdio.h>
 #include "ff.h"
+#include "fatfs.h"           /* SDFile, fs_mutex 用于主机MAC持久化 */
 #include "device_manager.h"
 #include "user_data_manager.h"
 #include "host_comm.h"
@@ -96,7 +97,71 @@ volatile uint32_t g_last_search_result_tick = 0;
 
 /* 主机MAC地址(读取自ES1642载波模块, 作为主机唯一标识) */
 uint8_t g_host_mac[6] = {0};
-uint8_t g_host_mac_valid = 0;  /* 0=尚未读取, 1=已读取成功 */
+
+/* ======== 主机MAC地址SD卡持久化 ======== */
+#define HOST_MAC_FILE    "0:/host_mac.bin"
+#define HOST_MAC_MAGIC   0x4D414348  /* "MACH" */
+
+#pragma pack(push, 1)
+typedef struct {
+    uint32_t magic;   /* 魔数校验 */
+    uint8_t  mac[6];  /* MAC地址 */
+} host_mac_file_t;
+#pragma pack(pop)
+
+void host_mac_save(void)
+{
+    host_mac_file_t file_data;
+    file_data.magic = HOST_MAC_MAGIC;
+    memcpy(file_data.mac, g_host_mac, 6);
+
+    if(fs_mutex) osMutexAcquire(fs_mutex, osWaitForever);
+    FRESULT res = f_open(&SDFile, HOST_MAC_FILE, FA_CREATE_ALWAYS | FA_WRITE);
+    if (res == FR_OK)
+    {
+        UINT bw;
+        f_write(&SDFile, &file_data, sizeof(file_data), &bw);
+        f_close(&SDFile);
+        printf("主机MAC已保存到SD卡\r\n");
+    }
+    else
+    {
+        printf("主机MAC保存失败: %d\r\n", res);
+    }
+    if(fs_mutex) osMutexRelease(fs_mutex);
+}
+
+void host_mac_load(void)
+{
+    host_mac_file_t file_data;
+
+    if(fs_mutex) osMutexAcquire(fs_mutex, osWaitForever);
+    FRESULT res = f_open(&SDFile, HOST_MAC_FILE, FA_OPEN_EXISTING | FA_READ);
+    if (res == FR_OK)
+    {
+        UINT br;
+        f_read(&SDFile, &file_data, sizeof(file_data), &br);
+        f_close(&SDFile);
+        if(fs_mutex) osMutexRelease(fs_mutex);
+
+        if (br == sizeof(file_data) && file_data.magic == HOST_MAC_MAGIC)
+        {
+            memcpy(g_host_mac, file_data.mac, 6);
+            printf("从SD卡加载主机MAC: %02X-%02X-%02X-%02X-%02X-%02X\r\n",
+                   g_host_mac[0], g_host_mac[1], g_host_mac[2],
+                   g_host_mac[3], g_host_mac[4], g_host_mac[5]);
+        }
+        else
+        {
+            printf("主机MAC文件校验失败, 等待ES1642读取\r\n");
+        }
+    }
+    else
+    {
+        if(fs_mutex) osMutexRelease(fs_mutex);
+        printf("主机MAC文件不存在, 等待ES1642读取\r\n");
+    }
+}
 
 /* PSK设置结果缓冲区 */
 es1642_psk_result_response_t g_es1642_psk_result;
@@ -203,7 +268,7 @@ void es1642_on_frame_received(es1642_handle_t *handle,
                        mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
                 /* 保存为主机MAC地址, 供上位机识别 */
                 memcpy(g_host_mac, mac, 6);
-                g_host_mac_valid = 1;
+                host_mac_save();  /* 持久化到SD卡, 下次开机可快速加载 */
             }
             break;
         }

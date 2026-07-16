@@ -130,18 +130,22 @@ void tcp_dispatch_frame(uint8_t type, uint8_t cmd, const uint8_t *data, uint16_t
             break;
 
         case CMD_OTA_BEGIN:
+            /* 处理OTA升级开始命令: 数据域 = [升级包总大小(4)][MD5(16)] */
             tcp_resp_ota_begin(data, len);
             break;
 
         case CMD_OTA_DATA:
+            /* 处理OTA升级数据包: 数据域 = [包序号(4)][数据...] */
             tcp_resp_ota_data(data, len);
             break;
 
         case CMD_OTA_END:
+            /* 处理OTA升级结束命令: 数据域 = [包序号(4)] */
             tcp_resp_ota_end(data, len);
             break;
 
         case CMD_OTA_STATUS:
+            /* 处理OTA升级状态查询命令: 数据域为空, 返回当前状态 */
             tcp_resp_ota_status();
             break;
 
@@ -293,6 +297,8 @@ void tcp_resp_bind_device(const uint8_t *data, uint16_t len)
             case 5:  err = ERR_NET_TIMEOUT;      break;
             case 6:  err = ERR_NET_FAILED;       break;
             case 7:  err = ERR_SEND_FAILED;      break;
+            case 8:  err = ERR_FILE_CREATE_FAILED; break;
+            case 9:  err = ERR_FILE_READ_FAILED;  break;
             default: err = ERR_PARAM_INVALID;    break;
         }
 

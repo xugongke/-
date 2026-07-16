@@ -400,6 +400,11 @@ void tcp_send_frame(uint8_t type, uint8_t cmd, const uint8_t *data, uint16_t len
                             FRAME_MAX_DATA_LEN + FRAME_CRC_LEN + 1];
 
     uint16_t frame_len = build_frame(send_buf, type, cmd, data, len);
+    // for(int i = 0; i < frame_len; i++)
+    // {
+    //     printf("%02X ", send_buf[i]);
+    // }
+    // printf("\r\n");
     int lenl = send(TCP_SOCKET_ID, send_buf, frame_len);
 }
 

@@ -233,26 +233,34 @@ int update_device(uint8_t *mac, uint8_t *addr)
                         response.data[2] == SLAVE_RESULT_OK)
                 {
                     printf("从机修改通信地址成功, 响应长度=%d\r\n", response.data_len);
-                    memcpy(device_list[index].addr, addr, 6); // 通信地址修改成功，更新设备表
-                    device_changed = 1;
                     /* 为新的通信地址创建数据文件,这里后面要加一个重复绑定判断 */
-                    ensure_user_data_file(device_list[index].addr, device_list[index].mac);
+                    /* 先更新设备表地址(确保从机和主机一致), 再创建数据文件。
+                     * 如果文件操作失败, 设备表地址已正确, 下轮轮询可正常通信。 */
+                    memcpy(device_list[index].addr, addr, 6);
+                    device_changed = 1;
+                    if(ensure_user_data_file(device_list[index].addr, device_list[index].mac) != 0)
+                    {
+                        printf("创建用户数据文件失败\r\n");
+                        return 8;
+                    }
                     /*把新的通信地址对应的文件更新到RAM*/
                     user_data_file_t file_data;
-                    if (read_user_data(device_list[index].addr, &file_data) == 0)
+                    if (read_user_data(device_list[index].addr, &file_data) != 0)
                     {
-                        /* 读取成功，填充缓存 */
-                        user_detail_cache[index].unit = file_data.unit;
-                        user_detail_cache[index].room = file_data.room;
-                        user_detail_cache[index].daily_energy   = file_data.daily_energy;
-                        user_detail_cache[index].monthly_energy = file_data.monthly_energy;
-                        user_detail_cache[index].annual_energy  = file_data.annual_energy;
-                        user_detail_cache[index].total_energy   = file_data.total_energy;
-                        memcpy(user_detail_cache[index].weekly_energy, file_data.weekly_energy,
-                            sizeof(file_data.weekly_energy));
-                        memcpy(&user_detail_cache[index].update_time, &file_data.update_time,
-                            sizeof(file_data.update_time));
+                        printf("读取用户数据文件失败\r\n");
+                        return 9;
                     }
+                    /* 读取成功，填充缓存 */
+                    user_detail_cache[index].unit = file_data.unit;
+                    user_detail_cache[index].room = file_data.room;
+                    user_detail_cache[index].daily_energy   = file_data.daily_energy;
+                    user_detail_cache[index].monthly_energy = file_data.monthly_energy;
+                    user_detail_cache[index].annual_energy  = file_data.annual_energy;
+                    user_detail_cache[index].total_energy   = file_data.total_energy;
+                    memcpy(user_detail_cache[index].weekly_energy, file_data.weekly_energy,
+                        sizeof(file_data.weekly_energy));
+                    memcpy(&user_detail_cache[index].update_time, &file_data.update_time,
+                        sizeof(file_data.update_time));
                 }
                 else
                 {
@@ -911,9 +919,8 @@ void device_poll_and_control_all(void)
     }
     printf("MPPT采集完成\r\n");
 
-    /* ===== 告警扫描（在控制阶段前执行，基于采集到的真实状态，不受控制阶段临时relay_err标记影响） ===== */
-    alert_scan_devices();
-
-    /* ===== ② 快速控制阶段：MPPT P&O 控制闭环 ===== */
+    /* ===== ② 快速控制阶段：MPPT P&O 控制闭环 =====
+     * 告警扫描(alert_scan_devices)已移至DevicePoll_Task循环末尾,
+     * 确保设备管理模式/搜索模式下也能更新告警统计。 */
     MPPT_ControlLoop();
 }

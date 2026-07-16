@@ -1496,13 +1496,9 @@ static void screen_sys_setting_event_handler(lv_event_t *e)
         /* ======== 更新系统信息到UI ======== */
 
         /* 主机MAC地址 */
-        if (g_host_mac_valid) {
-            lv_snprintf(buf, sizeof(buf), "%02X:%02X:%02X:%02X:%02X:%02X",
-                        g_host_mac[0], g_host_mac[1], g_host_mac[2],
-                        g_host_mac[3], g_host_mac[4], g_host_mac[5]);
-        } else {
-            lv_snprintf(buf, sizeof(buf), "%s", "未读取 ");
-        }
+        lv_snprintf(buf, sizeof(buf), "%02X:%02X:%02X:%02X:%02X:%02X",
+                    g_host_mac[0], g_host_mac[1], g_host_mac[2],
+                    g_host_mac[3], g_host_mac[4], g_host_mac[5]);
         lv_label_set_text(guider_ui.screen_sys_setting_label_mac, buf);
 
         /* 楼栋号 */

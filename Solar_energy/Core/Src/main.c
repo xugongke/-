@@ -126,7 +126,6 @@ int main(void)
   MX_CRC_Init();
   MX_IWDG_Init();
   MX_RTC_Init();
-
   /* USER CODE BEGIN 2 */
 	Battery_Init();
 	RS485_USART_Init_All();

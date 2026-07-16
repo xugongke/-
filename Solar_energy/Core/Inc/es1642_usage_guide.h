@@ -74,7 +74,6 @@ extern volatile uint32_t g_last_search_result_tick;
 
 /* 主机MAC地址(读取自ES1642载波模块, 开机时自动读取, 作为主机唯一标识) */
 extern uint8_t g_host_mac[6];
-extern uint8_t g_host_mac_valid;  /* 0=尚未读取, 1=已读取成功 */
 
 /* ======== 步骤2：实现串口发送回调函数 ======== */
 
@@ -219,6 +218,20 @@ int ES1642_SendSearch(const uint8_t src_addr[ES1642_ADDR_LEN],
 int ES1642_SetPsk(int dev_index,
                  const uint8_t new_psk[ES1642_SET_PSK_LEN]);
 													
+
+/* ======== 主机MAC地址持久化 ======== */
+
+/**
+ * @brief 保存主机MAC地址到SD卡
+ * @note  在ES1642_CMD_READ_MAC回调成功后自动调用
+ */
+void host_mac_save(void);
+
+/**
+ * @brief 从SD卡加载主机MAC地址到g_host_mac
+ * @note  在开机文件系统初始化后调用, 优先于ES1642_ReadMac
+ */
+void host_mac_load(void);
 
 #ifdef __cplusplus
 }

@@ -460,6 +460,16 @@
               <FilePath>..\Core\Src\bank_switch.c</FilePath>
             </File>
             <File>
+              <FileName>ota_upgrade.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\ota_upgrade.c</FilePath>
+            </File>
+            <File>
+              <FileName>ota_upgrade.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Core\Inc\ota_upgrade.h</FilePath>
+            </File>
+            <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Core/Src/main.c</FilePath>
@@ -1053,16 +1063,6 @@
               <FileName>stm32f4xx_hal_timebase_tim.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Core/Src/stm32f4xx_hal_timebase_tim.c</FilePath>
-            </File>
-            <File>
-              <FileName>ota_upgrade.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Core\Src\ota_upgrade.c</FilePath>
-            </File>
-            <File>
-              <FileName>ota_upgrade.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Core\Inc\ota_upgrade.h</FilePath>
             </File>
           </Files>
         </Group>

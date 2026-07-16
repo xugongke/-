@@ -54,6 +54,8 @@
 #define ERR_NET_TIMEOUT      0x06  /* 入网超时 */
 #define ERR_NET_FAILED       0x07  /* 入网失败 */
 #define ERR_SEND_FAILED      0x08  /* 发送失败 */
+#define ERR_FILE_CREATE_FAILED 0x09  /* 创建数据文件失败 */
+#define ERR_FILE_READ_FAILED   0x0A  /* 读取数据文件失败 */
 
 /* ==================== 分包配置 ==================== */
 #define DEVICE_PER_PACKET    24    /* 读取设备列表每包最大设备数 (512-5)/sizeof(device_t=21)≈24 */
