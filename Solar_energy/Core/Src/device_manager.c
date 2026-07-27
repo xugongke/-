@@ -863,9 +863,9 @@ void device_poll_and_control_all(void)
             }
             device_list[i].daily_energy_wh += delta;
             last_energy_read[i] = energy_accum;
-            printf("用户%d: 日累计=%dWh (accum=%d, last=%d, delta=%d)\r\n",
+            printf("用户%d: 日累计=%dWh (accum=%d, last=%d, delta=%d) 当前温度:%d℃\r\n",
                    device_list[i].addr[3], device_list[i].daily_energy_wh,
-                   energy_accum, last_old, delta);
+                   energy_accum, last_old, delta, device_list[i].temperature);
 						
 //														char topic[48];
 //														char payload[128];

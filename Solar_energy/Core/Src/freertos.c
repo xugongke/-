@@ -587,7 +587,7 @@ void DevicePoll_Task(void *argument)
       /* ===== 白天系统恢复 → 重置结算标志, 允许新一天结算 =====
        * 结算(低电量/零点)后energy_flushed_today=1, 只有第二天光照充足
        * (V>28V)且电池充到80%时才重置为0, 确保一天只结算一次。 */
-      if (energy_flushed_today == 1 && Solar_GetVoltage() > 28.0f && Battery_GetPercentage() >= 80)
+      if (energy_flushed_today == 1 && Battery_GetPercentage() >= 80)
       {
           energy_flushed_today = 0;
           printf("系统恢复(光照充足+电池%d%%), 重置结算标志\r\n", Battery_GetPercentage());
