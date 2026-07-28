@@ -223,6 +223,7 @@ void print_network_information(void)
     wizchip_getnetinfo(&net_info); // Get chip configuration information
 
     lv_snprintf(client_ip_buf, sizeof(client_ip_buf), "%d.%d.%d.%d ",net_info.ip[0], net_info.ip[1], net_info.ip[2], net_info.ip[3]);
+    printf("重新DHCP后获取到的IP地址: %s\r\n", client_ip_buf);
 
 //    if (net_info.dhcp == NETINFO_DHCP)
 //    {

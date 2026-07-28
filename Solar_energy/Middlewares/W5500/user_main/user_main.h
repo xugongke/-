@@ -78,6 +78,35 @@ int tcp_config_save(void);
  */
 int tcp_config_load(void);
 
+/* ==================== 网关IP配置 ==================== */
+
+/**
+ * @brief   获取当前网关IP地址
+ * @param   ip: 输出4字节IP地址
+ */
+void tcp_get_gateway_addr(uint8_t ip[4]);
+
+/**
+ * @brief   设置新的网关IP地址, 并更新W5500网络配置
+ * @param   ip: 4字节IP地址
+ */
+void tcp_set_gateway_addr(const uint8_t ip[4]);
+
+/**
+ * @brief   将当前网关IP保存到TF卡
+ * @return  0=成功, -1=失败
+ */
+int gateway_config_save(void);
+
+/**
+ * @brief   从TF卡读取网关IP
+ * @return  0=成功, -1=失败(使用默认值)
+ */
+int gateway_config_load(void);
+
+/* 网关IP显示缓冲区 (定义在user_main.c) */
+extern char gateway_buf[20];
+
 /* ==================== 函数声明 ==================== */
 
 /**

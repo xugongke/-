@@ -1277,12 +1277,14 @@ void events_init_screen_alert (lv_ui *ui)
  * @brief  当前活跃的输入框 (0=IP, 1=Port)
  */
 static uint8_t s_tcp_active_field = 0;
+static uint8_t s_setting_mode = 0;
 
 /**
  * @brief  切换键盘关联的textarea并更新光标显示
  */
 static void tcp_switch_textarea(void)
 {
+    if (s_setting_mode == 1) return;
     s_tcp_active_field ^= 1;  /* 0↔1 切换 */
     if (s_tcp_active_field == 0) {
         /* 切换到IP */
@@ -1307,6 +1309,19 @@ static void tcp_switch_textarea(void)
 static void tcp_save(void)
 {
     const char *ip_str = lv_textarea_get_text(guider_ui.screen_tcp_setting_ta_ip);
+    if (s_setting_mode == 1) {
+        uint8_t ip[4]={0},oc=0,v=0,hv=0;
+        for(uint16_t i=0;i<=strlen(ip_str)&&oc<4;i++){
+            if(ip_str[i]>='0'&&ip_str[i]<='9'){v=v*10+(ip_str[i]-'0');hv=1;}
+            else{if(hv){ip[oc++]=v;v=0;hv=0;}}
+        }
+        if(oc<4)return;
+        tcp_set_gateway_addr(ip);
+        gateway_config_save();
+        lv_snprintf(gateway_buf,sizeof(gateway_buf),"%d.%d.%d.%d ",ip[0],ip[1],ip[2],ip[3]);
+        ui_load_scr_animation(&guider_ui,&guider_ui.screen_sys_setting,guider_ui.screen_sys_setting_del,&guider_ui.screen_tcp_setting_del,setup_scr_screen_sys_setting,LV_SCR_LOAD_ANIM_NONE,10,10,true,true);
+        return;
+    }
     const char *port_str = lv_textarea_get_text(guider_ui.screen_tcp_setting_ta_port);
 
     /* 解析IP */
@@ -1420,8 +1435,19 @@ static void screen_tcp_setting_event_handler(lv_event_t *e)
         lv_snprintf(ip_str, sizeof(ip_str), "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
         lv_snprintf(port_str, sizeof(port_str), "%d", port);
 
-        lv_textarea_set_text(guider_ui.screen_tcp_setting_ta_ip, ip_str);
-        lv_textarea_set_text(guider_ui.screen_tcp_setting_ta_port, port_str);
+        /* 获取Port卡片(输入框的父容器), 网关模式下隐藏 */
+        lv_obj_t *port_card = lv_obj_get_parent(guider_ui.screen_tcp_setting_ta_port);
+        if(s_setting_mode==1){
+            uint8_t gw[4]; tcp_get_gateway_addr(gw);
+            lv_snprintf(ip_str,sizeof(ip_str),"%d.%d.%d.%d",gw[0],gw[1],gw[2],gw[3]);
+            lv_textarea_set_text(guider_ui.screen_tcp_setting_ta_ip,ip_str);
+            lv_textarea_set_text(guider_ui.screen_tcp_setting_ta_port,"");
+            lv_obj_add_flag(port_card, LV_OBJ_FLAG_HIDDEN);   /* 网关模式: 隐藏Port卡片 */
+        }else{
+            lv_textarea_set_text(guider_ui.screen_tcp_setting_ta_ip, ip_str);
+            lv_textarea_set_text(guider_ui.screen_tcp_setting_ta_port, port_str);
+            lv_obj_clear_flag(port_card, LV_OBJ_FLAG_HIDDEN); /* TCP模式: 显示Port卡片 */
+        }
 
         /* 只将键盘加入group, textarea不加入 (由键盘直接控制输入) */
         lv_group_remove_all_objs(g_keypad_group);
@@ -1489,6 +1515,7 @@ static void screen_sys_setting_event_handler(lv_event_t *e)
         lv_group_add_obj(g_keypad_group, guider_ui.screen_sys_setting_card_mac);
         lv_group_add_obj(g_keypad_group, guider_ui.screen_sys_setting_card_ip);
         lv_group_add_obj(g_keypad_group, guider_ui.screen_sys_setting_card_building);
+        lv_group_add_obj(g_keypad_group, guider_ui.screen_sys_setting_card_gw);
         lv_group_add_obj(g_keypad_group, guider_ui.screen_sys_setting_card_tcp);
         lv_indev_set_group(indev_keypad, g_keypad_group);
         lv_group_focus_obj(guider_ui.screen_sys_setting_card_mac);
@@ -1507,6 +1534,7 @@ static void screen_sys_setting_event_handler(lv_event_t *e)
 
         /* 本机IP地址 */
         lv_label_set_text(guider_ui.screen_sys_setting_label_ip, client_ip_buf);
+        lv_label_set_text(guider_ui.screen_sys_setting_label_gw, gateway_buf);
 
         /* TCP服务器 IP:端口 */
         lv_snprintf(buf, sizeof(buf), "%s:%s", server_ip_buf, server_port_buf);
@@ -1518,11 +1546,12 @@ static void screen_sys_setting_event_handler(lv_event_t *e)
     }
 }
 
-/* 系统设置页: TCP卡片事件处理 (点击进入TCP设置, ESC返回首页) */
+/* 系统设置页: TCP卡片点击(mode=0) */
 static void screen_sys_setting_card_tcp_event_handler(lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
     if (code == LV_EVENT_CLICKED) {
+        s_setting_mode = 0;
         ui_load_scr_animation(&guider_ui, &guider_ui.screen_tcp_setting,
                               guider_ui.screen_tcp_setting_del,
                               &guider_ui.screen_sys_setting_del,
@@ -1531,7 +1560,19 @@ static void screen_sys_setting_card_tcp_event_handler(lv_event_t *e)
     }
 }
 
-/* 系统设置页: MAC/楼栋卡片按键处理 (ESC返回首页) */
+static void screen_sys_setting_card_gw_event_handler(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if (code == LV_EVENT_CLICKED) {
+        s_setting_mode = 1;
+        ui_load_scr_animation(&guider_ui, &guider_ui.screen_tcp_setting,
+                              guider_ui.screen_tcp_setting_del,
+                              &guider_ui.screen_sys_setting_del,
+                              setup_scr_screen_tcp_setting,
+                              LV_SCR_LOAD_ANIM_NONE, 10, 10, false, false);
+    }
+}
+
 static void screen_sys_setting_card_key_handler(lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
@@ -1551,6 +1592,8 @@ void events_init_screen_sys_setting(lv_ui *ui)
 {
     lv_obj_add_event_cb(ui->screen_sys_setting, screen_sys_setting_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->screen_sys_setting_card_tcp, screen_sys_setting_card_tcp_event_handler, LV_EVENT_ALL, ui);
+    lv_obj_add_event_cb(ui->screen_sys_setting_card_gw, screen_sys_setting_card_gw_event_handler, LV_EVENT_ALL, ui);
+    lv_obj_add_event_cb(ui->screen_sys_setting_card_gw, screen_sys_setting_card_key_handler, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(ui->screen_sys_setting_card_mac, screen_sys_setting_card_key_handler, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(ui->screen_sys_setting_card_building, screen_sys_setting_card_key_handler, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(ui->screen_sys_setting_card_ip, screen_sys_setting_card_key_handler, LV_EVENT_KEY, NULL);

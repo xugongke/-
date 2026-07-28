@@ -81,6 +81,10 @@ static void generate_mac_from_uid(uint8_t *mac)
 uint8_t  server_ip[4] = {192, 168, 6, 196};
 uint16_t server_port  = 22222;
 
+/* 网关IP地址 (从default_net_info.gw初始化, 可通过UI修改) */
+uint8_t  gateway_ip[4] = {192, 168, 1, 1};
+char     gateway_buf[20];  /* 网关IP显示缓冲区 */
+
 /* DMA收发缓冲区必须放在0x20000000的AHB SRAM区域, DMA控制器才能访问 */
 __attribute__((section("RW_IRAM1")))
 static uint8_t ethernet_buf[ETHERNET_BUF_MAX_SIZE] = {0};
@@ -96,6 +100,9 @@ static FrameParser_t frame_parser;
 
 /* ==================== 连接状态标志 ==================== */
 volatile uint8_t g_tcp_connected = 0;
+
+/* 网关更新待处理标志 (由UI线程设置, W5500_Task线程消费, 避免UI卡顿) */
+volatile uint8_t g_gw_update_pending = 0;
 
 /* ================================================================
  *  CRC16-CCITT 软件实现 (反射版本, 与上位机一致)
@@ -698,6 +705,55 @@ int tcp_config_load(void)
     }
 }
 
+/* Gateway IP config (TF card) */
+#define GATEWAY_CONFIG_FILE  "0:/gateway_config.ini"
+
+void tcp_get_gateway_addr(uint8_t ip[4]) { memcpy(ip, gateway_ip, 4); }
+
+void tcp_set_gateway_addr(const uint8_t ip[4])
+{
+    /* 只更新RAM, 不在此处调用network_init (避免阻塞UI线程) */
+    memcpy(gateway_ip, ip, 4);
+    memcpy(default_net_info.gw, ip, 4);
+    g_gw_update_pending = 1;  /* 设置待处理标志, W5500_Task会在后台执行network_init */
+    printf("gw updated: %d.%d.%d.%d (pending)\r\n", ip[0], ip[1], ip[2], ip[3]);
+}
+
+int gateway_config_save(void)
+{
+    FRESULT res; UINT bw; char buf[64];
+    if(fs_mutex) osMutexAcquire(fs_mutex, osWaitForever);
+    res = f_open(&SDFile, GATEWAY_CONFIG_FILE, FA_WRITE | FA_CREATE_ALWAYS);
+    if (res != FR_OK) { if(fs_mutex) osMutexRelease(fs_mutex); return -1; }
+    snprintf(buf, sizeof(buf), "ip=%d.%d.%d.%d\n", gateway_ip[0], gateway_ip[1], gateway_ip[2], gateway_ip[3]);
+    res = f_write(&SDFile, buf, strlen(buf), &bw);
+    f_close(&SDFile);
+    if(fs_mutex) osMutexRelease(fs_mutex);
+    return (res == FR_OK) ? 0 : -1;
+}
+
+int gateway_config_load(void)
+{
+    FRESULT res; char lb[64]; int found = 0;
+    if(fs_mutex) osMutexAcquire(fs_mutex, osWaitForever);
+    res = f_open(&SDFile, GATEWAY_CONFIG_FILE, FA_READ);
+    if (res != FR_OK) { if(fs_mutex) osMutexRelease(fs_mutex); return -1; }
+    while (f_gets(lb, sizeof(lb), &SDFile) != NULL) {
+        if (strncmp(lb, "ip=", 3) == 0) {
+            uint8_t ip[4]={0}, oc=0, v=0, hv=0;
+            for (int i=3; i<=(int)strlen(lb)&&oc<4; i++) {
+                if (lb[i]>='0'&&lb[i]<='9') {v=v*10+(lb[i]-'0'); hv=1;}
+                else {if(hv){ip[oc++]=v; v=0; hv=0;}}
+            }
+            if (oc==4) {memcpy(gateway_ip,ip,4); found=1;}
+        }
+    }
+    f_close(&SDFile);
+    if(fs_mutex) osMutexRelease(fs_mutex);
+    lv_snprintf(gateway_buf, sizeof(gateway_buf), "%d.%d.%d.%d ", gateway_ip[0], gateway_ip[1], gateway_ip[2], gateway_ip[3]);
+    return found ? 0 : -1;
+}
+
 void W5500_Task(void *argument)
 {
     osDelay(8000);//等待es1642收到帧头错误
@@ -709,6 +765,9 @@ void W5500_Task(void *argument)
     wizchip_initialize();
 
     /* 用芯片UID生成全网唯一MAC, 覆盖写死的默认MAC, 避免多台主机DHCP分配到相同IP */
+    gateway_config_load();
+    memcpy(default_net_info.gw, gateway_ip, 4);
+
     generate_mac_from_uid(default_net_info.mac);
     printf("MAC = %02X:%02X:%02X:%02X:%02X:%02X\r\n",
            default_net_info.mac[0], default_net_info.mac[1], default_net_info.mac[2],
@@ -751,6 +810,25 @@ void W5500_Task(void *argument)
     {
         /* 阻塞等待W5500中断信号量, 超时3秒 (也用于断线重连检测) */
         xSemaphoreTake(w5500_int_sem, pdMS_TO_TICKS(3000));
+
+        /* 网关更新: 由UI线程设置标志, 此处(后台线程)执行耗时的SPI写入 */
+        if (g_gw_update_pending)
+        {
+            g_gw_update_pending = 0;
+            printf("gw updated: %d.%d.%d.%d (pending)\r\n", default_net_info.gw[0], default_net_info.gw[1], default_net_info.gw[2], default_net_info.gw[3]);
+            network_init(ethernet_buf, &default_net_info);
+            printf("gw network_init done\r\n");
+
+            /* DHCP完成后client_ip_buf已更新, 如果当前在系统设置页则刷新显示 */
+            if (lv_obj_is_valid(guider_ui.screen_sys_setting) &&
+                lv_scr_act() == guider_ui.screen_sys_setting)
+            {
+                if (lv_obj_is_valid(guider_ui.screen_sys_setting_label_ip))
+                    lv_label_set_text(guider_ui.screen_sys_setting_label_ip, client_ip_buf);
+                if (lv_obj_is_valid(guider_ui.screen_sys_setting_label_gw))
+                    lv_label_set_text(guider_ui.screen_sys_setting_label_gw, gateway_buf);
+            }
+        }
 
         /* PHY链路状态检测: 网线拔掉时主动断开TCP连接
          * (解决网线拔掉期间服务器关闭导致连接半开、永远无法重连的问题) */
